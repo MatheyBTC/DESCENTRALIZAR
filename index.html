@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEX-eventos 2026</title>
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#13161b; --bg3:#1a1e25; --border:#252932;
+  --text:#e8eaf0; --muted:#8b909a; --dim:#5a5f6b;
+  --btc:#F7931A; --btc-dim:rgba(247,147,26,.12);
+  /* Tipos */
+  --ama:#0e2a2a;    --ama-b:#2dd4bf;
+  --apertura:#2a2200; --apertura-b:#facc15;
+  --break:#1a1a08;  --break-b:#eab308;
+  --charla:#0d1a2e; --charla-b:#3b82f6;
+  --cierre:#1a0d2e; --cierre-b:#a855f7;
+  --concurso:#2a0d1a; --concurso-b:#ec4899;
+  --kahoot:#1a0d2a; --kahoot-b:#c084fc;
+  --panel:#2a0d0d;  --panel-b:#ef4444;
+  --premios:#2a1800; --premios-b:#fb923c;
+  --sorteo:#0d2a1a; --sorteo-b:#4ade80;
+  --taller:#0d2a0d; --taller-b:#22c55e;
+  /* Duración */
+  --dur15:#052005; --dur15-b:#22c55e;
+  --dur20:#202000; --dur20-b:#eab308;
+  --dur25:#201000; --dur25-b:#f97316;
+  --dur30:#200000; --dur30-b:#ef4444;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;min-height:100vh;}
+
+/* ── NAV ── */
+.nav{position:sticky;top:0;z-index:200;background:rgba(13,15,18,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;height:50px;overflow-x:auto;}
+.nav-brand{font-weight:800;font-size:14px;color:var(--btc);padding:0 20px;white-space:nowrap;border-right:1px solid var(--border);}
+.tab-btn{padding:0 18px;height:50px;border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--btc);border-bottom-color:var(--btc);}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 16px;border-left:1px solid var(--border);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-txt{font-size:11px;color:var(--muted);}
+
+/* ── TOOLBAR ── */
+.toolbar{padding:10px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg2);}
+.btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all .15s;white-space:nowrap;}
+.btn:hover{border-color:var(--btc);color:var(--btc);}
+.btn.save{background:var(--btc-dim);border-color:var(--btc);color:var(--btc);}
+.btn.danger{border-color:#ef4444;color:#ef4444;}
+.toolbar-sep{width:1px;height:24px;background:var(--border);margin:0 4px;}
+
+/* ── CONTENT ── */
+.tab-content{display:none;padding:20px;}
+.tab-content.active{display:block;}
+
+/* ── CONFIG BAR (Principal) ── */
+.config-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.config-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.time-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;font-weight:700;width:80px;text-align:center;}
+.time-input.green{border-color:#22c55e;color:#22c55e;}
+.time-input.red{border-color:#ef4444;color:#ef4444;}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
+.progress-header{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.progress-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#22c55e,var(--btc),#ef4444);border-radius:4px;transition:width .4s;}
+.progress-segments{display:flex;height:20px;gap:2px;margin-top:6px;flex-wrap:wrap;}
+.seg{height:20px;border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;overflow:hidden;white-space:nowrap;}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;}
+table{border-collapse:collapse;width:100%;min-width:1000px;}
+thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;position:sticky;top:50px;white-space:nowrap;}
+thead th.city-h{color:var(--btc);}
+tbody tr{transition:opacity .1s;}
+tbody tr:hover{opacity:.9;}
+td{border:1px solid var(--border);padding:0;vertical-align:middle;}
+td.row-actions{width:40px;text-align:center;padding:4px;}
+.del-row{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px;}
+.del-row:hover{color:#ef4444;background:rgba(239,68,68,.1);}
+
+/* ── CELLS ── */
+select.cell-sel,input.cell-inp{width:100%;border:none;background:transparent;color:var(--text);padding:7px 9px;font-size:13px;cursor:pointer;outline:none;font-family:inherit;}
+select.cell-sel:focus,input.cell-inp:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2px var(--btc);}
+input.cell-inp{cursor:text;}
+textarea.cell-ta{width:100%;border:none;background:transparent;color:var(--text);padding:7px 9px;font-size:12px;resize:vertical;min-height:40px;outline:none;font-family:inherit;line-height:1.5;}
+textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2px var(--btc);}
+
+/* ── TIPO BADGE ── */
+.tipo-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+
+/* ── DURACIÓN COLORES ── */
+.dur-15{background:var(--dur15);color:var(--dur15-b);}
+.dur-20{background:var(--dur20);color:var(--dur20-b);}
+.dur-25{background:var(--dur25);color:var(--dur25-b);}
+.dur-30{background:var(--dur30);color:var(--dur30-b);}
+.dur-xx{background:var(--bg3);color:var(--text);}
+
+.t-ama{background:var(--ama);color:var(--ama-b);}
+.t-apertura{background:var(--apertura);color:var(--apertura-b);}
+.t-break{background:var(--break);color:var(--break-b);}
+.t-charla{background:var(--charla);color:var(--charla-b);}
+.t-cierre{background:var(--cierre);color:var(--cierre-b);}
+.t-concurso{background:var(--concurso);color:var(--concurso-b);}
+.t-kahoot{background:var(--kahoot);color:var(--kahoot-b);}
+.t-panel{background:var(--panel);color:var(--panel-b);}
+.t-premios{background:var(--premios);color:var(--premios-b);}
+.t-sorteo{background:var(--sorteo);color:var(--sorteo-b);}
+.t-taller{background:var(--taller);color:var(--taller-b);}
+
+.time-start{color:#22c55e;font-weight:700;}
+.time-end{color:#ef4444;font-weight:700;}
+
+/* ── ADD ROW ── */
+.add-row-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px;border:1px dashed var(--border);border-top:none;background:none;color:var(--dim);font-size:13px;cursor:pointer;transition:all .15s;}
+.add-row-btn:hover{color:var(--btc);border-color:var(--btc);background:var(--btc-dim);}
+
+/* ── SPEAKERS ── */
+.speakers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:16px;}
+.speaker-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;}
+.speaker-card .tipo-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.pill-speaker{background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.3);}
+.pill-empresa{background:rgba(247,147,26,.15);color:var(--btc);border:1px solid rgba(247,147,26,.3);}
+.pill-sponsor{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+.speaker-name{font-size:15px;font-weight:700;margin:8px 0 4px;}
+.speaker-contact{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.speaker-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.speaker-tag{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+.speaker-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;}
+.speaker-del:hover{color:#ef4444;}
+
+/* ── FORM ── */
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;}
+.form-card h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--btc);}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.form-field{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.form-input,.form-select,.form-ta{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;width:100%;outline:none;transition:border-color .15s;}
+.form-input:focus,.form-select:focus,.form-ta:focus{border-color:var(--btc);}
+.form-ta{resize:vertical;min-height:70px;}
+.form-btn{margin-top:14px;padding:8px 20px;background:var(--btc-dim);border:1px solid var(--btc);color:var(--btc);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+.form-btn:hover{background:var(--btc);color:#000;}
+
+/* ── TIMELINE ── */
+.timeline-grid{display:grid;grid-template-columns:200px repeat(3,1fr);gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:16px;}
+.tl-header{background:var(--bg3);padding:10px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.tl-header.city{color:var(--btc);}
+.tl-cell{padding:10px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-size:12px;vertical-align:top;}
+.tl-cell:last-child{border-right:none;}
+.tl-row:last-child .tl-cell{border-bottom:none;}
+.tl-block{font-weight:700;color:var(--text);font-size:12px;}
+.tl-time{font-size:10px;color:var(--muted);margin-top:2px;}
+.tl-speaker{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;margin:2px 2px 0 0;cursor:default;}
+.tl-speaker.assigned{border-color:var(--btc);color:var(--btc);background:var(--btc-dim);}
+.tl-avail{color:var(--dim);font-size:11px;font-style:italic;}
+
+/* ── ESTRATEGIA ── */
+.fase-section{margin-bottom:28px;}
+.fase-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--btc);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.strat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.strat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
+.strat-title{font-size:14px;font-weight:700;margin-bottom:6px;outline:none;}
+.strat-title[contenteditable]:focus{border-bottom:1px dashed var(--btc);}
+.strat-desc{font-size:12px;color:var(--muted);outline:none;line-height:1.6;}
+.strat-desc[contenteditable]:focus{color:var(--text);}
+.strat-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;}
+.strat-del:hover{color:#ef4444;}
+.add-strat-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border:1px dashed var(--border);border-radius:10px;background:none;color:var(--dim);font-size:13px;cursor:pointer;transition:all .15s;width:100%;}
+.add-strat-btn:hover{color:var(--btc);border-color:var(--btc);background:var(--btc-dim);}
+
+/* ── IDEAS ── */
+.idea-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;}
+.idea-prop{font-size:10px;font-weight:700;color:var(--btc);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.idea-text{font-size:14px;font-weight:600;margin-bottom:4px;}
+.idea-detail{font-size:12px;color:var(--muted);line-height:1.5;}
+.idea-meta{font-size:11px;color:var(--dim);margin-top:6px;}
+.idea-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:4px;}
+.idea-del:hover{color:#ef4444;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid #22c55e;color:#22c55e;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:999;}
+#toast.show{opacity:1;}
+#toast.err{border-color:#ef4444;color:#ef4444;}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 20px;color:var(--dim);}
+.empty-icon{font-size:36px;margin-bottom:12px;}
+
+@media(max-width:700px){
+  thead th:nth-child(n+7){display:none;}
+  td:nth-child(n+7){display:none;}
+  .speakers-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<div class="nav">
+  <div class="nav-brand">⚡ DEX-eventos 2026</div>
+  <button class="tab-btn active" onclick="switchTab('principal')">📋 Principal</button>
+  <button class="tab-btn" onclick="switchTab('speakers')">🎙️ Speakers</button>
+  <button class="tab-btn" onclick="switchTab('timeline')">🗓️ Timeline</button>
+  <button class="tab-btn" onclick="switchTab('estrategia')">🎯 Estrategia</button>
+  <button class="tab-btn" onclick="switchTab('ideas')">💡 Ideas</button>
+  <div class="nav-right">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-txt" id="statusTxt">Conectando…</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TAB: PRINCIPAL
+══════════════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-principal">
+
+  <!-- Config horario -->
+  <div class="config-bar">
+    <span class="config-label">Jornada</span>
+    <input type="text" class="time-input green" id="horaApertura" value="09:00" placeholder="HH:MM" oninput="recalcTimes()">
+    <span style="color:var(--muted)">→</span>
+    <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
+    <span style="color:var(--dim);font-size:11px" id="totalMin">—</span>
+
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn" onclick="addPrincipalRow()">+ Agregar fila</button>
+      <button class="btn save" onclick="savePrincipal()">💾 Guardar</button>
+      <button class="btn" onclick="loadPrincipal()">🔄 Actualizar</button>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span id="progLabel">Cargando…</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <div class="progress-segments" id="progSegs"></div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:36px"></th>
+          <th style="width:100px">Tipo</th>
+          <th style="width:80px">Duración</th>
+          <th style="width:68px">Inicio</th>
+          <th style="width:68px">Fin</th>
+          <th style="width:200px">Tema</th>
+          <th style="width:240px">Detalle</th>
+          <th class="city-h" style="width:180px">📍 San Luis</th>
+          <th class="city-h" style="width:180px">📍 San Juan</th>
+          <th class="city-h" style="width:180px">📍 Córdoba</th>
+        </tr>
+      </thead>
+      <tbody id="principalTbody"></tbody>
+    </table>
+    <button class="add-row-btn" onclick="addPrincipalRow()">+ Agregar fila</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TAB: SPEAKERS
+══════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-speakers">
+  <div class="toolbar">
+    <button class="btn save" onclick="saveSpeakers()">💾 Guardar</button>
+    <button class="btn" onclick="loadSpeakers()">🔄 Actualizar</button>
+  </div>
+
+  <div style="padding:20px">
+    <div class="form-card">
+      <h3>+ Agregar Speaker / Empresa / Sponsor</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Nombre</label>
+          <input class="form-input" id="sp-nombre" placeholder="Nombre completo">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="sp-tipo">
+            <option value="speaker">Speaker</option>
+            <option value="empresa">Empresa</option>
+            <option value="sponsor">Sponsor</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Contacto</label>
+          <input class="form-input" id="sp-contacto" placeholder="Email / X / WhatsApp">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Ciudad(es)</label>
+          <input class="form-input" id="sp-ciudades" placeholder="San Luis / San Juan / Córdoba / Todas">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tema(s) que puede cubrir</label>
+          <input class="form-input" id="sp-temas" placeholder="Bitcoin, DeFi, Autocustodia…">
+        </div>
+        <div class="form-field" style="grid-column:1/-1">
+          <label class="form-label">Notas</label>
+          <textarea class="form-ta" id="sp-notas" placeholder="Info adicional, disponibilidad, restricciones…"></textarea>
+        </div>
+      </div>
+      <button class="form-btn" onclick="addSpeaker()">Agregar</button>
+    </div>
+
+    <div class="speakers-grid" id="speakersGrid">
+      <div class="empty"><div class="empty-icon">🎙️</div>No hay speakers cargados aún.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TAB: TIMELINE
+══════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-timeline">
+  <div class="toolbar">
+    <span style="font-size:12px;color:var(--muted)">Vista derivada de Principal + Speakers. Muestra disponibilidad por bloque.</span>
+    <button class="btn" style="margin-left:auto" onclick="buildTimeline()">🔄 Recalcular</button>
+  </div>
+  <div style="padding:20px">
+    <div id="timelineWrap">
+      <div class="empty"><div class="empty-icon">🗓️</div>Cargá datos en Principal y Speakers primero.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TAB: ESTRATEGIA
+══════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-estrategia">
+  <div class="toolbar">
+    <button class="btn save" onclick="saveEstrategia()">💾 Guardar</button>
+    <button class="btn" onclick="loadEstrategia()">🔄 Actualizar</button>
+  </div>
+  <div style="padding:20px" id="estrategiaWrap">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     TAB: IDEAS
+══════════════════════════════════════════════════ -->
+<div class="tab-content" id="tab-ideas">
+  <div class="toolbar">
+    <button class="btn save" onclick="saveIdeas()">💾 Guardar</button>
+    <button class="btn" onclick="loadIdeas()">🔄 Actualizar</button>
+  </div>
+  <div style="padding:20px">
+    <div class="form-card">
+      <h3>+ Nueva Idea</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Idea</label>
+          <input class="form-input" id="idea-titulo" placeholder="Título de la idea">
+        </div>
+        <div class="form-field">
+          <label class="form-label">¿Quién la propone?</label>
+          <select class="form-select" id="idea-prop">
+            <option value="DiegoG">DiegoG</option>
+            <option value="FerS">FerS</option>
+            <option value="JuaniP">JuaniP</option>
+            <option value="ManuF">ManuF</option>
+            <option value="MatheyBTC">MatheyBTC</option>
+            <option value="RodoA">RodoA</option>
+            <option value="otro">Otro (escribir abajo)</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Hora sugerida (opcional)</label>
+          <input class="form-input" id="idea-hora" placeholder="ej. 11:00">
+        </div>
+        <div class="form-field" style="grid-column:1/-1">
+          <label class="form-label">Detalle</label>
+          <textarea class="form-ta" id="idea-detalle" placeholder="Descripción de la idea, contexto, beneficio esperado…"></textarea>
+        </div>
+      </div>
+      <button class="form-btn" onclick="addIdea()">Agregar idea</button>
+    </div>
+
+    <div id="ideasList">
+      <div class="empty"><div class="empty-icon">💡</div>No hay ideas cargadas aún.</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONFIG — reemplazar GAS_URL con tu URL de Apps Script desplegado
+// ═══════════════════════════════════════════════════════════════════
+const GAS_URL = 'TU_APPS_SCRIPT_URL_AQUI';
+const USE_LOCAL = !GAS_URL.startsWith('https://script.google');
+
+// ── ESTADO ────────────────────────────────────────────────────────
+let state = {
+  principal: [],
+  speakers:  [],
+  estrategia:{ pre:[], durante:[], post:[] },
+  ideas:     []
+};
+
+// ── TIPOS ─────────────────────────────────────────────────────────
+const TIPOS = ['AMA','Apertura','Break','Charla','Cierre','Concurso','Kahoot','Panel','Premios','Sorteo','Taller'];
+const TIPO_CLASS = { AMA:'t-ama',Apertura:'t-apertura',Break:'t-break',Charla:'t-charla',Cierre:'t-cierre',Concurso:'t-concurso',Kahoot:'t-kahoot',Panel:'t-panel',Premios:'t-premios',Sorteo:'t-sorteo',Taller:'t-taller' };
+const TIPO_COLORS = { AMA:'#2dd4bf',Apertura:'#facc15',Break:'#eab308',Charla:'#3b82f6',Cierre:'#a855f7',Concurso:'#ec4899',Kahoot:'#c084fc',Panel:'#ef4444',Premios:'#fb923c',Sorteo:'#4ade80',Taller:'#22c55e' };
+
+const DURS = [
+  { label:'00:15', val:15, cls:'dur-15' },
+  { label:'00:20', val:20, cls:'dur-20' },
+  { label:'00:25', val:25, cls:'dur-25' },
+  { label:'00:30', val:30, cls:'dur-30' },
+  { label:'Otro…', val:0, cls:'dur-xx' },
+];
+
+const TEAM = ['DiegoG','FerS','JuaniP','ManuF','MatheyBTC','RodoA'];
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function timeToMin(t) {
+  if (!t) return 0;
+  const [h,m] = String(t).split(':').map(Number);
+  return (h||0)*60+(m||0);
+}
+function minToTime(m) {
+  const h = Math.floor(m/60), mm = m%60;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+function durVal(d) {
+  const n = parseInt(d);
+  return isNaN(n) ? 0 : n;
+}
+function tipoOpts(sel='Charla') {
+  return TIPOS.map(t=>`<option value="${t}" ${t===sel?'selected':''}>${t}</option>`).join('');
+}
+function durOpts(sel=15) {
+  return DURS.map(d=>`<option value="${d.val}" ${d.val===sel?'selected':''}>${d.label}</option>`).join('');
+}
+function speakerOpts(sel='') {
+  const names = state.speakers.map(s=>s.nombre).filter(Boolean);
+  const unique = [...new Set(names)];
+  const opts = unique.map(n=>`<option value="${n}" ${n===sel?'selected':''}>${n}</option>`).join('');
+  return `<option value="">— Sin asignar —</option>${opts}<option value="__otro__">Otro (escribir)</option>`;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', ['principal','speakers','timeline','estrategia','ideas'][i]===name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name==='timeline') buildTimeline();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PRINCIPAL
+// ══════════════════════════════════════════════════════════════════
+function renderPrincipal() {
+  const tbody = document.getElementById('principalTbody');
+  tbody.innerHTML = '';
+  recalcTimes();
+  state.principal.forEach((row,i) => tbody.appendChild(makePrincipalRow(row,i)));
+  updateProgress();
+}
+
+function makePrincipalRow(row, idx) {
+  const tr = document.createElement('tr');
+  tr.dataset.idx = idx;
+
+  const durCls = row.dur===15?'dur-15':row.dur===20?'dur-20':row.dur===25?'dur-25':row.dur===30?'dur-30':'dur-xx';
+  const tipoCls = TIPO_CLASS[row.tipo] || 't-charla';
+
+  tr.innerHTML = `
+    <td class="row-actions"><button class="del-row" onclick="delPrincipalRow(${idx})">✕</button></td>
+    <td style="min-width:105px">
+      <select class="cell-sel" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
+    </td>
+    <td style="min-width:90px">
+      <select class="cell-sel ${durCls}" onchange="updatePrincipal(${idx},'dur',+this.value);recalcTimes();updateProgress()">
+        ${durOpts(row.dur)}
+      </select>
+    </td>
+    <td style="min-width:70px"><input class="cell-inp time-start" id="inicio-${idx}" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
+    <td style="min-width:70px"><input class="cell-inp time-end"   id="fin-${idx}"    value="${row.fin||''}"    oninput="updatePrincipal(${idx},'fin',this.value)"></td>
+    <td style="min-width:180px"><input class="cell-inp" value="${esc(row.tema||'')}" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…"></td>
+    <td style="min-width:220px"><textarea class="cell-ta" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
+    <td style="min-width:160px">
+      <select class="cell-sel" onchange="handleSpeakerSel(${idx},'sl',this)">
+        ${speakerOpts(row.sl||'')}
+      </select>
+    </td>
+    <td style="min-width:160px">
+      <select class="cell-sel" onchange="handleSpeakerSel(${idx},'sj',this)">
+        ${speakerOpts(row.sj||'')}
+      </select>
+    </td>
+    <td style="min-width:160px">
+      <select class="cell-sel" onchange="handleSpeakerSel(${idx},'cba',this)">
+        ${speakerOpts(row.cba||'')}
+      </select>
+    </td>
+  `;
+  return tr;
+}
+
+function handleSpeakerSel(idx, city, sel) {
+  if (sel.value === '__otro__') {
+    const name = prompt('Nombre del speaker:');
+    if (name) { updatePrincipal(idx, city, name); sel.value = ''; }
+    else sel.value = state.principal[idx][city] || '';
+  } else {
+    updatePrincipal(idx, city, sel.value);
+  }
+}
+
+function updatePrincipal(idx, key, val) {
+  if (state.principal[idx]) state.principal[idx][key] = val;
+}
+
+function addPrincipalRow() {
+  const last = state.principal[state.principal.length-1];
+  const inicio = last ? (last.fin||'09:00') : (document.getElementById('horaApertura').value||'09:00');
+  const dur = 30;
+  const fin = minToTime(timeToMin(inicio)+dur);
+  state.principal.push({ tipo:'Charla',dur,inicio,fin,tema:'',detalle:'',sl:'',sj:'',cba:'' });
+  renderPrincipal();
+}
+
+function delPrincipalRow(idx) {
+  state.principal.splice(idx,1);
+  renderPrincipal();
+}
+
+function recalcTimes() {
+  let cur = timeToMin(document.getElementById('horaApertura').value||'09:00');
+  state.principal.forEach((row,i) => {
+    row.inicio = minToTime(cur);
+    const d = durVal(row.dur);
+    cur += d||0;
+    row.fin = minToTime(cur);
+    const ini = document.getElementById('inicio-'+i);
+    const fin = document.getElementById('fin-'+i);
+    if(ini) ini.value = row.inicio;
+    if(fin) fin.value = row.fin;
+  });
+  updateProgress();
+}
+
+function recalcTimesFrom(idx) {
+  // Si el usuario edita manualmente la hora de inicio
+  const row = state.principal[idx];
+  if (!row) return;
+  let cur = timeToMin(row.inicio||'09:00');
+  for (let i=idx; i<state.principal.length; i++) {
+    state.principal[i].inicio = minToTime(cur);
+    const d = durVal(state.principal[i].dur);
+    cur += d||0;
+    state.principal[i].fin = minToTime(cur);
+    const ini = document.getElementById('inicio-'+i);
+    const fin = document.getElementById('fin-'+i);
+    if(ini) ini.value = state.principal[i].inicio;
+    if(fin) fin.value = state.principal[i].fin;
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const apertura = timeToMin(document.getElementById('horaApertura').value||'09:00');
+  const cierre   = timeToMin(document.getElementById('horaCierre').value||'18:00');
+  const total    = cierre - apertura;
+  let used = 0;
+  state.principal.forEach(r => used += durVal(r.dur)||0);
+  const pct = total>0 ? Math.min(100, Math.round(used/total*100)) : 0;
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progPct').textContent = pct+'%';
+  document.getElementById('progLabel').textContent = `${minToTime(used)} / ${minToTime(total)} de jornada usados`;
+  document.getElementById('totalMin').textContent = `${total} min disponibles`;
+
+  // Segments
+  const segs = document.getElementById('progSegs');
+  segs.innerHTML = '';
+  state.principal.forEach(r => {
+    if (!r.tipo) return;
+    const d = durVal(r.dur)||0;
+    const w = total>0 ? (d/total*100) : 0;
+    const s = document.createElement('div');
+    s.className = 'seg';
+    s.style.width = Math.max(w,1)+'%';
+    s.style.background = TIPO_COLORS[r.tipo]||'#666';
+    s.style.opacity = '.8';
+    s.title = `${r.tipo} — ${r.tema||'sin tema'} (${d} min)`;
+    segs.appendChild(s);
+  });
+}
+
+// ── LOAD / SAVE Principal ─────────────────────────────────────────
+async function loadPrincipal() {
+  try {
+    const raw = await gasGet('Principal');
+    if (!raw || raw.length < 2) { state.principal=[]; renderPrincipal(); return; }
+    const [, ...rows] = raw; // skip header row
+    state.principal = rows.map(r=>({
+      tipo:r[0]||'Charla', dur:+r[1]||30, inicio:r[2]||'', fin:r[3]||'',
+      tema:r[4]||'', detalle:r[5]||'', sl:r[6]||'', sj:r[7]||'', cba:r[8]||''
+    }));
+    renderPrincipal();
+    toast('✅ Principal actualizado');
+  } catch(e) { toast('⚠️ Error al cargar: '+e.message, true); }
+}
+
+async function savePrincipal() {
+  const headers = ['Tipo','Duración','Inicio','Fin','Tema','Detalle','San Luis','San Juan','Córdoba'];
+  const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.detalle,r.sl,r.sj,r.cba]);
+  await gasPost('Principal','replace_all', data);
+  toast('✅ Principal guardado');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SPEAKERS
+// ══════════════════════════════════════════════════════════════════
+function renderSpeakers() {
+  const grid = document.getElementById('speakersGrid');
+  if (!state.speakers.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">🎙️</div>No hay speakers aún.</div>';
+    return;
+  }
+  grid.innerHTML = state.speakers.map((s,i)=>`
+    <div class="speaker-card">
+      <button class="speaker-del" onclick="delSpeaker(${i})">✕</button>
+      <span class="tipo-pill pill-${s.tipo||'speaker'}">${(s.tipo||'speaker').toUpperCase()}</span>
+      <div class="speaker-name">${esc(s.nombre||'')}</div>
+      <div class="speaker-contact">${esc(s.contacto||'—')}</div>
+      <div class="speaker-tags">
+        ${s.ciudades ? s.ciudades.split(',').map(c=>`<span class="speaker-tag">📍${c.trim()}</span>`).join('') : ''}
+        ${s.temas    ? s.temas.split(',').map(t=>`<span class="speaker-tag">🎯${t.trim()}</span>`).join('') : ''}
+      </div>
+      ${s.notas ? `<div style="font-size:11px;color:var(--muted);margin-top:8px">${esc(s.notas)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function addSpeaker() {
+  const nombre = document.getElementById('sp-nombre').value.trim();
+  if (!nombre) { toast('⚠️ Nombre requerido', true); return; }
+  state.speakers.push({
+    nombre,
+    tipo:     document.getElementById('sp-tipo').value,
+    contacto: document.getElementById('sp-contacto').value.trim(),
+    ciudades: document.getElementById('sp-ciudades').value.trim(),
+    temas:    document.getElementById('sp-temas').value.trim(),
+    notas:    document.getElementById('sp-notas').value.trim(),
+  });
+  ['sp-nombre','sp-contacto','sp-ciudades','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
+  renderSpeakers();
+  toast('✅ Speaker agregado');
+}
+
+function delSpeaker(i) {
+  state.speakers.splice(i,1);
+  renderSpeakers();
+}
+
+async function loadSpeakers() {
+  try {
+    const raw = await gasGet('Speakers');
+    if (!raw || raw.length < 2) { state.speakers=[]; renderSpeakers(); return; }
+    const [, ...rows] = raw;
+    state.speakers = rows.map(r=>({
+      nombre:r[0]||'', tipo:r[1]||'speaker', contacto:r[2]||'',
+      ciudades:r[3]||'', temas:r[4]||'', notas:r[5]||''
+    }));
+    renderSpeakers();
+    toast('✅ Speakers actualizados');
+  } catch(e) { toast('⚠️ Error: '+e.message, true); }
+}
+
+async function saveSpeakers() {
+  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas]);
+  await gasPost('Speakers','replace_all', data);
+  toast('✅ Speakers guardados');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TIMELINE — derivado de Principal + Speakers
+// ══════════════════════════════════════════════════════════════════
+function buildTimeline() {
+  const wrap = document.getElementById('timelineWrap');
+  if (!state.principal.length) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">🗓️</div>Cargá datos en Principal primero.</div>';
+    return;
+  }
+
+  let html = `<div class="timeline-grid">
+    <div class="tl-header">Bloque</div>
+    <div class="tl-header city">📍 San Luis</div>
+    <div class="tl-header city">📍 San Juan</div>
+    <div class="tl-header city">📍 Córdoba</div>`;
+
+  state.principal.forEach(row => {
+    // Available speakers for this row (match by tema)
+    const tema = (row.tema||'').toLowerCase();
+    const avail = (city) => {
+      const byCity = state.speakers.filter(s => {
+        const ciudades = (s.ciudades||'').toLowerCase();
+        return ciudades.includes(city) || ciudades.includes('toda') || ciudades.includes('todas');
+      });
+      const matching = byCity.filter(s => {
+        const temas = (s.temas||'').toLowerCase();
+        return !tema || temas.split(',').some(t=>tema.includes(t.trim())||t.trim().includes(tema));
+      });
+      return matching.length ? matching : byCity;
+    };
+
+    const renderCell = (city, assigned, matchSpeakers) => {
+      const tags = matchSpeakers.map(s=>`<span class="tl-speaker ${assigned===s.nombre?'assigned':''}">${s.nombre}</span>`).join('');
+      const assignedTag = assigned ? `<span class="tl-speaker assigned">✅ ${assigned}</span>` : '<span class="tl-avail">Sin asignar</span>';
+      return `<div class="tl-cell">${assignedTag}${tags ? `<div style="margin-top:6px;font-size:10px;color:var(--muted)">Disponibles:</div>${tags}` : ''}</div>`;
+    };
+
+    html += `<div class="tl-row" style="display:contents">
+      <div class="tl-cell">
+        <span class="tl-block">${row.tipo} — ${row.tema||'sin tema'}</span>
+        <div class="tl-time">${row.inicio} → ${row.fin}</div>
+      </div>
+      ${renderCell('san luis', row.sl, avail('san luis'))}
+      ${renderCell('san juan', row.sj, avail('san juan'))}
+      ${renderCell('córdoba',  row.cba, avail('córdoba'))}
+    </div>`;
+  });
+
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ESTRATEGIA
+// ══════════════════════════════════════════════════════════════════
+const FASES = ['pre','durante','post'];
+const FASE_LABELS = { pre:'Antes del evento', durante:'Durante el evento', post:'Post-evento' };
+
+function renderEstrategia() {
+  const wrap = document.getElementById('estrategiaWrap');
+  wrap.innerHTML = FASES.map(fase => `
+    <div class="fase-section">
+      <div class="fase-title">
+        ${fase==='pre'?'⏳':fase==='durante'?'⚡':'🌱'} ${FASE_LABELS[fase]}
+        <button class="btn" style="font-size:11px;padding:3px 10px" onclick="addStrat('${fase}')">+ Agregar</button>
+      </div>
+      <div class="strat-cards" id="strat-${fase}">
+        ${(state.estrategia[fase]||[]).map((s,i)=>`
+          <div class="strat-card">
+            <button class="strat-del" onclick="delStrat('${fase}',${i})">✕</button>
+            <div class="strat-title" contenteditable="true" oninput="updateStrat('${fase}',${i},'titulo',this.innerText)">${esc(s.titulo||'')}</div>
+            <div class="strat-desc"  contenteditable="true" oninput="updateStrat('${fase}',${i},'desc',this.innerText)">${esc(s.desc||'')}</div>
+          </div>
+        `).join('')}
+        ${!(state.estrategia[fase]||[]).length ? '<div style="color:var(--dim);font-size:12px;font-style:italic">Sin items aún.</div>' : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function addStrat(fase) {
+  if (!state.estrategia[fase]) state.estrategia[fase]=[];
+  state.estrategia[fase].push({ titulo:'Nuevo ítem', desc:'Descripción…' });
+  renderEstrategia();
+}
+function delStrat(fase,i) { state.estrategia[fase].splice(i,1); renderEstrategia(); }
+function updateStrat(fase,i,key,val) { if(state.estrategia[fase][i]) state.estrategia[fase][i][key]=val; }
+
+async function loadEstrategia() {
+  try {
+    const raw = await gasGet('Estrategia');
+    if (!raw || raw.length < 2) { renderEstrategia(); return; }
+    const [,...rows] = raw;
+    state.estrategia = { pre:[], durante:[], post:[] };
+    rows.forEach(r => {
+      const fase = (r[0]||'').toLowerCase();
+      if (state.estrategia[fase]) state.estrategia[fase].push({ titulo:r[1]||'', desc:r[2]||'' });
+    });
+    renderEstrategia();
+    toast('✅ Estrategia actualizada');
+  } catch(e) { toast('⚠️ Error: '+e.message,true); }
+}
+
+async function saveEstrategia() {
+  const data = [];
+  FASES.forEach(fase => (state.estrategia[fase]||[]).forEach(s=>data.push([fase,s.titulo,s.desc])));
+  await gasPost('Estrategia','replace_all',data);
+  toast('✅ Estrategia guardada');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// IDEAS
+// ══════════════════════════════════════════════════════════════════
+function renderIdeas() {
+  const wrap = document.getElementById('ideasList');
+  if (!state.ideas.length) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">💡</div>No hay ideas aún.</div>';
+    return;
+  }
+  wrap.innerHTML = state.ideas.map((idea,i)=>`
+    <div class="idea-card">
+      <div>
+        <div class="idea-prop">${esc(idea.prop||'')}</div>
+        <div class="idea-text">${esc(idea.titulo||'')}</div>
+        <div class="idea-detail">${esc(idea.detalle||'')}</div>
+        <div class="idea-meta">${idea.hora?'🕐 '+idea.hora:''}</div>
+      </div>
+      <button class="idea-del" onclick="delIdea(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function addIdea() {
+  const titulo = document.getElementById('idea-titulo').value.trim();
+  if (!titulo) { toast('⚠️ Título requerido',true); return; }
+  state.ideas.unshift({
+    titulo,
+    prop:   document.getElementById('idea-prop').value,
+    hora:   document.getElementById('idea-hora').value.trim(),
+    detalle:document.getElementById('idea-detalle').value.trim(),
+  });
+  ['idea-titulo','idea-hora','idea-detalle'].forEach(id=>document.getElementById(id).value='');
+  renderIdeas();
+  toast('✅ Idea agregada');
+}
+function delIdea(i) { state.ideas.splice(i,1); renderIdeas(); }
+
+async function loadIdeas() {
+  try {
+    const raw = await gasGet('Ideas');
+    if (!raw||raw.length<2) { state.ideas=[]; renderIdeas(); return; }
+    const [,...rows] = raw;
+    state.ideas = rows.map(r=>({ titulo:r[0]||'', prop:r[1]||'', hora:r[2]||'', detalle:r[3]||'' }));
+    renderIdeas();
+    toast('✅ Ideas actualizadas');
+  } catch(e) { toast('⚠️ Error: '+e.message,true); }
+}
+
+async function saveIdeas() {
+  const data = state.ideas.map(i=>[i.titulo,i.prop,i.hora,i.detalle]);
+  await gasPost('Ideas','replace_all',data);
+  toast('✅ Ideas guardadas');
+}
+
+// ══════════════════════════════════════════════════════════════════
+// GAS API
+// ══════════════════════════════════════════════════════════════════
+async function gasGet(sheet) {
+  if (USE_LOCAL) return loadLocalSheet(sheet);
+  const url = GAS_URL + '?sheet=' + encodeURIComponent(sheet);
+  const res = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json.data;
+}
+
+async function gasPost(sheet, action, data) {
+  if (USE_LOCAL) { saveLocalSheet(sheet, data); return; }
+  const res = await fetch(GAS_URL, {
+    method:'POST',
+    body: JSON.stringify({ sheet, action, data }),
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+}
+
+// ── LOCAL FALLBACK (sin Apps Script) ──────────────────────────────
+function loadLocalSheet(sheet) {
+  const raw = localStorage.getItem('dex_'+sheet);
+  if (!raw) return null;
+  return JSON.parse(raw);
+}
+function saveLocalSheet(sheet, data) {
+  localStorage.setItem('dex_'+sheet, JSON.stringify(data));
+}
+
+// ── STATUS ────────────────────────────────────────────────────────
+function setStatus(ok) {
+  document.getElementById('statusDot').style.background = ok ? '#22c55e' : '#ef4444';
+  document.getElementById('statusTxt').textContent = ok ? 'Conectado' : 'Sin conexión';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err?' err':'');
+  clearTimeout(t._to);
+  t._to = setTimeout(()=>t.className='', 2800);
+}
+
+// ── ESCAPE ────────────────────────────────────────────────────────
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════
+async function init() {
+  // Datos de ejemplo para arrancar
+  state.principal = [
+    {tipo:'Apertura',dur:15,inicio:'09:00',fin:'09:15',tema:'Bienvenida Intro',detalle:'Bienvenida al evento, presentación y agradecimiento a partner local.',sl:'Jimena Vallone',sj:'Jimena Vallone',cba:'Jimena Vallone'},
+    {tipo:'Kahoot',  dur:10,inicio:'09:15',fin:'09:25',tema:'Kahoot de apertura + wallets a bajar',detalle:'Preguntas para entender la audiencia.',sl:'Diego Gurpegui',sj:'Rodolfo Andragnes',cba:'Diego Gurpegui'},
+    {tipo:'Charla',  dur:30,inicio:'09:25',fin:'09:55',tema:'Bitcoin y el Dinero',detalle:'Historia del dinero: trueque → oro → pesos digitales → Bitcoin.',sl:'Diego Gurpegui',sj:'Axel Becker',cba:'Joy Koloff'},
+    {tipo:'Charla',  dur:20,inicio:'09:55',fin:'10:15',tema:'Bitcoin, Cripto y sus Capas',detalle:'Diferencias entre Bitcoin y el resto. Lightning, Rootstock, stablecoins.',sl:'José Seco',sj:'Josei Dorrego',cba:'Jonathan Bravetti'},
+    {tipo:'Panel',   dur:45,inicio:'10:15',fin:'11:00',tema:'Bitcoin y Stablecoins en el uso cotidiano',detalle:'Herramientas para uso diario. P2P, puentes entre monedas.',sl:'Josei Dorrego (MOD)',sj:'Rodolfo Andragnes (MOD)',cba:'Diego Gurpegui (MOD)'},
+    {tipo:'Break',   dur:25,inicio:'11:00',fin:'11:25',tema:'Café / AMA',detalle:'AMA estructurado. Especialista disponible 1:1.',sl:'',sj:'',cba:''},
+    {tipo:'Charla',  dur:30,inicio:'11:25',fin:'11:55',tema:'Monedas falopa y estafas',detalle:'Pirámides, phishing, wallets falsas, influencers pagos.',sl:'Braian Alvez',sj:'Juan M. Dominguez',cba:'Diego Coria'},
+    {tipo:'Charla',  dur:20,inicio:'11:55',fin:'12:15',tema:'Cripto bajo la lupa del Estado',detalle:'ARCA, UIF, CNV. Marco legal en Argentina.',sl:'Gabriela Battiato',sj:'Leonardo Klug',cba:'Gabriela Battiato'},
+    {tipo:'Panel',   dur:30,inicio:'12:15',fin:'12:45',tema:'Empresas adoptando Bitcoin',detalle:'Strategy, ETFs, tesorerías. Casos reales.',sl:'Diego Gurpegui (MOD)',sj:'Micael Margiotta (MOD)',cba:'Juan M. Dominguez (MOD)'},
+    {tipo:'Panel',   dur:30,inicio:'12:45',fin:'13:15',tema:'El poder de descentralizar',detalle:'Herramientas sin intermediarios.',sl:'Aída Pippo (MOD)',sj:'Sazkiabella (MOD)',cba:'Micaela Bercheni (MOD)'},
+    {tipo:'Kahoot',  dur:15,inicio:'13:15',fin:'13:30',tema:'Kahoot Final — Premio 100 USD en BTC',detalle:'Premio en Bitcoin al ganador en vivo.',sl:'Diego Gurpegui',sj:'Rodolfo Andragnes',cba:'Diego Gurpegui'},
+    {tipo:'Break',   dur:90,inicio:'13:30',fin:'15:00',tema:'Almuerzo / AMA',detalle:'AMA extendido 1:1.',sl:'',sj:'',cba:''},
+    {tipo:'Taller',  dur:90,inicio:'15:00',fin:'16:30',tema:'Tu llave, tu dinero',detalle:'Wallet no-custodial en vivo. Lightning. Transacción real.',sl:'Fernando Secchi',sj:'Fernando Secchi',cba:'Fernando Secchi'},
+    {tipo:'Taller',  dur:90,inicio:'16:30',fin:'18:00',tema:'DeFi sin intermediarios',detalle:'Rootstock / Ethereum. Préstamos y protocolos.',sl:'Juani Podesta',sj:'Axel Becker',cba:'Javier Bernal'},
+  ];
+
+  state.speakers = [
+    {nombre:'Diego Gurpegui',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bitcoin, Dinero, Moderación',contacto:'',notas:'Maestro de ceremonias'},
+    {nombre:'Fernando Secchi', tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Taller Wallet, Autocustodia',contacto:'',notas:''},
+    {nombre:'Jimena Vallone',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bienvenida, Apertura',contacto:'',notas:''},
+    {nombre:'Matias Mathey',   tipo:'speaker',ciudades:'San Juan',                    temas:'Descentralizar, Panel',contacto:'@MatheyBTC',notas:''},
+    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, San Juan',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo'},
+    {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'San Juan',                   temas:'Moderación, Kahoot',contacto:'',notas:''},
+  ];
+
+  state.estrategia = {
+    pre:[
+      {titulo:'Comunicación pre-evento',desc:'Abrir inscripciones con encuesta integrada. Activar grupos WhatsApp provinciales. Fogoneo 2 semanas antes.'},
+      {titulo:'Bajar wallets antes',desc:'Incorporar en el form links a WoS, Blue Wallet, Bexo y Rabby para que lleguen listos.'},
+      {titulo:'FOMO en el form',desc:'Anunciar el premio Kahoot 100 USD en BTC y el Trezor sorteado en el form de inscripción.'},
+    ],
+    durante:[
+      {titulo:'AMA como nexo',desc:'Rediseñar los breaks como AMA estructurados. Especialista disponible 1:1 en el break.'},
+      {titulo:'Kahoot con premio real',desc:'100 USD en sats al ganador. Pago en vivo con Lightning. Genera energía y uso real de wallets.'},
+      {titulo:'Embajador local',desc:'Presentar al embajador de la ciudad ante el público. Refuerza identidad local y comunidad.'},
+    ],
+    post:[
+      {titulo:'Grupo WhatsApp provincial permanente',desc:'No llamarlo por el evento ni el año. Ej: Bitcoin San Luis — nombre permanente.'},
+      {titulo:'NPS dentro de 48hs',desc:'Encuesta breve enviada dentro de las 48hs del evento. Máximo 3 preguntas.'},
+      {titulo:'Meetup a 3 meses',desc:'Si hay 20+ personas activas, la ONG provee materiales. La comunidad ejecuta.'},
+    ]
+  };
+
+  state.ideas = [
+    {titulo:'Exchange sponsor con beneficio en vivo',prop:'DiegoG',hora:'',detalle:'Sponsor abre cuentas en el evento con cashback exclusivo para asistentes.'},
+    {titulo:'Verificar internet antes de cada fecha',prop:'FerS',hora:'',detalle:'El taller de wallets y Kahoot dependen de conectividad. Plan B con datos compartidos.'},
+    {titulo:'Tracks paralelos en la tarde',prop:'MatheyBTC',hora:'15:00',detalle:'Trading / Legal-Contable / DeFi — perfiles separados, no mezclar.'},
+  ];
+
+  // Intentar cargar desde Sheet o localStorage
+  try {
+    if (!USE_LOCAL) {
+      await Promise.allSettled([loadPrincipal(),loadSpeakers(),loadEstrategia(),loadIdeas()]);
+    }
+    setStatus(true);
+  } catch(e) {
+    setStatus(false);
+  }
+
+  renderPrincipal();
+  renderSpeakers();
+  renderEstrategia();
+  renderIdeas();
+}
+
+init();
+</script>
+</body>
+</html>
