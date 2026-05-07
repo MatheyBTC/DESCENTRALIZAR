@@ -33,7 +33,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 /* ── NAV ── */
 .nav{position:sticky;top:0;z-index:200;background:rgba(13,15,18,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;height:50px;overflow-x:auto;}
 .nav-brand{font-weight:800;font-size:16px;color:var(--btc);padding:0 20px;white-space:nowrap;border-right:1px solid var(--border);}
-.tab-btn{padding:0 18px;height:50px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.tab-btn{padding:0 18px;height:50px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;text-transform:uppercase;letter-spacing:.05em;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--btc);border-bottom-color:var(--btc);}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 16px;border-left:1px solid var(--border);}
@@ -55,7 +55,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── CONFIG BAR (Principal) ── */
 .config-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.config-label{font-size:15px;color:var(--muted);font-weight:700;letter-spacing:.02em;}
+.config-label{font-size:15px;color:var(--muted);font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
 .time-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;font-weight:700;width:80px;text-align:center;}
 .time-input.green{border-color:#22c55e;color:#22c55e;}
 .time-input.red{border-color:#ef4444;color:#ef4444;}
@@ -69,7 +69,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 /* ── TABLE ── */
 .table-wrap{overflow:auto;max-height:calc(100vh - 110px);}
 table{border-collapse:collapse;width:100%;min-width:1000px;}
-thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:18px;font-weight:700;color:var(--muted);position:sticky;top:0;z-index:10;white-space:nowrap;}
+thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:18px;font-weight:700;color:var(--muted);position:sticky;top:0;z-index:10;white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;}
 thead th.city-h{color:var(--btc);}
 .date-inp{background:transparent;border:none;color:#fff;font-size:15px;font-weight:500;width:100%;outline:none;text-align:left;padding:2px 6px;cursor:text;}
 .date-inp:focus{background:rgba(247,147,26,.1);border-radius:4px;}
@@ -133,9 +133,15 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .sp-filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 0 16px;}
 .sp-flt.active{background:var(--btc-dim);border-color:var(--btc);color:var(--btc);}
 .sp-table{border-collapse:collapse;width:100%;}
-.sp-table thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;position:sticky;top:0;z-index:10;}
-.sp-table tbody td{border:1px solid var(--border);padding:7px 10px;vertical-align:middle;font-size:14px;}
+.sp-table thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;position:sticky;top:0;z-index:10;text-transform:uppercase;letter-spacing:.05em;}
+.sp-table tbody td{border:1px solid var(--border);padding:6px 8px;vertical-align:middle;font-size:14px;}
 .sp-table tbody tr:hover{background:rgba(247,147,26,.04);}
+.sp-edit{display:block;width:100%;outline:none;background:transparent;font-family:inherit;font-size:inherit;color:inherit;border:none;padding:2px 3px;resize:none;min-width:60px;}
+.sp-edit:focus{background:rgba(247,147,26,.07);box-shadow:inset 0 0 0 1px var(--btc);border-radius:3px;}
+.sp-tipo-sel{background:transparent;border:none;color:inherit;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;outline:none;padding:0 2px;}
+.sp-tipo-sel:focus{background:rgba(247,147,26,.07);}
+.sp-aprobado{width:17px;height:17px;cursor:pointer;accent-color:var(--btc);}
+.sp-city-chk{width:15px;height:15px;cursor:pointer;accent-color:#22c55e;}
 .speaker-name{font-size:17px;font-weight:700;margin:8px 0 4px;}
 .speaker-contact{font-size:14px;color:var(--muted);margin-bottom:8px;}
 .speaker-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
@@ -167,7 +173,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .form-card h3{font-size:17px;font-weight:700;margin-bottom:14px;color:var(--btc);}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
 .form-field{display:flex;flex-direction:column;gap:4px;}
-.form-label{font-size:16px;font-weight:700;color:var(--muted);}
+.form-label{font-size:16px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
 .form-input,.form-select,.form-ta{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .15s;color-scheme:dark;}
 .form-input:focus,.form-select:focus,.form-ta:focus{border-color:var(--btc);}
 .form-ta{resize:vertical;min-height:70px;}
@@ -175,24 +181,24 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .form-btn:hover{background:var(--btc);color:#000;}
 
 /* ── TIMELINE — resumen ejecutivo + conflictos ── */
-.tl-section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--btc);margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+.tl-section-title{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--btc);margin:0 0 14px;display:flex;align-items:center;gap:8px;}
 .tl-city-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:32px;}
 .tl-city-card{background:var(--bg2);border-radius:12px;padding:18px 20px;border:2px solid;}
 .tl-city-card.sl{border-color:#ef4444;}
 .tl-city-card.sj{border-color:#facc15;}
 .tl-city-card.cba{border-color:#22c55e;}
-.tl-city-name{font-size:16px;font-weight:800;margin-bottom:14px;}
+.tl-city-name{font-size:20px;font-weight:800;margin-bottom:14px;text-transform:uppercase;letter-spacing:.04em;}
 .tl-city-card.sl .tl-city-name{color:#ef4444;}
 .tl-city-card.sj .tl-city-name{color:#facc15;}
 .tl-city-card.cba .tl-city-name{color:#22c55e;}
-.tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:17px;}
 .tl-stat-row:last-of-type{border-bottom:none;}
-.tl-stat-label{color:var(--muted);}
+.tl-stat-label{color:var(--muted);text-transform:uppercase;font-size:15px;letter-spacing:.03em;}
 .tl-stat-val{font-weight:700;color:var(--text);}
 .tl-stat-val.warn{color:#f97316;}
 .tl-stat-val.ok{color:#22c55e;}
 .tl-prog-wrap{margin-top:12px;}
-.tl-prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+.tl-prog-label{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-bottom:5px;}
 .tl-prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
 .tl-prog-fill-sl{height:100%;background:#ef4444;border-radius:4px;transition:width .4s;}
 .tl-prog-fill-sj{height:100%;background:#facc15;border-radius:4px;transition:width .4s;}
@@ -200,11 +206,11 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 /* conflictos */
 .tl-conflict-wrap{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:18px 20px;}
 .tl-conflict-table{border-collapse:collapse;width:100%;margin-top:10px;}
-.tl-conflict-table th{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);padding:7px 12px;text-align:left;font-size:12px;font-weight:700;color:#ef4444;}
-.tl-conflict-table td{border:1px solid rgba(239,68,68,.2);padding:7px 12px;font-size:13px;vertical-align:middle;}
+.tl-conflict-table th{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);padding:7px 12px;text-align:left;font-size:16px;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.04em;}
+.tl-conflict-table td{border:1px solid rgba(239,68,68,.2);padding:7px 12px;font-size:17px;vertical-align:middle;}
 .tl-conflict-table tbody tr{background:rgba(239,68,68,.04);}
 .tl-conflict-table tbody tr:hover{background:rgba(239,68,68,.10);}
-.tl-no-conflict{display:flex;align-items:center;gap:8px;padding:10px 0;font-size:14px;color:#22c55e;font-weight:600;}
+.tl-no-conflict{display:flex;align-items:center;gap:8px;padding:10px 0;font-size:18px;color:#22c55e;font-weight:600;}
 
 /* ── ESTRATEGIA ── */
 .fase-section{margin-bottom:28px;}
@@ -252,7 +258,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
   <div class="nav-brand">📌 DEX-eventos (2026)</div>
   <button class="tab-btn active" onclick="switchTab('principal')">📋 Principal</button>
   <button class="tab-btn" onclick="switchTab('speakers')">🎙️ Speakers</button>
-  <button class="tab-btn" onclick="switchTab('timeline')">🗓️ Timeline</button>
+  <button class="tab-btn" onclick="switchTab('timeline')">📊 Resumen</button>
   <button class="tab-btn" onclick="switchTab('estrategia')">🎯 Estrategia</button>
   <button class="tab-btn" onclick="switchTab('ideas')">❓ Ideas</button>
   <div class="nav-right">
@@ -405,6 +411,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <div class="table-wrap">
       <table class="sp-table">
         <thead><tr>
+          <th style="text-align:center" title="Aprobado para usar en Principal">✅</th>
           <th>Tipo</th>
           <th>Nombre</th>
           <th style="text-align:center">🟥 SL</th>
@@ -419,7 +426,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th style="width:36px"></th>
         </tr></thead>
         <tbody id="speakersTableBody">
-          <tr><td colspan="12" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
+          <tr><td colspan="13" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
         </tbody>
       </table>
     </div>
@@ -732,7 +739,7 @@ function speakersForCity(cityKey) {
 function speakersForSlot(city, tema, excludeIdx) {
   const cn = (CITY_NAMES[city]||'').toLowerCase();
   const available = state.speakers.filter(s =>
-    cn ? (s.ciudades||'').toLowerCase().includes(cn) : true
+    s.aprobado && (cn ? (s.ciudades||'').toLowerCase().includes(cn) : true)
   );
   const temaKey = (tema||'').trim().toLowerCase();
   if (!temaKey) return available; // sin tema = sin restricción de slot
@@ -843,31 +850,31 @@ function renderSpeakers() {
   if (spFilter.tipo !== 'all') list = list.filter(s => (s.tipo||'speaker') === spFilter.tipo);
   if (spFilter.city !== 'all') list = list.filter(s => (s.ciudades||'').includes(spFilter.city));
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
     return;
   }
-  const cap = t => t ? t.charAt(0).toUpperCase()+t.slice(1) : '';
   const tipoColor = { speaker:'var(--btc)', empresa:'#facc15', sponsor:'#06b6d4' };
+  const tipoOpts = (cur) => ['speaker','empresa','sponsor'].map(t=>`<option value="${t}"${cur===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
   tbody.innerHTML = list.map(s => {
     const ri = state.speakers.indexOf(s);
     const tipo = s.tipo||'speaker';
     const hasSL  = (s.ciudades||'').includes('San Luis');
     const hasSJ  = (s.ciudades||'').includes('San Juan');
     const hasCBA = (s.ciudades||'').includes('Córdoba');
-    const chk = `<span style="color:#22c55e;font-size:15px">✓</span>`;
-    const dash = `<span style="color:var(--dim)">—</span>`;
-    return `<tr>
-      <td style="font-weight:700;color:${tipoColor[tipo]||'var(--text)'}">${cap(tipo)}</td>
-      <td style="font-weight:700;white-space:nowrap">${esc(s.nombre||'')}</td>
-      <td style="text-align:center">${hasSL?chk:dash}</td>
-      <td style="text-align:center">${hasSJ?chk:dash}</td>
-      <td style="text-align:center">${hasCBA?chk:dash}</td>
-      <td style="font-size:13px">${esc(s.temas||'—')}</td>
-      <td style="font-size:12px;color:var(--muted)">${esc(s.notas||'—')}</td>
-      <td style="font-size:13px">${esc(s.contacto||'—')}</td>
-      <td style="font-size:13px">${s.x?esc(s.x):dash}</td>
-      <td style="font-size:13px">${s.ig?esc(s.ig):dash}</td>
-      <td style="font-size:13px">${s.empresa?esc(s.empresa):dash}</td>
+    const aprobado = !!s.aprobado;
+    return `<tr style="${aprobado?'':'opacity:.55'}">
+      <td style="text-align:center"><input type="checkbox" class="sp-aprobado" ${aprobado?'checked':''} onchange="updateSpeaker(${ri},'aprobado',this.checked);renderSpeakers()" title="Habilitar para Principal"></td>
+      <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);renderSpeakers()">${tipoOpts(tipo)}</select></td>
+      <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim())">${esc(s.nombre||'')}</span></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSL?'checked':''} onchange="updateSpeakerCity(${ri},'San Luis',this.checked)"></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'San Juan',this.checked)"></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasCBA?'checked':''} onchange="updateSpeakerCity(${ri},'Córdoba',this.checked)"></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'temas',this.innerText.trim())">${esc(s.temas||'')}</span></td>
+      <td><span class="sp-edit" style="color:var(--muted);font-size:12px" contenteditable="true" onblur="updateSpeaker(${ri},'notas',this.innerText.trim())">${esc(s.notas||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim())">${esc(s.contacto||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim())">${esc(s.x||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim())">${esc(s.ig||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim())">${esc(s.empresa||'')}</span></td>
       <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
     </tr>`;
   }).join('');
@@ -887,11 +894,25 @@ function addSpeaker() {
     ciudades: ciudadesChecked,
     temas:    document.getElementById('sp-temas').value.trim(),
     notas:    document.getElementById('sp-notas').value.trim(),
+    aprobado: false,
   });
   ['sp-nombre','sp-contacto','sp-x','sp-ig','sp-empresa','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
   renderSpeakers();
   toast('✅ Speaker agregado');
+}
+
+function updateSpeaker(ri, field, val) {
+  if (state.speakers[ri]) state.speakers[ri][field] = val;
+}
+
+function updateSpeakerCity(ri, cityName, checked) {
+  const s = state.speakers[ri];
+  if (!s) return;
+  let cities = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+  if (checked && !cities.includes(cityName)) cities.push(cityName);
+  if (!checked) cities = cities.filter(c => c !== cityName);
+  s.ciudades = cities.join(', ');
 }
 
 function delSpeaker(i) {
@@ -907,7 +928,8 @@ async function loadSpeakers() {
     state.speakers = rows.map(r=>({
       nombre:r[0]||'', tipo:r[1]||'speaker', contacto:r[2]||'',
       ciudades:r[3]||'', temas:r[4]||'', notas:r[5]||'',
-      x:r[6]||'', ig:r[7]||'', empresa:r[8]||''
+      x:r[6]||'', ig:r[7]||'', empresa:r[8]||'',
+      aprobado: r[9]==='true'||r[9]===true||r[9]==='1'||r[9]===1
     }));
     renderSpeakers();
     toast('✅ Speakers actualizados');
@@ -915,7 +937,7 @@ async function loadSpeakers() {
 }
 
 async function saveSpeakers() {
-  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'']);
+  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'',s.aprobado?'true':'']);
   await gasPost('Speakers','replace_all', data);
   toast('✅ Speakers guardados');
   refreshAll();
