@@ -271,7 +271,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         <tr>
           <th style="width:36px"></th>
           <th style="width:70px">Tipo</th>
-          <th style="width:60px;text-align:center">Duración</th>
+          <th style="width:51px;text-align:center">Duración</th>
           <th style="width:55px;text-align:center">Inicio</th>
           <th style="width:55px;text-align:center">Fin</th>
           <th style="width:200px">Tema</th>
@@ -530,7 +530,7 @@ function makePrincipalRow(row, idx) {
     <td style="background:${tipoBg}">
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
-    <td id="durtd-${idx}" style="text-align:center;width:60px;max-width:60px;overflow:hidden">
+    <td id="durtd-${idx}" style="text-align:center;width:51px;max-width:51px;overflow:hidden">
       <select class="cell-sel" style="color:${dc};font-weight:700;text-align:center;min-width:0"
         onchange="updatePrincipal(${idx},'dur',+this.value);recalcTimes();updateProgress();repaintDur(${idx},+this.value)">
         ${durOpts(row.dur)}
