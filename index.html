@@ -793,6 +793,7 @@ function renderSpeakers() {
     return;
   }
   const cap = t => t ? t.charAt(0).toUpperCase()+t.slice(1) : '';
+  const tipoColor = { speaker:'var(--btc)', empresa:'#facc15', sponsor:'#06b6d4' };
   tbody.innerHTML = list.map(s => {
     const ri = state.speakers.indexOf(s);
     const tipo = s.tipo||'speaker';
@@ -802,7 +803,7 @@ function renderSpeakers() {
     const chk = `<span style="color:#22c55e;font-size:15px">✓</span>`;
     const dash = `<span style="color:var(--dim)">—</span>`;
     return `<tr>
-      <td><span class="tipo-pill pill-${tipo}">${cap(tipo)}</span></td>
+      <td style="font-weight:700;color:${tipoColor[tipo]||'var(--text)'}">${cap(tipo)}</td>
       <td style="font-weight:700;white-space:nowrap">${esc(s.nombre||'')}</td>
       <td style="text-align:center">${hasSL?chk:dash}</td>
       <td style="text-align:center">${hasSJ?chk:dash}</td>
