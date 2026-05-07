@@ -478,6 +478,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
   </div>
 </div>
 
+<div id="spDropdown" class="sp-drop"></div>
 <div id="toast"></div>
 
 <script>
@@ -698,35 +699,38 @@ function speakersForCity(cityKey) {
 }
 
 function renderSpPicker(idx, city, selected) {
-  const spList = speakersForCity(city);
-  const selSp  = state.speakers.find(s => s.nombre === selected);
+  const selSp = state.speakers.find(s => s.nombre === selected);
   const cellHtml = selected
     ? `<div class="sp-cell-name">${esc(selected)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
     : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
-  const items = [
-    `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-style:italic;font-size:12px">— Sin aplicar —</span></div>`,
-    ...spList.map(s=>`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`)
-  ].join('');
-  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div><div class="sp-drop" id="spd-${idx}-${city}">${items}</div></div>`;
+  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div></div>`;
 }
+
+let _spDrop = { idx:null, city:null };
 
 function openSpDrop(idx, city, e) {
   e.stopPropagation();
-  const drop = document.getElementById(`spd-${idx}-${city}`);
-  const cell = document.getElementById(`spp-${idx}-${city}`).querySelector('.sp-cell');
-  const wasOpen = drop.classList.contains('open');
-  closeAllSpDrops();
-  if (!wasOpen) {
-    const r = cell.getBoundingClientRect();
-    drop.style.top  = r.bottom + 'px';
-    drop.style.left = r.left   + 'px';
-    drop.style.width = Math.max(r.width, 190) + 'px';
-    drop.classList.add('open');
+  const dd = document.getElementById('spDropdown');
+  if (_spDrop.idx===idx && _spDrop.city===city && dd.classList.contains('open')) {
+    closeAllSpDrops(); return;
   }
+  _spDrop = { idx, city };
+  const cell = document.getElementById(`spp-${idx}-${city}`).querySelector('.sp-cell');
+  const r = cell.getBoundingClientRect();
+  const spList = speakersForCity(city);
+  dd.innerHTML = [
+    `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-size:12px">— Sin aplicar —</span></div>`,
+    ...spList.map(s=>`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`)
+  ].join('');
+  dd.style.top   = r.bottom + 'px';
+  dd.style.left  = r.left   + 'px';
+  dd.style.width = Math.max(r.width, 190) + 'px';
+  dd.classList.add('open');
 }
 
 function closeAllSpDrops() {
-  document.querySelectorAll('.sp-drop.open').forEach(d=>d.classList.remove('open'));
+  document.getElementById('spDropdown').classList.remove('open');
+  _spDrop = { idx:null, city:null };
 }
 
 function updateFinProgress(apertura, total) {
@@ -1254,7 +1258,7 @@ document.addEventListener('click', e => {
     closeAllSpDrops();
     return;
   }
-  if (!e.target.closest('.sp-picker')) closeAllSpDrops();
+  if (!e.target.closest('.sp-picker') && !e.target.closest('#spDropdown')) closeAllSpDrops();
 });
 
 init();
