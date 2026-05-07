@@ -126,7 +126,14 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .speaker-card .tipo-pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;}
 .pill-speaker{background:rgba(247,147,26,.15);color:var(--btc);border:1px solid rgba(247,147,26,.3);}
 .pill-empresa{background:rgba(250,204,21,.15);color:#facc15;border:1px solid rgba(250,204,21,.3);}
-.pill-sponsor{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+.pill-sponsor{background:rgba(6,182,212,.15);color:#06b6d4;border:1px solid rgba(6,182,212,.3);}
+/* ── SPEAKER TABLE ── */
+.sp-filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 0 16px;}
+.sp-flt.active{background:var(--btc-dim);border-color:var(--btc);color:var(--btc);}
+.sp-table{border-collapse:collapse;width:100%;}
+.sp-table thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;position:sticky;top:0;z-index:10;}
+.sp-table tbody td{border:1px solid var(--border);padding:7px 10px;vertical-align:middle;font-size:14px;}
+.sp-table tbody tr:hover{background:rgba(247,147,26,.04);}
 .speaker-name{font-size:17px;font-weight:700;margin:8px 0 4px;}
 .speaker-contact{font-size:14px;color:var(--muted);margin-bottom:8px;}
 .speaker-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
@@ -144,7 +151,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .sp-cell:hover{background:rgba(247,147,26,.06);}
 .sp-cell-name{font-size:13px;font-weight:700;color:var(--btc);line-height:1.3;}
 .sp-cell-tema{font-size:11px;color:var(--text);line-height:1.3;margin-top:2px;}
-.sp-cell-empty{font-size:12px;color:var(--dim);font-style:italic;}
+.sp-cell-empty{font-size:14px;color:var(--dim);font-style:italic;}
 .sp-drop{display:none;position:absolute;top:100%;left:0;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.5);}
 .sp-drop.open{display:block;}
 .sp-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);}
@@ -363,8 +370,37 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
     </div>
 
-    <div class="speakers-grid" id="speakersGrid">
-      <div class="empty"><div class="empty-icon">🎙️</div>No hay speakers cargados aún.</div>
+    <div class="sp-filter-bar">
+      <button class="btn sp-flt active" onclick="setSpFilter('tipo','all')" data-filter-tipo="all">Todos</button>
+      <button class="btn sp-flt" onclick="setSpFilter('tipo','speaker')" data-filter-tipo="speaker">Speaker</button>
+      <button class="btn sp-flt" onclick="setSpFilter('tipo','empresa')" data-filter-tipo="empresa">Empresa</button>
+      <button class="btn sp-flt" onclick="setSpFilter('tipo','sponsor')" data-filter-tipo="sponsor">Sponsor</button>
+      <div class="toolbar-sep"></div>
+      <button class="btn sp-flt active" onclick="setSpFilter('city','all')" data-filter-city="all">Todas</button>
+      <button class="btn sp-flt" onclick="setSpFilter('city','San Luis')" data-filter-city="San Luis">🟥 San Luis</button>
+      <button class="btn sp-flt" onclick="setSpFilter('city','San Juan')" data-filter-city="San Juan">🟨 San Juan</button>
+      <button class="btn sp-flt" onclick="setSpFilter('city','Córdoba')" data-filter-city="Córdoba">🟩 Córdoba</button>
+    </div>
+    <div class="table-wrap">
+      <table class="sp-table">
+        <thead><tr>
+          <th>Tipo</th>
+          <th>Nombre</th>
+          <th style="text-align:center">🟥 SL</th>
+          <th style="text-align:center">🟨 SJ</th>
+          <th style="text-align:center">🟩 CBA</th>
+          <th>Tema(s)</th>
+          <th>Notas</th>
+          <th>Contacto</th>
+          <th>X</th>
+          <th>IG</th>
+          <th>Empresa / Ref</th>
+          <th style="width:36px"></th>
+        </tr></thead>
+        <tbody id="speakersTableBody">
+          <tr><td colspan="12" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -458,6 +494,7 @@ let state = {
   estrategia:{ pre:[], durante:[], post:[] },
   ideas:     []
 };
+let spFilter = { tipo:'all', city:'all' };
 
 // ── TIPOS ─────────────────────────────────────────────────────────
 const TIPOS = ['AMA','Apertura','Break','Charla','Cierre','Concurso','Kahoot','Panel','Premios','Sorteo','Taller'];
@@ -489,7 +526,7 @@ function speakerOpts(sel='') {
   const names = state.speakers.map(s=>s.nombre).filter(Boolean);
   const unique = [...new Set(names)];
   const opts = unique.map(n=>`<option value="${n}" ${n===sel?'selected':''}>${n}</option>`).join('');
-  return `<option value="">— Sin asignar —</option>${opts}<option value="__otro__">Otro (escribir)</option>`;
+  return `<option value="">— Sin aplicar —</option>${opts}<option value="__otro__">Otro (escribir)</option>`;
 }
 
 // ── TABS ──────────────────────────────────────────────────────────
@@ -665,9 +702,9 @@ function renderSpPicker(idx, city, selected) {
   const selSp  = state.speakers.find(s => s.nombre === selected);
   const cellHtml = selected
     ? `<div class="sp-cell-name">${esc(selected)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
-    : `<div class="sp-cell-empty">— Sin asignar —</div>`;
+    : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
   const items = [
-    `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-style:italic;font-size:12px">— Sin asignar —</span></div>`,
+    `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-style:italic;font-size:12px">— Sin aplicar —</span></div>`,
     ...spList.map(s=>`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`)
   ].join('');
   return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div><div class="sp-drop" id="spd-${idx}-${city}">${items}</div></div>`;
@@ -711,36 +748,67 @@ async function loadPrincipal() {
   } catch(e) { toast('⚠️ Error al cargar: '+e.message, true); return false; }
 }
 
+function refreshAll() {
+  renderPrincipal();
+  renderSpeakers();
+  renderEstrategia();
+  renderIdeas();
+  if (document.getElementById('tab-timeline').classList.contains('active')) buildTimeline();
+}
+
 async function savePrincipal() {
-  const headers = ['Tipo','Duración','Inicio','Fin','Tema','Detalle','San Luis','San Juan','Córdoba'];
   const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.detalle,r.sl,r.sj,r.cba]);
   await gasPost('Principal','replace_all', data);
   toast('✅ Principal guardado');
+  refreshAll();
 }
 
 // ══════════════════════════════════════════════════════════════════
 // SPEAKERS
 // ══════════════════════════════════════════════════════════════════
+function setSpFilter(key, val) {
+  spFilter[key] = val;
+  document.querySelectorAll(`[data-filter-${key}]`).forEach(b => {
+    const attr = 'filter' + key.charAt(0).toUpperCase() + key.slice(1);
+    b.classList.toggle('active', b.dataset[attr] === val);
+  });
+  renderSpeakers();
+}
+
 function renderSpeakers() {
-  const grid = document.getElementById('speakersGrid');
-  if (!state.speakers.length) {
-    grid.innerHTML = '<div class="empty"><div class="empty-icon">🎙️</div>No hay speakers aún.</div>';
+  const tbody = document.getElementById('speakersTableBody');
+  if (!tbody) return;
+  let list = state.speakers;
+  if (spFilter.tipo !== 'all') list = list.filter(s => (s.tipo||'speaker') === spFilter.tipo);
+  if (spFilter.city !== 'all') list = list.filter(s => (s.ciudades||'').includes(spFilter.city));
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
     return;
   }
-  grid.innerHTML = state.speakers.map((s,i)=>`
-    <div class="speaker-card">
-      <button class="speaker-del" onclick="delSpeaker(${i})">✕</button>
-      <span class="tipo-pill pill-${s.tipo||'speaker'}">${(s.tipo||'speaker').toUpperCase()}</span>
-      <div class="speaker-name">${esc(s.nombre||'')}</div>
-      <div class="speaker-contact">${esc(s.contacto||'—')}${s.x?` · 𝕏 ${esc(s.x)}`:''}${s.ig?` · IG ${esc(s.ig)}`:''}</div>
-      ${s.empresa?`<div style="font-size:13px;color:var(--muted);margin-bottom:4px">🏢 ${esc(s.empresa)}</div>`:''}
-      <div class="speaker-tags">
-        ${s.ciudades ? s.ciudades.split(',').map(c=>{const m={'San Luis':'🟥','San Juan':'🟨','Córdoba':'🟩'};const t=c.trim();return `<span class="speaker-tag">${m[t]||'📍'} ${t}</span>`;}).join('') : ''}
-        ${s.temas    ? s.temas.split(',').map((t,i)=>{const n=['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];return `<span class="speaker-tag">${n[i]||'🔢'} ${t.trim()}</span>`;}).join('') : ''}
-      </div>
-      ${s.notas ? `<div style="font-size:13px;color:var(--muted);margin-top:8px">${esc(s.notas)}</div>` : ''}
-    </div>
-  `).join('');
+  const cap = t => t ? t.charAt(0).toUpperCase()+t.slice(1) : '';
+  tbody.innerHTML = list.map(s => {
+    const ri = state.speakers.indexOf(s);
+    const tipo = s.tipo||'speaker';
+    const hasSL  = (s.ciudades||'').includes('San Luis');
+    const hasSJ  = (s.ciudades||'').includes('San Juan');
+    const hasCBA = (s.ciudades||'').includes('Córdoba');
+    const chk = `<span style="color:#22c55e;font-size:15px">✓</span>`;
+    const dash = `<span style="color:var(--dim)">—</span>`;
+    return `<tr>
+      <td><span class="tipo-pill pill-${tipo}">${cap(tipo)}</span></td>
+      <td style="font-weight:700;white-space:nowrap">${esc(s.nombre||'')}</td>
+      <td style="text-align:center">${hasSL?chk:dash}</td>
+      <td style="text-align:center">${hasSJ?chk:dash}</td>
+      <td style="text-align:center">${hasCBA?chk:dash}</td>
+      <td style="font-size:13px">${esc(s.temas||'—')}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(s.notas||'—')}</td>
+      <td style="font-size:13px">${esc(s.contacto||'—')}</td>
+      <td style="font-size:13px">${s.x?esc(s.x):dash}</td>
+      <td style="font-size:13px">${s.ig?esc(s.ig):dash}</td>
+      <td style="font-size:13px">${s.empresa?esc(s.empresa):dash}</td>
+      <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
+    </tr>`;
+  }).join('');
 }
 
 function addSpeaker() {
@@ -788,6 +856,7 @@ async function saveSpeakers() {
   const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'']);
   await gasPost('Speakers','replace_all', data);
   toast('✅ Speakers guardados');
+  refreshAll();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -898,6 +967,7 @@ async function saveEstrategia() {
   FASES.forEach(fase => (state.estrategia[fase]||[]).forEach(s=>data.push([fase,s.titulo,s.desc])));
   await gasPost('Estrategia','replace_all',data);
   toast('✅ Estrategia guardada');
+  refreshAll();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -952,6 +1022,7 @@ async function saveIdeas() {
   const data = state.ideas.map(i=>[i.titulo,i.prop,i.hora,i.detalle]);
   await gasPost('Ideas','replace_all',data);
   toast('✅ Ideas guardadas');
+  refreshAll();
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1169,7 +1240,7 @@ document.addEventListener('click', e => {
       const selSp = state.speakers.find(s => s.nombre === name);
       const cellHtml = name
         ? `<div class="sp-cell-name">${esc(name)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
-        : `<div class="sp-cell-empty">— Sin asignar —</div>`;
+        : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
       picker.querySelector('.sp-cell').innerHTML = cellHtml;
     }
     closeAllSpDrops();
