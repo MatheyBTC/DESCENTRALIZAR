@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DEX-eventos 2026</title>
+<title>DEX-eventos (2026)</title>
 <style>
 :root {
   --bg:#0d0f12; --bg2:#13161b; --bg3:#1a1e25; --border:#252932;
@@ -37,13 +37,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--btc);border-bottom-color:var(--btc);}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 16px;border-left:1px solid var(--border);}
-.status-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;}
+.status-dot{width:11px;height:11px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.status-txt{font-size:11px;color:var(--muted);}
+.status-txt{font-size:14px;color:var(--muted);}
 
 /* ── TOOLBAR ── */
 .toolbar{padding:10px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg2);}
-.btn{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all .15s;white-space:nowrap;}
+.btn{padding:5px 14px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);transition:all .15s;white-space:nowrap;}
 .btn:hover{border-color:var(--btc);color:var(--btc);}
 .btn.save{background:var(--btc-dim);border-color:var(--btc);color:var(--btc);}
 .btn.danger{border-color:#ef4444;color:#ef4444;}
@@ -55,21 +55,21 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── CONFIG BAR (Principal) ── */
 .config-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.config-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.config-label{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.02em;}
 .time-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;font-weight:700;width:80px;text-align:center;}
 .time-input.green{border-color:#22c55e;color:#22c55e;}
 .time-input.red{border-color:#ef4444;color:#ef4444;}
 
 /* ── PROGRESS BAR ── */
 .progress-wrap{padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.progress-header{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
+.progress-header{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:6px;}
 .progress-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;}
 .progress-fill{height:100%;background:linear-gradient(90deg,#22c55e,var(--btc),#ef4444);border-radius:4px;transition:width .4s;}
 
 /* ── TABLE ── */
 .table-wrap{overflow:auto;max-height:calc(100vh - 110px);}
 table{border-collapse:collapse;width:100%;min-width:1000px;}
-thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:15px;font-weight:700;color:var(--muted);position:sticky;top:0;z-index:10;white-space:nowrap;}
+thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:18px;font-weight:700;color:var(--muted);position:sticky;top:0;z-index:10;white-space:nowrap;}
 thead th.city-h{color:var(--btc);}
 .date-inp{background:transparent;border:none;color:#fff;font-size:15px;font-weight:500;width:100%;outline:none;text-align:left;padding:2px 6px;cursor:text;}
 .date-inp:focus{background:rgba(247,147,26,.1);border-radius:4px;}
@@ -82,13 +82,14 @@ td.row-actions{width:40px;text-align:center;padding:4px;}
 .del-row:hover{color:#ef4444;background:rgba(239,68,68,.1);}
 
 /* ── CELLS ── */
-select.cell-sel,input.cell-inp{width:100%;border:none;background:transparent;color:var(--text);padding:6px 6px;font-size:15px;cursor:pointer;outline:none;font-family:inherit;color-scheme:dark;box-sizing:border-box;}
+select.cell-sel,input.cell-inp{width:100%;border:none;background:transparent;color:var(--text);padding:6px 6px;font-size:18px;cursor:pointer;outline:none;font-family:inherit;color-scheme:dark;box-sizing:border-box;}
 select.cell-sel:focus,input.cell-inp:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2px var(--btc);}
 select.cell-sel option{background:#1a1e25;color:#e8eaf0;}
 .form-select option{background:#1a1e25;color:#e8eaf0;}
 input.cell-inp{cursor:text;}
-textarea.cell-ta{width:100%;border:none;background:transparent;color:var(--text);padding:7px 9px;font-size:12px;resize:vertical;min-height:40px;outline:none;font-family:inherit;line-height:1.5;}
+textarea.cell-ta{width:100%;border:none;background:transparent;color:var(--text);padding:7px 9px;font-size:15px;resize:vertical;min-height:40px;outline:none;font-family:inherit;line-height:1.5;}
 textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2px var(--btc);}
+.fin-progress{position:absolute;bottom:0;left:0;height:3px;background:var(--btc);transition:width .3s;border-radius:0 2px 0 0;}
 
 /* ── TIPO BADGE ── */
 .tipo-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
@@ -122,24 +123,28 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 /* ── SPEAKERS ── */
 .speakers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-top:16px;}
 .speaker-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;}
-.speaker-card .tipo-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
-.pill-speaker{background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.3);}
-.pill-empresa{background:rgba(247,147,26,.15);color:var(--btc);border:1px solid rgba(247,147,26,.3);}
+.speaker-card .tipo-pill{font-size:12px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.pill-speaker{background:rgba(247,147,26,.15);color:var(--btc);border:1px solid rgba(247,147,26,.3);}
+.pill-empresa{background:rgba(250,204,21,.15);color:#facc15;border:1px solid rgba(250,204,21,.3);}
 .pill-sponsor{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
-.speaker-name{font-size:15px;font-weight:700;margin:8px 0 4px;}
-.speaker-contact{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.speaker-name{font-size:17px;font-weight:700;margin:8px 0 4px;}
+.speaker-contact{font-size:14px;color:var(--muted);margin-bottom:8px;}
 .speaker-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
-.speaker-tag{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+.speaker-tag{font-size:12px;padding:2px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
+.cities-check{display:flex;gap:8px;flex-wrap:wrap;}
+.city-opt{display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;user-select:none;transition:all .15s;}
+.city-opt:has(input:checked){border-color:var(--btc);background:var(--btc-dim);}
+.city-opt input{accent-color:var(--btc);cursor:pointer;}
 .speaker-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;}
 .speaker-del:hover{color:#ef4444;}
 
 /* ── FORM ── */
 .form-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;}
-.form-card h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--btc);}
+.form-card h3{font-size:17px;font-weight:700;margin-bottom:14px;color:var(--btc);}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
 .form-field{display:flex;flex-direction:column;gap:4px;}
-.form-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
-.form-input,.form-select,.form-ta{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit;width:100%;outline:none;transition:border-color .15s;color-scheme:dark;}
+.form-label{font-size:13px;font-weight:700;color:var(--muted);}
+.form-input,.form-select,.form-ta{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .15s;color-scheme:dark;}
 .form-input:focus,.form-select:focus,.form-ta:focus{border-color:var(--btc);}
 .form-ta{resize:vertical;min-height:70px;}
 .form-btn{margin-top:14px;padding:8px 20px;background:var(--btc-dim);border:1px solid var(--btc);color:var(--btc);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
@@ -201,12 +206,12 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 
 <!-- ── NAV ── -->
 <div class="nav">
-  <div class="nav-brand">⚡ DEX-eventos 2026</div>
+  <div class="nav-brand">📌 DEX-eventos (2026)</div>
   <button class="tab-btn active" onclick="switchTab('principal')">📋 Principal</button>
   <button class="tab-btn" onclick="switchTab('speakers')">🎙️ Speakers</button>
   <button class="tab-btn" onclick="switchTab('timeline')">🗓️ Timeline</button>
   <button class="tab-btn" onclick="switchTab('estrategia')">🎯 Estrategia</button>
-  <button class="tab-btn" onclick="switchTab('ideas')">💡 Ideas</button>
+  <button class="tab-btn" onclick="switchTab('ideas')">❓ Ideas</button>
   <div class="nav-right">
     <div class="status-dot" id="statusDot"></div>
     <span class="status-txt" id="statusTxt">Conectando…</span>
@@ -220,11 +225,11 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 
   <!-- Config horario -->
   <div class="config-bar">
-    <span class="config-label">Jornada</span>
+    <span class="config-label">Inicio</span>
     <input type="text" class="time-input green" id="horaApertura" value="09:00" placeholder="HH:MM" oninput="recalcTimes()">
-    <span style="color:var(--muted)">→</span>
+    <span class="config-label">Fin</span>
     <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
-    <span style="color:var(--dim);font-size:11px" id="totalMin">—</span>
+    <span style="color:var(--dim);font-size:13px" id="totalMin">—</span>
 
     <div style="margin-left:auto;display:flex;gap:8px;">
       <button class="btn" onclick="addPrincipalRow()">+ Agregar fila</button>
@@ -242,13 +247,6 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
   </div>
 
-  <datalist id="dur-opts">
-    <option value="00:15">
-    <option value="00:20">
-    <option value="00:25">
-    <option value="00:30">
-    <option value="00:45">
-  </datalist>
 
   <!-- Tabla -->
   <div class="table-wrap">
@@ -257,7 +255,9 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         <tr class="fecha-row">
           <th></th>
           <th><input class="date-inp" id="custom-tipo" placeholder="+ Tipo custom" title="Escribí y presioná Enter para agregar al desplegable" onkeydown="addCustomTipo(event,this)"></th>
-          <th colspan="5"></th>
+          <th colspan="2"></th>
+          <th style="text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
+          <th colspan="2"></th>
           <th class="city-h" style="font-weight:400">
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
@@ -270,10 +270,10 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         </tr>
         <tr>
           <th style="width:36px"></th>
-          <th style="width:60px">Tipo</th>
-          <th style="width:40px">Duración</th>
-          <th style="width:40px">Inicio</th>
-          <th style="width:40px">Fin</th>
+          <th style="width:70px">Tipo</th>
+          <th style="width:60px;text-align:center">Duración</th>
+          <th style="width:55px;text-align:center">Inicio</th>
+          <th style="width:55px;text-align:center">Fin</th>
           <th style="width:200px">Tema</th>
           <th style="width:240px">Detalle</th>
           <th class="city-h" style="width:180px">🟥 San Luis</th>
@@ -298,7 +298,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 
   <div style="padding:20px">
     <div class="form-card">
-      <h3>+ Agregar Speaker / Empresa / Sponsor</h3>
+      <h3>+ Agregar <span style="color:var(--btc)">Speaker</span> <span style="color:var(--muted)">|</span> <span style="color:#facc15">Empresa</span> <span style="color:var(--muted)">|</span> <span style="color:#22c55e">Sponsor</span></h3>
       <div class="form-grid">
         <div class="form-field">
           <label class="form-label">Nombre</label>
@@ -316,9 +316,13 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <label class="form-label">Contacto</label>
           <input class="form-input" id="sp-contacto" placeholder="Email / X / WhatsApp">
         </div>
-        <div class="form-field">
+        <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Ciudad(es)</label>
-          <input class="form-input" id="sp-ciudades" placeholder="San Luis / San Juan / Córdoba / Todas">
+          <div class="cities-check" id="sp-ciudades-wrap">
+            <label class="city-opt"><input type="checkbox" value="San Luis"> 🟥 San Luis</label>
+            <label class="city-opt"><input type="checkbox" value="San Juan"> 🟨 San Juan</label>
+            <label class="city-opt"><input type="checkbox" value="Córdoba"> 🟩 Córdoba</label>
+          </div>
         </div>
         <div class="form-field">
           <label class="form-label">Tema(s) que puede cubrir</label>
@@ -326,7 +330,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         </div>
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Notas</label>
-          <textarea class="form-ta" id="sp-notas" placeholder="Info adicional, disponibilidad, restricciones…"></textarea>
+          <textarea class="form-ta" id="sp-notas" style="font-size:16px" placeholder="Info adicional, disponibilidad, restricciones…"></textarea>
         </div>
       </div>
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
@@ -502,17 +506,15 @@ function addCustomTipo(e, inp) {
   renderPrincipal(); // refresca todos los selects de tipo
 }
 
-function durInputChange(idx, val) {
-  const min = timeToMin(val);
-  updatePrincipal(idx, 'dur', min);
-  recalcTimes();
-  updateProgress();
-  repaintDur(idx, min);
+function durOpts(sel=15) {
+  const opts = DURS.map(d=>`<option value="${d}" ${d===sel?'selected':''}>${minToTime(d)}</option>`).join('');
+  const custom = !DUR_STD.has(sel) && sel>0 ? `<option value="${sel}" selected>${minToTime(sel)}</option>` : '';
+  return opts + custom;
 }
 function repaintDur(idx, min) {
   const td = document.getElementById('durtd-'+idx);
   if (!td) return;
-  td.querySelector('input').style.color = durColor(min);
+  td.querySelector('select').style.color = durColor(min);
 }
 
 function makePrincipalRow(row, idx) {
@@ -528,16 +530,16 @@ function makePrincipalRow(row, idx) {
     <td style="background:${tipoBg}">
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
-    <td id="durtd-${idx}">
-      <input type="text" class="cell-inp" list="dur-opts" placeholder="00:00"
-        style="color:${dc};font-weight:700;text-align:center"
-        value="${minToTime(row.dur||0)}"
-        onchange="durInputChange(${idx},this.value)">
+    <td id="durtd-${idx}" style="text-align:center;width:60px;max-width:60px;overflow:hidden">
+      <select class="cell-sel" style="color:${dc};font-weight:700;text-align:center;min-width:0"
+        onchange="updatePrincipal(${idx},'dur',+this.value);recalcTimes();updateProgress();repaintDur(${idx},+this.value)">
+        ${durOpts(row.dur)}
+      </select>
     </td>
-    <td style=""><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
-    <td style=""><input class="cell-inp time-end"   id="fin-${idx}"    style="text-align:center" value="${row.fin||''}"    oninput="updatePrincipal(${idx},'fin',this.value)"></td>
+    <td style="width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
+    <td style="width:55px;max-width:55px;overflow:hidden;position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></td>
     <td style="min-width:180px"><input class="cell-inp" style="color:var(--btc)" value="${esc(row.tema||'')}" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…"></td>
-    <td style="min-width:220px"><textarea class="cell-ta" style="font-size:13px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
+    <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
     <td style="min-width:160px">
       <select class="cell-sel" onchange="handleSpeakerSel(${idx},'sl',this)">
         ${speakerOpts(row.sl||'')}
@@ -626,11 +628,24 @@ function updateProgress() {
   state.principal.forEach(r => used += durVal(r.dur)||0);
   const pct = total>0 ? Math.min(100, Math.round(used/total*100)) : 0;
   document.getElementById('progFill').style.width = pct+'%';
-  document.getElementById('progPct').textContent = pct+'%';
-  document.getElementById('progLabel').textContent = `${minToTime(used)} / ${minToTime(total)} de jornada usados`;
-  document.getElementById('totalMin').textContent = `${total} min disponibles`;
+  document.getElementById('progPct').textContent = '';
+  document.getElementById('progLabel').textContent = `${minToTime(used)} usadas (${pct}%)`;
+  const hrs = (total/60).toFixed(1).replace(/\.0$/, '');
+  document.getElementById('totalMin').textContent = `${hrs} hs disponibles`;
+  const thEl = document.getElementById('totalHorasUsadas');
+  if (thEl) thEl.textContent = minToTime(used);
+  updateFinProgress(apertura, total);
+}
 
-  // Segments
+function updateFinProgress(apertura, total) {
+  if (!total) return;
+  state.principal.forEach((row, i) => {
+    const el = document.getElementById('finprog-' + i);
+    if (!el) return;
+    const finMin = timeToMin(row.fin || '09:00');
+    const pct = Math.min(100, Math.max(0, Math.round((finMin - apertura) / total * 100)));
+    el.style.width = pct + '%';
+  });
 }
 
 // ── LOAD / SAVE Principal ─────────────────────────────────────────
@@ -671,10 +686,10 @@ function renderSpeakers() {
       <div class="speaker-name">${esc(s.nombre||'')}</div>
       <div class="speaker-contact">${esc(s.contacto||'—')}</div>
       <div class="speaker-tags">
-        ${s.ciudades ? s.ciudades.split(',').map(c=>`<span class="speaker-tag">📍${c.trim()}</span>`).join('') : ''}
-        ${s.temas    ? s.temas.split(',').map(t=>`<span class="speaker-tag">🎯${t.trim()}</span>`).join('') : ''}
+        ${s.ciudades ? s.ciudades.split(',').map(c=>{const m={'San Luis':'🟥','San Juan':'🟨','Córdoba':'🟩'};const t=c.trim();return `<span class="speaker-tag">${m[t]||'📍'} ${t}</span>`;}).join('') : ''}
+        ${s.temas    ? s.temas.split(',').map((t,i)=>{const n=['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];return `<span class="speaker-tag">${n[i]||'🔢'} ${t.trim()}</span>`;}).join('') : ''}
       </div>
-      ${s.notas ? `<div style="font-size:11px;color:var(--muted);margin-top:8px">${esc(s.notas)}</div>` : ''}
+      ${s.notas ? `<div style="font-size:13px;color:var(--muted);margin-top:8px">${esc(s.notas)}</div>` : ''}
     </div>
   `).join('');
 }
@@ -682,15 +697,17 @@ function renderSpeakers() {
 function addSpeaker() {
   const nombre = document.getElementById('sp-nombre').value.trim();
   if (!nombre) { toast('⚠️ Nombre requerido', true); return; }
+  const ciudadesChecked = [...document.querySelectorAll('#sp-ciudades-wrap input:checked')].map(c=>c.value).join(', ');
   state.speakers.push({
     nombre,
     tipo:     document.getElementById('sp-tipo').value,
     contacto: document.getElementById('sp-contacto').value.trim(),
-    ciudades: document.getElementById('sp-ciudades').value.trim(),
+    ciudades: ciudadesChecked,
     temas:    document.getElementById('sp-temas').value.trim(),
     notas:    document.getElementById('sp-notas').value.trim(),
   });
-  ['sp-nombre','sp-contacto','sp-ciudades','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
+  ['sp-nombre','sp-contacto','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
   renderSpeakers();
   toast('✅ Speaker agregado');
 }
