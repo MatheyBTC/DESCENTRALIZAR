@@ -172,18 +172,37 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .form-btn{margin-top:14px;padding:8px 20px;background:var(--btc-dim);border:1px solid var(--btc);color:var(--btc);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
 .form-btn:hover{background:var(--btc);color:#000;}
 
-/* ── TIMELINE ── */
-.timeline-grid{display:grid;grid-template-columns:200px repeat(3,1fr);gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:16px;}
-.tl-header{background:var(--bg3);padding:10px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
-.tl-header.city{color:var(--btc);}
-.tl-cell{padding:10px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-size:12px;vertical-align:top;}
-.tl-cell:last-child{border-right:none;}
-.tl-row:last-child .tl-cell{border-bottom:none;}
-.tl-block{font-weight:700;color:var(--text);font-size:12px;}
-.tl-time{font-size:10px;color:var(--muted);margin-top:2px;}
-.tl-speaker{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;margin:2px 2px 0 0;cursor:default;}
-.tl-speaker.assigned{border-color:var(--btc);color:var(--btc);background:var(--btc-dim);}
-.tl-avail{color:var(--dim);font-size:11px;font-style:italic;}
+/* ── TIMELINE — resumen ejecutivo + conflictos ── */
+.tl-section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--btc);margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+.tl-city-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:32px;}
+.tl-city-card{background:var(--bg2);border-radius:12px;padding:18px 20px;border:2px solid;}
+.tl-city-card.sl{border-color:#ef4444;}
+.tl-city-card.sj{border-color:#facc15;}
+.tl-city-card.cba{border-color:#22c55e;}
+.tl-city-name{font-size:16px;font-weight:800;margin-bottom:14px;}
+.tl-city-card.sl .tl-city-name{color:#ef4444;}
+.tl-city-card.sj .tl-city-name{color:#facc15;}
+.tl-city-card.cba .tl-city-name{color:#22c55e;}
+.tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.tl-stat-row:last-of-type{border-bottom:none;}
+.tl-stat-label{color:var(--muted);}
+.tl-stat-val{font-weight:700;color:var(--text);}
+.tl-stat-val.warn{color:#f97316;}
+.tl-stat-val.ok{color:#22c55e;}
+.tl-prog-wrap{margin-top:12px;}
+.tl-prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;}
+.tl-prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.tl-prog-fill-sl{height:100%;background:#ef4444;border-radius:4px;transition:width .4s;}
+.tl-prog-fill-sj{height:100%;background:#facc15;border-radius:4px;transition:width .4s;}
+.tl-prog-fill-cba{height:100%;background:#22c55e;border-radius:4px;transition:width .4s;}
+/* conflictos */
+.tl-conflict-wrap{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:18px 20px;}
+.tl-conflict-table{border-collapse:collapse;width:100%;margin-top:10px;}
+.tl-conflict-table th{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);padding:7px 12px;text-align:left;font-size:12px;font-weight:700;color:#ef4444;}
+.tl-conflict-table td{border:1px solid rgba(239,68,68,.2);padding:7px 12px;font-size:13px;vertical-align:middle;}
+.tl-conflict-table tbody tr{background:rgba(239,68,68,.04);}
+.tl-conflict-table tbody tr:hover{background:rgba(239,68,68,.10);}
+.tl-no-conflict{display:flex;align-items:center;gap:8px;padding:10px 0;font-size:14px;color:#22c55e;font-weight:600;}
 
 /* ── ESTRATEGIA ── */
 .fase-section{margin-bottom:28px;}
@@ -881,43 +900,130 @@ function buildTimeline() {
     return;
   }
 
-  let html = `<div class="timeline-grid">
-    <div class="tl-header">Bloque</div>
-    <div class="tl-header city">📍 San Luis</div>
-    <div class="tl-header city">📍 San Juan</div>
-    <div class="tl-header city">📍 Córdoba</div>`;
+  // ── Datos base ────────────────────────────────────────────────
+  const apertura = timeToMin(document.getElementById('horaApertura').value || '09:00');
+  const cierre   = timeToMin(document.getElementById('horaCierre').value   || '18:00');
+  const totalDay = cierre - apertura; // minutos disponibles del día
 
-  state.principal.forEach(row => {
-    // Available speakers for this row (match by tema)
-    const tema = (row.tema||'').toLowerCase();
-    const avail = (city) => {
-      const byCity = state.speakers.filter(s => {
-        const ciudades = (s.ciudades||'').toLowerCase();
-        return ciudades.includes(city) || ciudades.includes('toda') || ciudades.includes('todas');
-      });
-      const matching = byCity.filter(s => {
-        const temas = (s.temas||'').toLowerCase();
-        return !tema || temas.split(',').some(t=>tema.includes(t.trim())||t.trim().includes(tema));
-      });
-      return matching.length ? matching : byCity;
-    };
+  const rows = state.principal;
 
-    const renderCell = (city, assigned, matchSpeakers) => {
-      const tags = matchSpeakers.map(s=>`<span class="tl-speaker ${assigned===s.nombre?'assigned':''}">${s.nombre}</span>`).join('');
-      const assignedTag = assigned ? `<span class="tl-speaker assigned">✅ ${assigned}</span>` : '<span class="tl-avail">Sin asignar</span>';
-      return `<div class="tl-cell">${assignedTag}${tags ? `<div style="margin-top:6px;font-size:10px;color:var(--muted)">Disponibles:</div>${tags}` : ''}</div>`;
-    };
+  // ── SECCIÓN C — Resumen por ciudad ────────────────────────────
+  const cities = [
+    { key:'sl',  label:'🟥 San Luis',  cls:'sl',  color:'#ef4444', fillCls:'tl-prog-fill-sl'  },
+    { key:'sj',  label:'🟨 San Juan',  cls:'sj',  color:'#facc15', fillCls:'tl-prog-fill-sj'  },
+    { key:'cba', label:'🟩 Córdoba',   cls:'cba', color:'#22c55e', fillCls:'tl-prog-fill-cba' },
+  ];
 
-    html += `<div class="tl-row" style="display:contents">
-      <div class="tl-cell">
-        <span class="tl-block">${row.tipo} — ${row.tema||'sin tema'}</span>
-        <div class="tl-time">${row.inicio} → ${row.fin}</div>
+  const cityStats = cities.map(c => {
+    const totalBloques = rows.length;
+    let horasOcupadas = 0;
+    let asignados = 0;
+    let sinAsignar = 0;
+    let huecos = 0;
+
+    rows.forEach(r => {
+      const dur = durVal(r.dur) || 0;
+      horasOcupadas += dur;
+      const sp = (r[c.key] || '').trim();
+      if (sp) asignados++; else sinAsignar++;
+      if (!sp) huecos++;
+    });
+
+    const pct = totalDay > 0 ? Math.min(100, Math.round(horasOcupadas / totalDay * 100)) : 0;
+    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct };
+  });
+
+  let html = `<div class="tl-section-title">📊 Resumen ejecutivo por ciudad</div>
+  <div class="tl-city-cards">`;
+
+  cityStats.forEach(s => {
+    html += `
+    <div class="tl-city-card ${s.cls}">
+      <div class="tl-city-name">${s.label}</div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Horas del día</span>
+        <span class="tl-stat-val">${minToTime(totalDay)}</span>
       </div>
-      ${renderCell('san luis', row.sl, avail('san luis'))}
-      ${renderCell('san juan', row.sj, avail('san juan'))}
-      ${renderCell('córdoba',  row.cba, avail('córdoba'))}
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Horas ocupadas</span>
+        <span class="tl-stat-val">${minToTime(s.horasOcupadas)} (${s.pct}%)</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Bloques totales</span>
+        <span class="tl-stat-val">${s.totalBloques}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Speakers asignados</span>
+        <span class="tl-stat-val ok">${s.asignados}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Sin asignar</span>
+        <span class="tl-stat-val ${s.sinAsignar > 0 ? 'warn' : 'ok'}">${s.sinAsignar}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Huecos detectados</span>
+        <span class="tl-stat-val ${s.huecos > 0 ? 'warn' : 'ok'}">${s.huecos}</span>
+      </div>
+      <div class="tl-prog-wrap">
+        <div class="tl-prog-label">
+          <span>Ocupación</span><span>${s.pct}%</span>
+        </div>
+        <div class="tl-prog-bar">
+          <div class="${s.fillCls}" style="width:${s.pct}%"></div>
+        </div>
+      </div>
     </div>`;
   });
+
+  html += '</div>';
+
+  // ── SECCIÓN D — Conflictos de speakers ───────────────────────
+  html += `<div class="tl-section-title" style="margin-top:8px">⚠️ Conflictos de speakers</div>
+  <div class="tl-conflict-wrap">`;
+
+  const conflicts = [];
+  rows.forEach(r => {
+    // Recolectar speakers no vacíos por ciudad para esta fila
+    const spMap = {};
+    [['sl','🟥 San Luis'], ['sj','🟨 San Juan'], ['cba','🟩 Córdoba']].forEach(([key, label]) => {
+      const sp = (r[key] || '').trim();
+      if (!sp) return;
+      if (!spMap[sp]) spMap[sp] = [];
+      spMap[sp].push(label);
+    });
+    // Si el mismo speaker aparece en 2+ ciudades → conflicto
+    Object.entries(spMap).forEach(([sp, ciudadesConflicto]) => {
+      if (ciudadesConflicto.length >= 2) {
+        conflicts.push({
+          horario: `${r.inicio || '—'} → ${r.fin || '—'}`,
+          tema:    r.tema || '(sin tema)',
+          speaker: sp,
+          ciudades: ciudadesConflicto.join(', '),
+        });
+      }
+    });
+  });
+
+  if (!conflicts.length) {
+    html += `<div class="tl-no-conflict">✅ Sin conflictos detectados</div>`;
+  } else {
+    html += `<table class="tl-conflict-table">
+      <thead><tr>
+        <th>Horario</th>
+        <th>Tema</th>
+        <th>Speaker</th>
+        <th>Ciudades en conflicto</th>
+      </tr></thead>
+      <tbody>
+        ${conflicts.map(c => `<tr>
+          <td style="white-space:nowrap;font-weight:700;color:#ef4444">${esc(c.horario)}</td>
+          <td>${esc(c.tema)}</td>
+          <td style="font-weight:700;color:var(--btc)">${esc(c.speaker)}</td>
+          <td style="color:#ef4444;font-weight:600">${esc(c.ciudades)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  }
 
   html += '</div>';
   wrap.innerHTML = html;
