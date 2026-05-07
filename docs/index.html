@@ -55,14 +55,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── CONFIG BAR (Principal) ── */
 .config-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.config-label{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.02em;}
+.config-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
 .time-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;font-weight:700;width:80px;text-align:center;}
 .time-input.green{border-color:#22c55e;color:#22c55e;}
 .time-input.red{border-color:#ef4444;color:#ef4444;}
 
 /* ── PROGRESS BAR ── */
 .progress-wrap{padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.progress-header{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:6px;}
+.progress-header{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;}
 .progress-bar{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;}
 .progress-fill{height:100%;background:linear-gradient(90deg,#22c55e,var(--btc),#ef4444);border-radius:4px;transition:width .4s;}
 
@@ -224,7 +224,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <input type="text" class="time-input green" id="horaApertura" value="09:00" placeholder="HH:MM" oninput="recalcTimes()">
     <span style="color:var(--muted)">→</span>
     <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
-    <span style="color:var(--dim);font-size:13px" id="totalMin">—</span>
+    <span style="color:var(--dim);font-size:11px" id="totalMin">—</span>
 
     <div style="margin-left:auto;display:flex;gap:8px;">
       <button class="btn" onclick="addPrincipalRow()">+ Agregar fila</button>
@@ -242,6 +242,13 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
   </div>
 
+  <datalist id="dur-opts">
+    <option value="00:15">
+    <option value="00:20">
+    <option value="00:25">
+    <option value="00:30">
+    <option value="00:45">
+  </datalist>
 
   <!-- Tabla -->
   <div class="table-wrap">

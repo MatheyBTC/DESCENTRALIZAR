@@ -4,7 +4,7 @@
 // Execute as: Me | Who has access: Anyone
 // ═══════════════════════════════════════════════════════════════════
 
-const SHEET_ID = 'TU_SHEET_ID_AQUI'; // Reemplazar con el ID de tu Google Sheet
+const SHEET_ID = '1wl2ClpRqJ5I4j92D0Xa3vinm0JHckCUCAu0fMfXJ07U';
 
 // ── GET — Leer hojas ────────────────────────────────────────────────
 function doGet(e) {
