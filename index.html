@@ -32,8 +32,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── NAV ── */
 .nav{position:sticky;top:0;z-index:200;background:rgba(13,15,18,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;height:50px;overflow-x:auto;}
-.nav-brand{font-weight:800;font-size:14px;color:var(--btc);padding:0 20px;white-space:nowrap;border-right:1px solid var(--border);}
-.tab-btn{padding:0 18px;height:50px;border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.nav-brand{font-weight:800;font-size:16px;color:var(--btc);padding:0 20px;white-space:nowrap;border-right:1px solid var(--border);}
+.tab-btn{padding:0 18px;height:50px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--btc);border-bottom-color:var(--btc);}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 16px;border-left:1px solid var(--border);}
@@ -55,7 +55,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
 /* ── CONFIG BAR (Principal) ── */
 .config-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.config-label{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.02em;}
+.config-label{font-size:15px;color:var(--muted);font-weight:700;letter-spacing:.02em;}
 .time-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;font-weight:700;width:80px;text-align:center;}
 .time-input.green{border-color:#22c55e;color:#22c55e;}
 .time-input.red{border-color:#ef4444;color:#ef4444;}
@@ -138,12 +138,27 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .speaker-del{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;}
 .speaker-del:hover{color:#ef4444;}
 
+/* ── SPEAKER PICKER (Principal) ── */
+.sp-picker{position:relative;width:100%;}
+.sp-cell{padding:6px 8px;min-height:40px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;}
+.sp-cell:hover{background:rgba(247,147,26,.06);}
+.sp-cell-name{font-size:13px;font-weight:700;color:var(--btc);line-height:1.3;}
+.sp-cell-tema{font-size:11px;color:var(--text);line-height:1.3;margin-top:2px;}
+.sp-cell-empty{font-size:12px;color:var(--dim);font-style:italic;}
+.sp-drop{display:none;position:absolute;top:100%;left:0;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.sp-drop.open{display:block;}
+.sp-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);}
+.sp-item:last-child{border-bottom:none;}
+.sp-item:hover{background:var(--btc-dim);}
+.sp-item-name{font-size:13px;font-weight:700;color:var(--btc);}
+.sp-item-tema{font-size:11px;color:var(--text);margin-top:1px;}
+
 /* ── FORM ── */
 .form-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;}
 .form-card h3{font-size:17px;font-weight:700;margin-bottom:14px;color:var(--btc);}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
 .form-field{display:flex;flex-direction:column;gap:4px;}
-.form-label{font-size:13px;font-weight:700;color:var(--muted);}
+.form-label{font-size:16px;font-weight:700;color:var(--muted);}
 .form-input,.form-select,.form-ta{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:15px;font-family:inherit;width:100%;outline:none;transition:border-color .15s;color-scheme:dark;}
 .form-input:focus,.form-select:focus,.form-ta:focus{border-color:var(--btc);}
 .form-ta{resize:vertical;min-height:70px;}
@@ -229,7 +244,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <input type="text" class="time-input green" id="horaApertura" value="09:00" placeholder="HH:MM" oninput="recalcTimes()">
     <span class="config-label">Fin</span>
     <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
-    <span style="color:var(--dim);font-size:13px" id="totalMin">—</span>
+    <span style="color:var(--dim);font-size:15px" id="totalMin">—</span>
 
     <div style="margin-left:auto;display:flex;gap:8px;">
       <button class="btn" onclick="addPrincipalRow()">+ Agregar fila</button>
@@ -298,7 +313,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 
   <div style="padding:20px">
     <div class="form-card">
-      <h3>+ Agregar <span style="color:var(--btc)">Speaker</span> <span style="color:var(--muted)">|</span> <span style="color:#facc15">Empresa</span> <span style="color:var(--muted)">|</span> <span style="color:#22c55e">Sponsor</span></h3>
+      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker</span> <span style="color:var(--muted)">|</span> <span style="color:#facc15">Empresa</span> <span style="color:var(--muted)">|</span> <span style="color:#22c55e">Sponsor</span></h3>
       <div class="form-grid">
         <div class="form-field">
           <label class="form-label">Nombre</label>
@@ -313,8 +328,20 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           </select>
         </div>
         <div class="form-field">
-          <label class="form-label">Contacto</label>
-          <input class="form-input" id="sp-contacto" placeholder="Email / X / WhatsApp">
+          <label class="form-label">Contacto (mail / WhatsApp)</label>
+          <input class="form-input" id="sp-contacto" placeholder="mail@ejemplo.com / +54 9 …">
+        </div>
+        <div class="form-field">
+          <label class="form-label">X (Twitter)</label>
+          <input class="form-input" id="sp-x" placeholder="@usuario">
+        </div>
+        <div class="form-field">
+          <label class="form-label">IG</label>
+          <input class="form-input" id="sp-ig" placeholder="@usuario">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Empresa / Referencia</label>
+          <input class="form-input" id="sp-empresa" placeholder="Empresa o referencia">
         </div>
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Ciudad(es)</label>
@@ -324,13 +351,13 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
             <label class="city-opt"><input type="checkbox" value="Córdoba"> 🟩 Córdoba</label>
           </div>
         </div>
-        <div class="form-field">
+        <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Tema(s) que puede cubrir</label>
           <input class="form-input" id="sp-temas" placeholder="Bitcoin, DeFi, Autocustodia…">
         </div>
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Notas</label>
-          <textarea class="form-ta" id="sp-notas" style="font-size:16px" placeholder="Info adicional, disponibilidad, restricciones…"></textarea>
+          <textarea class="form-ta" id="sp-notas" style="font-size:19px" placeholder="Info adicional, disponibilidad, restricciones…"></textarea>
         </div>
       </div>
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
@@ -540,21 +567,9 @@ function makePrincipalRow(row, idx) {
     <td style="width:55px;max-width:55px;overflow:hidden;position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></td>
     <td style="min-width:180px"><input class="cell-inp" style="color:var(--btc)" value="${esc(row.tema||'')}" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…"></td>
     <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
-    <td style="min-width:160px">
-      <select class="cell-sel" onchange="handleSpeakerSel(${idx},'sl',this)">
-        ${speakerOpts(row.sl||'')}
-      </select>
-    </td>
-    <td style="min-width:160px">
-      <select class="cell-sel" onchange="handleSpeakerSel(${idx},'sj',this)">
-        ${speakerOpts(row.sj||'')}
-      </select>
-    </td>
-    <td style="min-width:160px">
-      <select class="cell-sel" onchange="handleSpeakerSel(${idx},'cba',this)">
-        ${speakerOpts(row.cba||'')}
-      </select>
-    </td>
+    <td style="min-width:160px">${renderSpPicker(idx,'sl',row.sl||'')}</td>
+    <td style="min-width:160px">${renderSpPicker(idx,'sj',row.sj||'')}</td>
+    <td style="min-width:160px">${renderSpPicker(idx,'cba',row.cba||'')}</td>
   `;
   return tr;
 }
@@ -637,6 +652,39 @@ function updateProgress() {
   updateFinProgress(apertura, total);
 }
 
+// ── SPEAKER PICKER ───────────────────────────────────────────────
+const CITY_NAMES = { sl:'San Luis', sj:'San Juan', cba:'Córdoba' };
+
+function speakersForCity(cityKey) {
+  const cn = (CITY_NAMES[cityKey]||'').toLowerCase();
+  return state.speakers.filter(s => (s.ciudades||'').toLowerCase().includes(cn));
+}
+
+function renderSpPicker(idx, city, selected) {
+  const spList = speakersForCity(city);
+  const selSp  = state.speakers.find(s => s.nombre === selected);
+  const cellHtml = selected
+    ? `<div class="sp-cell-name">${esc(selected)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
+    : `<div class="sp-cell-empty">— Sin asignar —</div>`;
+  const items = [
+    `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-style:italic;font-size:12px">— Sin asignar —</span></div>`,
+    ...spList.map(s=>`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`)
+  ].join('');
+  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div><div class="sp-drop" id="spd-${idx}-${city}">${items}</div></div>`;
+}
+
+function openSpDrop(idx, city, e) {
+  e.stopPropagation();
+  const drop = document.getElementById(`spd-${idx}-${city}`);
+  const wasOpen = drop.classList.contains('open');
+  closeAllSpDrops();
+  if (!wasOpen) drop.classList.add('open');
+}
+
+function closeAllSpDrops() {
+  document.querySelectorAll('.sp-drop.open').forEach(d=>d.classList.remove('open'));
+}
+
 function updateFinProgress(apertura, total) {
   if (!total) return;
   state.principal.forEach((row, i) => {
@@ -684,7 +732,8 @@ function renderSpeakers() {
       <button class="speaker-del" onclick="delSpeaker(${i})">✕</button>
       <span class="tipo-pill pill-${s.tipo||'speaker'}">${(s.tipo||'speaker').toUpperCase()}</span>
       <div class="speaker-name">${esc(s.nombre||'')}</div>
-      <div class="speaker-contact">${esc(s.contacto||'—')}</div>
+      <div class="speaker-contact">${esc(s.contacto||'—')}${s.x?` · 𝕏 ${esc(s.x)}`:''}${s.ig?` · IG ${esc(s.ig)}`:''}</div>
+      ${s.empresa?`<div style="font-size:13px;color:var(--muted);margin-bottom:4px">🏢 ${esc(s.empresa)}</div>`:''}
       <div class="speaker-tags">
         ${s.ciudades ? s.ciudades.split(',').map(c=>{const m={'San Luis':'🟥','San Juan':'🟨','Córdoba':'🟩'};const t=c.trim();return `<span class="speaker-tag">${m[t]||'📍'} ${t}</span>`;}).join('') : ''}
         ${s.temas    ? s.temas.split(',').map((t,i)=>{const n=['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];return `<span class="speaker-tag">${n[i]||'🔢'} ${t.trim()}</span>`;}).join('') : ''}
@@ -702,11 +751,14 @@ function addSpeaker() {
     nombre,
     tipo:     document.getElementById('sp-tipo').value,
     contacto: document.getElementById('sp-contacto').value.trim(),
+    x:        document.getElementById('sp-x').value.trim(),
+    ig:       document.getElementById('sp-ig').value.trim(),
+    empresa:  document.getElementById('sp-empresa').value.trim(),
     ciudades: ciudadesChecked,
     temas:    document.getElementById('sp-temas').value.trim(),
     notas:    document.getElementById('sp-notas').value.trim(),
   });
-  ['sp-nombre','sp-contacto','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
+  ['sp-nombre','sp-contacto','sp-x','sp-ig','sp-empresa','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
   renderSpeakers();
   toast('✅ Speaker agregado');
@@ -724,7 +776,8 @@ async function loadSpeakers() {
     const [, ...rows] = raw;
     state.speakers = rows.map(r=>({
       nombre:r[0]||'', tipo:r[1]||'speaker', contacto:r[2]||'',
-      ciudades:r[3]||'', temas:r[4]||'', notas:r[5]||''
+      ciudades:r[3]||'', temas:r[4]||'', notas:r[5]||'',
+      x:r[6]||'', ig:r[7]||'', empresa:r[8]||''
     }));
     renderSpeakers();
     toast('✅ Speakers actualizados');
@@ -732,7 +785,7 @@ async function loadSpeakers() {
 }
 
 async function saveSpeakers() {
-  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas]);
+  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'']);
   await gasPost('Speakers','replace_all', data);
   toast('✅ Speakers guardados');
 }
@@ -1104,6 +1157,26 @@ async function init() {
   renderEstrategia();
   renderIdeas();
 }
+
+// ── SP PICKER EVENT DELEGATION ───────────────────────────────────
+document.addEventListener('click', e => {
+  const item = e.target.closest('.sp-item');
+  if (item && item.dataset.idx !== undefined) {
+    const idx = +item.dataset.idx, city = item.dataset.city, name = item.dataset.name;
+    updatePrincipal(idx, city, name);
+    const picker = document.getElementById(`spp-${idx}-${city}`);
+    if (picker) {
+      const selSp = state.speakers.find(s => s.nombre === name);
+      const cellHtml = name
+        ? `<div class="sp-cell-name">${esc(name)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
+        : `<div class="sp-cell-empty">— Sin asignar —</div>`;
+      picker.querySelector('.sp-cell').innerHTML = cellHtml;
+    }
+    closeAllSpDrops();
+    return;
+  }
+  if (!e.target.closest('.sp-picker')) closeAllSpDrops();
+});
 
 init();
 </script>
