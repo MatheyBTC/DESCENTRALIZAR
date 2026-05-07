@@ -152,7 +152,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .sp-cell-name{font-size:13px;font-weight:700;color:var(--btc);line-height:1.3;}
 .sp-cell-tema{font-size:11px;color:var(--text);line-height:1.3;margin-top:2px;}
 .sp-cell-empty{font-size:14px;color:var(--dim);}
-.sp-drop{display:none;position:absolute;top:100%;left:0;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.sp-drop{display:none;position:fixed;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
 .sp-drop.open{display:block;}
 .sp-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);}
 .sp-item:last-child{border-bottom:none;}
@@ -713,9 +713,16 @@ function renderSpPicker(idx, city, selected) {
 function openSpDrop(idx, city, e) {
   e.stopPropagation();
   const drop = document.getElementById(`spd-${idx}-${city}`);
+  const cell = document.getElementById(`spp-${idx}-${city}`).querySelector('.sp-cell');
   const wasOpen = drop.classList.contains('open');
   closeAllSpDrops();
-  if (!wasOpen) drop.classList.add('open');
+  if (!wasOpen) {
+    const r = cell.getBoundingClientRect();
+    drop.style.top  = r.bottom + 'px';
+    drop.style.left = r.left   + 'px';
+    drop.style.width = Math.max(r.width, 190) + 'px';
+    drop.classList.add('open');
+  }
 }
 
 function closeAllSpDrops() {
