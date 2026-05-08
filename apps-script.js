@@ -6,15 +6,28 @@
 
 const SHEET_ID = '1wl2ClpRqJ5I4j92D0Xa3vinm0JHckCUCAu0fMfXJ07U';
 
-// ── GET — Leer hojas ────────────────────────────────────────────────
+// ── GET — Leer hojas / versiones ────────────────────────────────────
 function doGet(e) {
   try {
     const sheet = (e.parameter.sheet || 'Principal').trim();
-    const ss    = SpreadsheetApp.openById(SHEET_ID);
-    const ws    = ss.getSheetByName(sheet);
+
+    // Acción especial: devolver versión actual de una hoja
+    if (e.parameter.action === 'get_version') {
+      const props = PropertiesService.getScriptProperties();
+      const version = props.getProperty('version_' + sheet) || '0';
+      return respond({ ok: true, sheet, version });
+    }
+
+    const ss  = SpreadsheetApp.openById(SHEET_ID);
+    const ws  = ss.getSheetByName(sheet);
     if (!ws) return respond({ error: 'Hoja no encontrada: ' + sheet }, 404);
-    const data  = ws.getDataRange().getValues();
-    return respond({ ok: true, sheet, data });
+    const data = ws.getDataRange().getValues();
+
+    // Devolver versión junto con los datos
+    const props = PropertiesService.getScriptProperties();
+    const version = props.getProperty('version_' + sheet) || '0';
+
+    return respond({ ok: true, sheet, data, version });
   } catch(err) {
     return respond({ error: err.message }, 500);
   }
@@ -52,7 +65,12 @@ function doPost(e) {
       const lastRow = ws.getLastRow();
       if (lastRow > 1) ws.deleteRows(2, lastRow - 1);
       if (data.length > 0) ws.getRange(2, 1, data.length, data[0].length).setValues(data);
-      return respond({ ok: true, action });
+
+      // Actualizar versión (timestamp) para detección de concurrencia
+      const newVersion = Date.now().toString();
+      PropertiesService.getScriptProperties().setProperty('version_' + sheet, newVersion);
+
+      return respond({ ok: true, action, version: newVersion });
     }
 
     return respond({ error: 'Acción desconocida: ' + action }, 400);

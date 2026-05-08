@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DEX-eventos (2026)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --bg:#0d0f12; --bg2:#13161b; --bg3:#1a1e25; --border:#252932;
@@ -243,6 +244,32 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
   td:nth-child(n+7){display:none;}
   .speakers-grid{grid-template-columns:1fr;}
 }
+
+/* ── DIRTY INDICATOR ── */
+.btn.save.dirty { animation: pulse-save 1.5s infinite; border-color: #f97316; color: #f97316; }
+@keyframes pulse-save { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* ── SPEAKER ESTADO SELECT ── */
+.sp-estado-sel{border:none;border-radius:4px;font-size:12px;font-weight:700;padding:2px 4px;cursor:pointer;outline:none;font-family:inherit;width:100%;}
+.sp-estado-sel.est-empty{background:var(--bg3);color:var(--muted);}
+.sp-estado-sel.est-invitado{background:rgba(59,130,246,.2);color:#3b82f6;}
+.sp-estado-sel.est-pendiente{background:rgba(234,179,8,.2);color:#eab308;}
+.sp-estado-sel.est-confirmado{background:rgba(34,197,94,.2);color:#22c55e;}
+.sp-estado-sel.est-no_aprobado{background:rgba(239,68,68,.2);color:#ef4444;}
+
+/* ── PUBLIC VIEW ── */
+.public-view{max-width:900px;margin:0 auto;padding:32px 20px;}
+.public-view-header{text-align:center;margin-bottom:32px;}
+.public-view-title{font-size:32px;font-weight:800;color:var(--btc);margin-bottom:8px;}
+.public-view-subtitle{font-size:18px;color:var(--muted);}
+.public-table{border-collapse:collapse;width:100%;font-size:16px;}
+.public-table thead th{background:var(--bg3);border:1px solid var(--border);padding:12px 14px;text-align:left;font-size:16px;font-weight:700;color:var(--btc);}
+.public-table tbody td{border:1px solid var(--border);padding:10px 14px;vertical-align:middle;font-size:16px;}
+.public-table tbody tr:nth-child(even){background:rgba(247,147,26,.03);}
+.public-table .pt-hora{color:#22c55e;font-weight:700;white-space:nowrap;}
+.public-table .pt-fin{color:#ef4444;font-weight:700;white-space:nowrap;}
+.public-table .pt-speaker{color:var(--btc);font-weight:700;}
+.public-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:16px;}
 </style>
 </head>
 <body>
@@ -273,10 +300,13 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
     <span style="color:var(--dim);font-size:15px" id="totalMin">—</span>
 
-    <div style="margin-left:auto;display:flex;gap:8px;">
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn" onclick="addPrincipalRow()">+ Agregar fila</button>
-      <button class="btn save" onclick="savePrincipal()">💾 Guardar</button>
+      <button class="btn save" id="saveBtnPrincipal" onclick="savePrincipal()">💾 Guardar</button>
       <button class="btn" onclick="loadPrincipal()">🔄 Actualizar</button>
+      <button class="btn" onclick="exportarAgenda('sl')">📸 SL</button>
+      <button class="btn" onclick="exportarAgenda('sj')">📸 SJ</button>
+      <button class="btn" onclick="exportarAgenda('cba')">📸 CBA</button>
     </div>
   </div>
 
@@ -334,7 +364,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 ══════════════════════════════════════════════════ -->
 <div class="tab-content" id="tab-speakers">
   <div class="toolbar">
-    <button class="btn save" onclick="saveSpeakers()">💾 Guardar</button>
+    <button class="btn save" id="saveBtnSpeakers" onclick="saveSpeakers()">💾 Guardar</button>
     <button class="btn" onclick="loadSpeakers()">🔄 Actualizar</button>
   </div>
 
@@ -404,12 +434,14 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <div class="table-wrap">
       <table class="sp-table">
         <thead><tr>
-          <th style="text-align:center">Aprobado</th>
           <th>Tipo</th>
           <th>Nombre</th>
           <th style="text-align:center">🟥 SL</th>
           <th style="text-align:center">🟨 SJ</th>
           <th style="text-align:center">🟩 CBA</th>
+          <th style="text-align:center">Estado SL</th>
+          <th style="text-align:center">Estado SJ</th>
+          <th style="text-align:center">Estado CBA</th>
           <th>Tema(s)</th>
           <th>Notas</th>
           <th>Contacto</th>
@@ -419,7 +451,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th style="width:36px"></th>
         </tr></thead>
         <tbody id="speakersTableBody">
-          <tr><td colspan="13" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
+          <tr><td colspan="15" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
         </tbody>
       </table>
     </div>
@@ -446,7 +478,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 ══════════════════════════════════════════════════ -->
 <div class="tab-content" id="tab-ideas">
   <div class="toolbar">
-    <button class="btn save" onclick="saveIdeas()">💾 Guardar</button>
+    <button class="btn save" id="saveBtnIdeas" onclick="saveIdeas()">💾 Guardar</button>
     <button class="btn" onclick="loadIdeas()">🔄 Actualizar</button>
   </div>
   <div style="padding:20px">
@@ -504,6 +536,30 @@ let state = {
   ideas:     []
 };
 let spFilter = { tipo:'all', city:'all' };
+
+// ── URL PARAMS ─────────────────────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+const PUBLIC_CITY = urlParams.get('ciudad'); // 'sl', 'sj', 'cba' o null
+
+// ── DIRTY STATE ───────────────────────────────────────────────────
+let dirty = { principal: false, speakers: false, ideas: false };
+
+// ── VERSIONES (concurrencia) ───────────────────────────────────────
+let versions = { Principal: '0', Speakers: '0', Ideas: '0' };
+
+function markDirty(section) {
+  dirty[section] = true;
+  const btnId = { principal: 'saveBtnPrincipal', speakers: 'saveBtnSpeakers', ideas: 'saveBtnIdeas' }[section];
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.add('dirty');
+}
+
+function markClean(section) {
+  dirty[section] = false;
+  const btnId = { principal: 'saveBtnPrincipal', speakers: 'saveBtnSpeakers', ideas: 'saveBtnIdeas' }[section];
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.remove('dirty');
+}
 
 // ── TIPOS ─────────────────────────────────────────────────────────
 const TIPOS = ['AMA','Apertura','Break','Charla','Cierre','Concurso','Kahoot','Panel','Premios','Sorteo','Taller'];
@@ -632,7 +688,7 @@ function handleSpeakerSel(idx, city, sel) {
 }
 
 function updatePrincipal(idx, key, val) {
-  if (state.principal[idx]) state.principal[idx][key] = val;
+  if (state.principal[idx]) { state.principal[idx][key] = val; markDirty('principal'); }
 }
 
 function addPrincipalRow() {
@@ -641,11 +697,14 @@ function addPrincipalRow() {
   const dur = 30;
   const fin = minToTime(timeToMin(inicio)+dur);
   state.principal.push({ tipo:'Charla',dur,inicio,fin,tema:'',detalle:'',sl:'',sj:'',cba:'',tema_sl:'',tema_sj:'',tema_cba:'' });
+  markDirty('principal');
   renderPrincipal();
 }
 
 function delPrincipalRow(idx) {
+  if (!confirm('¿Eliminar este bloque?')) return;
   state.principal.splice(idx,1);
+  markDirty('principal');
   renderPrincipal();
 }
 
@@ -716,14 +775,16 @@ function speakersForCity(cityKey) {
   return state.speakers.filter(s => (s.ciudades||'').toLowerCase().includes(cn));
 }
 
+const ESTADO_ICON = { confirmado:'✅', pendiente:'⏳', invitado:'📩', no_aprobado:'❌', '':'' };
+
 // Devuelve speakers disponibles para un slot (ciudad + tema), excluyendo combos ya usados
 function speakersForSlot(city, tema, excludeIdx) {
   const cn = (CITY_NAMES[city]||'').toLowerCase();
   const available = state.speakers.filter(s =>
-    s.aprobado && (cn ? (s.ciudades||'').toLowerCase().includes(cn) : true)
+    cn ? (s.ciudades||'').toLowerCase().includes(cn) : true
   );
   const temaKey = (tema||'').trim().toLowerCase();
-  if (!temaKey) return available; // sin tema = sin restricción de slot
+  if (!temaKey) return available;
   // Recolectar speakers ya asignados al mismo (ciudad + tema) en otras filas
   const used = new Set();
   state.principal.forEach((row, i) => {
@@ -756,9 +817,13 @@ function openSpDrop(idx, city, e) {
   const r = cell.getBoundingClientRect();
   const tema = (state.principal[idx]?.tema || '');
   const spList = speakersForSlot(city, tema, idx);
+  const estadoField = city + '_estado';
   dd.innerHTML = [
     `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-size:12px">— Sin aplicar —</span></div>`,
-    ...spList.map(s=>`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`)
+    ...spList.map(s=>{
+      const icon = ESTADO_ICON[s[estadoField]||''] || '';
+      return `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${icon ? icon+' ' : ''}${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`;
+    })
   ].join('');
   dd.style.top   = r.bottom + 'px';
   dd.style.left  = r.left   + 'px';
@@ -787,6 +852,7 @@ async function loadPrincipal() {
   try {
     const raw = await gasGet('Principal');
     if (!raw || raw.length < 2) return false; // Sheet vacío — mantener defaults
+    if (raw._version) versions.Principal = raw._version;
     const [, ...rows] = raw;
     state.principal = rows.map(r=>({
       tipo:r[0]||'Charla', dur:+r[1]||30, inicio:r[2]||'', fin:r[3]||'',
@@ -806,9 +872,11 @@ function refreshAll() {
 }
 
 async function savePrincipal() {
+  if (!(await checkVersion('Principal'))) return;
   const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
   await gasPost('Principal','replace_all', data);
   toast('✅ Principal guardado');
+  markClean('principal');
   refreshAll();
 }
 
@@ -824,6 +892,22 @@ function setSpFilter(key, val) {
   renderSpeakers();
 }
 
+function estadoSelectHtml(ri, field, val) {
+  const cls = val ? 'est-'+val : 'est-empty';
+  return `<select class="sp-estado-sel ${cls}" onchange="updateSpeakerEstado(${ri},'${field}',this.value)">
+    <option value="" ${val===''?'selected':''}>—</option>
+    <option value="invitado" ${val==='invitado'?'selected':''}>📩 Invitado</option>
+    <option value="pendiente" ${val==='pendiente'?'selected':''}>⏳ Pendiente</option>
+    <option value="confirmado" ${val==='confirmado'?'selected':''}>✅ Confirmado</option>
+    <option value="no_aprobado" ${val==='no_aprobado'?'selected':''}>❌ No aprobado</option>
+  </select>`;
+}
+
+function updateSpeakerEstado(ri, field, val) {
+  if (state.speakers[ri]) { state.speakers[ri][field] = val; markDirty('speakers'); }
+  renderSpeakers();
+}
+
 function renderSpeakers() {
   const tbody = document.getElementById('speakersTableBody');
   if (!tbody) return;
@@ -831,7 +915,7 @@ function renderSpeakers() {
   if (spFilter.tipo !== 'all') list = list.filter(s => (s.tipo||'speaker') === spFilter.tipo);
   if (spFilter.city !== 'all') list = list.filter(s => (s.ciudades||'').includes(spFilter.city));
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
     return;
   }
   const tipoColor = { speaker:'var(--btc)', empresa:'#facc15', sponsor:'#06b6d4' };
@@ -842,20 +926,22 @@ function renderSpeakers() {
     const hasSL  = (s.ciudades||'').includes('San Luis');
     const hasSJ  = (s.ciudades||'').includes('San Juan');
     const hasCBA = (s.ciudades||'').includes('Córdoba');
-    const aprobado = !!s.aprobado;
-    return `<tr style="${aprobado?'':'opacity:.55'}">
-      <td style="text-align:center"><input type="checkbox" class="sp-aprobado" ${aprobado?'checked':''} onchange="updateSpeaker(${ri},'aprobado',this.checked);renderSpeakers()" title="Habilitar para Principal"></td>
-      <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);renderSpeakers()">${tipoOpts(tipo)}</select></td>
-      <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim())">${esc(s.nombre||'')}</span></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSL?'checked':''} onchange="updateSpeakerCity(${ri},'San Luis',this.checked)"></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'San Juan',this.checked)"></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasCBA?'checked':''} onchange="updateSpeakerCity(${ri},'Córdoba',this.checked)"></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'temas',this.innerText.trim())">${esc(s.temas||'')}</span></td>
-      <td><span class="sp-edit" style="color:var(--muted);font-size:12px" contenteditable="true" onblur="updateSpeaker(${ri},'notas',this.innerText.trim())">${esc(s.notas||'')}</span></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim())">${esc(s.contacto||'')}</span></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim())">${esc(s.x||'')}</span></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim())">${esc(s.ig||'')}</span></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim())">${esc(s.empresa||'')}</span></td>
+    const hasAny = hasSL || hasSJ || hasCBA;
+    return `<tr style="${hasAny?'':'opacity:.55'}">
+      <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');renderSpeakers()">${tipoOpts(tipo)}</select></td>
+      <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')">${esc(s.nombre||'')}</span></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSL?'checked':''} onchange="updateSpeakerCity(${ri},'San Luis',this.checked);markDirty('speakers')"></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'San Juan',this.checked);markDirty('speakers')"></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasCBA?'checked':''} onchange="updateSpeakerCity(${ri},'Córdoba',this.checked);markDirty('speakers')"></td>
+      <td style="text-align:center">${estadoSelectHtml(ri,'sl_estado',s.sl_estado||'')}</td>
+      <td style="text-align:center">${estadoSelectHtml(ri,'sj_estado',s.sj_estado||'')}</td>
+      <td style="text-align:center">${estadoSelectHtml(ri,'cba_estado',s.cba_estado||'')}</td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'temas',this.innerText.trim());markDirty('speakers')">${esc(s.temas||'')}</span></td>
+      <td><span class="sp-edit" style="color:var(--muted);font-size:12px" contenteditable="true" onblur="updateSpeaker(${ri},'notas',this.innerText.trim());markDirty('speakers')">${esc(s.notas||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
+      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')">${esc(s.empresa||'')}</span></td>
       <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
     </tr>`;
   }).join('');
@@ -867,18 +953,21 @@ function addSpeaker() {
   const ciudadesChecked = [...document.querySelectorAll('#sp-ciudades-wrap input:checked')].map(c=>c.value).join(', ');
   state.speakers.push({
     nombre,
-    tipo:     document.getElementById('sp-tipo').value,
-    contacto: document.getElementById('sp-contacto').value.trim(),
-    x:        document.getElementById('sp-x').value.trim(),
-    ig:       document.getElementById('sp-ig').value.trim(),
-    empresa:  document.getElementById('sp-empresa').value.trim(),
-    ciudades: ciudadesChecked,
-    temas:    document.getElementById('sp-temas').value.trim(),
-    notas:    document.getElementById('sp-notas').value.trim(),
-    aprobado: false,
+    tipo:      document.getElementById('sp-tipo').value,
+    contacto:  document.getElementById('sp-contacto').value.trim(),
+    x:         document.getElementById('sp-x').value.trim(),
+    ig:        document.getElementById('sp-ig').value.trim(),
+    empresa:   document.getElementById('sp-empresa').value.trim(),
+    ciudades:  ciudadesChecked,
+    temas:     document.getElementById('sp-temas').value.trim(),
+    notas:     document.getElementById('sp-notas').value.trim(),
+    sl_estado: '',
+    sj_estado: '',
+    cba_estado:'',
   });
   ['sp-nombre','sp-contacto','sp-x','sp-ig','sp-empresa','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
+  markDirty('speakers');
   renderSpeakers();
   toast('✅ Speaker agregado');
 }
@@ -897,7 +986,9 @@ function updateSpeakerCity(ri, cityName, checked) {
 }
 
 function delSpeaker(i) {
+  if (!confirm('¿Eliminar este speaker?')) return;
   state.speakers.splice(i,1);
+  markDirty('speakers');
   renderSpeakers();
 }
 
@@ -905,12 +996,13 @@ async function loadSpeakers() {
   try {
     const raw = await gasGet('Speakers');
     if (!raw || raw.length < 2) { state.speakers=[]; renderSpeakers(); return; }
+    if (raw._version) versions.Speakers = raw._version;
     const [, ...rows] = raw;
     state.speakers = rows.map(r=>({
       nombre:r[0]||'', tipo:r[1]||'speaker', contacto:r[2]||'',
       ciudades:r[3]||'', temas:r[4]||'', notas:r[5]||'',
       x:r[6]||'', ig:r[7]||'', empresa:r[8]||'',
-      aprobado: r[9]==='true'||r[9]===true||r[9]==='1'||r[9]===1
+      sl_estado: r[9]||'', sj_estado: r[10]||'', cba_estado: r[11]||''
     }));
     renderSpeakers();
     toast('✅ Speakers actualizados');
@@ -918,9 +1010,11 @@ async function loadSpeakers() {
 }
 
 async function saveSpeakers() {
-  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'',s.aprobado?'true':'']);
+  if (!(await checkVersion('Speakers'))) return;
+  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'',s.sl_estado||'',s.sj_estado||'',s.cba_estado||'']);
   await gasPost('Speakers','replace_all', data);
   toast('✅ Speakers guardados');
+  markClean('speakers');
   refreshAll();
 }
 
@@ -964,12 +1058,15 @@ function buildTimeline() {
     });
 
     const cn = (CITY_NAMES[c.key]||'').toLowerCase();
-    const disponibles = state.speakers.filter(s =>
-      s.aprobado && (s.ciudades||'').toLowerCase().includes(cn)
-    ).length;
+    const estadoField = c.key + '_estado';
+    const spEnCiudad = state.speakers.filter(s => (s.ciudades||'').toLowerCase().includes(cn));
+    const disponibles = spEnCiudad.length;
+    const confirmados = spEnCiudad.filter(s => s[estadoField] === 'confirmado').length;
+    const invitados   = spEnCiudad.filter(s => s[estadoField] === 'invitado').length;
+    const pendientes  = spEnCiudad.filter(s => s[estadoField] === 'pendiente').length;
 
     const pct = totalDay > 0 ? Math.min(100, Math.round(horasOcupadas / totalDay * 100)) : 0;
-    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles };
+    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles, confirmados, invitados, pendientes };
   });
 
   let html = `<div class="tl-section-title">📊 Resumen ejecutivo por ciudad</div>
@@ -992,11 +1089,23 @@ function buildTimeline() {
         <span class="tl-stat-val">${s.totalBloques}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Speakers Disponibles</span>
+        <span class="tl-stat-label">Speakers en Ciudad</span>
         <span class="tl-stat-val">${s.disponibles}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Speaker Aprobados</span>
+        <span class="tl-stat-label">✅ Confirmados</span>
+        <span class="tl-stat-val ok">${s.confirmados}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">📩 Invitados</span>
+        <span class="tl-stat-val" style="color:#3b82f6">${s.invitados}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">⏳ Pendientes</span>
+        <span class="tl-stat-val ${s.pendientes > 0 ? 'warn' : ''}">${s.pendientes}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Bloques Asignados</span>
         <span class="tl-stat-val ok">${s.asignados}</span>
       </div>
       <div class="tl-stat-row">
@@ -1109,15 +1218,22 @@ function addIdea() {
     detalle:document.getElementById('idea-detalle').value.trim(),
   });
   ['idea-titulo','idea-hora','idea-detalle','idea-prop'].forEach(id=>document.getElementById(id).value='');
+  markDirty('ideas');
   renderIdeas();
   toast('✅ Idea agregada');
 }
-function delIdea(i) { state.ideas.splice(i,1); renderIdeas(); }
+function delIdea(i) {
+  if (!confirm('¿Eliminar esta idea?')) return;
+  state.ideas.splice(i,1);
+  markDirty('ideas');
+  renderIdeas();
+}
 
 async function loadIdeas() {
   try {
     const raw = await gasGet('Ideas');
     if (!raw||raw.length<2) { state.ideas=[]; renderIdeas(); return; }
+    if (raw._version) versions.Ideas = raw._version;
     const [,...rows] = raw;
     state.ideas = rows.map(r=>({ titulo:r[0]||'', prop:r[1]||'', hora:r[2]||'', detalle:r[3]||'' }));
     renderIdeas();
@@ -1126,9 +1242,11 @@ async function loadIdeas() {
 }
 
 async function saveIdeas() {
+  if (!(await checkVersion('Ideas'))) return;
   const data = state.ideas.map(i=>[i.titulo,i.prop,i.hora,i.detalle]);
   await gasPost('Ideas','replace_all',data);
   toast('✅ Ideas guardadas');
+  markClean('ideas');
   refreshAll();
 }
 
@@ -1141,7 +1259,18 @@ async function gasGet(sheet) {
   const res = await fetch(url);
   const json = await res.json();
   if (json.error) throw new Error(json.error);
-  return json.data;
+  // Adjuntar versión al array para que loadX() la capture
+  const arr = json.data;
+  if (arr && json.version) arr._version = json.version;
+  return arr;
+}
+
+async function gasGetVersion(sheet) {
+  if (USE_LOCAL) return '0';
+  const url = GAS_URL + '?sheet=' + encodeURIComponent(sheet) + '&action=get_version';
+  const res = await fetch(url);
+  const json = await res.json();
+  return json.version || '0';
 }
 
 async function gasPost(sheet, action, data) {
@@ -1152,6 +1281,25 @@ async function gasPost(sheet, action, data) {
   });
   const json = await res.json();
   if (json.error) throw new Error(json.error);
+  // Actualizar versión local tras guardar exitosamente
+  if (json.version) versions[sheet] = json.version;
+}
+
+// Verifica concurrencia antes de guardar. Retorna true si es seguro guardar.
+async function checkVersion(sheet) {
+  try {
+    const current = await gasGetVersion(sheet);
+    if (current !== '0' && versions[sheet] !== '0' && current !== versions[sheet]) {
+      return confirm(
+        `⚠️ Alguien modificó "${sheet}" desde que cargaste la página.\n\n` +
+        `¿Forzar guardado? (Se perderán los cambios de esa persona)\n\n` +
+        `Cancelá para recargar primero con el botón 🔄 Actualizar.`
+      );
+    }
+    return true;
+  } catch(e) {
+    return true; // Si falla la verificación, permitir guardar (no bloquear)
+  }
 }
 
 // ── LOCAL FALLBACK (sin Apps Script) ──────────────────────────────
@@ -1280,12 +1428,12 @@ async function init() {
   ];
 
   state.speakers = [
-    {nombre:'Diego Gurpegui',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bitcoin, Dinero, Moderación',contacto:'',notas:'Maestro de ceremonias'},
-    {nombre:'Fernando Secchi', tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Taller Wallet, Autocustodia',contacto:'',notas:''},
-    {nombre:'Jimena Vallone',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bienvenida, Apertura',contacto:'',notas:''},
-    {nombre:'Matias Mathey',   tipo:'speaker',ciudades:'San Juan',                    temas:'Descentralizar, Panel',contacto:'@MatheyBTC',notas:''},
-    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, San Juan',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo'},
-    {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'San Juan',                   temas:'Moderación, Kahoot',contacto:'',notas:''},
+    {nombre:'Diego Gurpegui',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bitcoin, Dinero, Moderación',contacto:'',notas:'Maestro de ceremonias',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
+    {nombre:'Fernando Secchi', tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Taller Wallet, Autocustodia',contacto:'',notas:'',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
+    {nombre:'Jimena Vallone',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bienvenida, Apertura',contacto:'',notas:'',sl_estado:'invitado',sj_estado:'invitado',cba_estado:'invitado'},
+    {nombre:'Matias Mathey',   tipo:'speaker',ciudades:'San Juan',                    temas:'Descentralizar, Panel',contacto:'@MatheyBTC',notas:'',sl_estado:'',sj_estado:'confirmado',cba_estado:''},
+    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, San Juan',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo',sl_estado:'pendiente',sj_estado:'pendiente',cba_estado:''},
+    {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'San Juan',                   temas:'Moderación, Kahoot',contacto:'',notas:'',sl_estado:'',sj_estado:'invitado',cba_estado:''},
   ];
 
   state.ideas = [
@@ -1315,6 +1463,122 @@ async function init() {
   renderPrincipal();
   renderSpeakers();
   renderIdeas();
+  if (PUBLIC_CITY) renderPublicView();
+}
+
+// ══════════════════════════════════════════════════════════════════
+// VISTA PÚBLICA
+// ══════════════════════════════════════════════════════════════════
+const PUBLIC_CITY_MAP = {
+  sl:  { nombre: 'San Luis',  fecha: '14/08/2026', color: '#ef4444' },
+  sj:  { nombre: 'San Juan',  fecha: '28/08/2026', color: '#facc15' },
+  cba: { nombre: 'Córdoba',   fecha: '04/09/2026', color: '#22c55e' },
+};
+
+function renderPublicView() {
+  if (!PUBLIC_CITY) return;
+  const meta = PUBLIC_CITY_MAP[PUBLIC_CITY];
+  if (!meta) return;
+  // Ocultar nav
+  document.querySelector('.nav').style.display = 'none';
+  // Ocultar todos los tabs, mostrar contenedor público
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  // Crear contenedor público
+  let wrap = document.getElementById('publicView');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'publicView';
+    document.body.insertBefore(wrap, document.getElementById('spDropdown'));
+  }
+  const rows = state.principal.filter(r => (r[PUBLIC_CITY]||'').trim() !== '' || r.tipo === 'Break' || r.tipo === 'Apertura' || r.tipo === 'Cierre');
+  const tipoColor = t => TIPO_COLORS[t] || '#3b82f6';
+  const rowsHtml = rows.map(r => {
+    const speaker = r[PUBLIC_CITY] || '';
+    const tema = r['tema_'+PUBLIC_CITY] || r.tema || '';
+    return `<tr>
+      <td class="pt-hora">${r.inicio||'—'}</td>
+      <td class="pt-fin">${r.fin||'—'}</td>
+      <td><span style="background:${tipoColor(r.tipo)}28;color:${tipoColor(r.tipo)};padding:2px 8px;border-radius:4px;font-weight:700;font-size:14px">${esc(r.tipo||'')}</span></td>
+      <td>${esc(tema)}</td>
+      <td class="pt-speaker">${esc(speaker)}</td>
+      <td style="color:var(--muted);text-align:center">${r.dur ? r.dur+'min' : '—'}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<div class="public-view">
+    <div class="public-view-header">
+      <div class="public-view-title" style="color:${meta.color}">Descentralizar 2026</div>
+      <div style="font-size:24px;font-weight:800;color:#fff;margin-bottom:6px">${meta.nombre} — ${meta.fecha}</div>
+      <div class="public-view-subtitle">Agenda del evento</div>
+    </div>
+    <div class="public-toolbar">
+      <button class="btn" onclick="exportarAgenda('${PUBLIC_CITY}')">📸 Exportar esta agenda</button>
+    </div>
+    <table class="public-table">
+      <thead><tr>
+        <th>Inicio</th><th>Fin</th><th>Tipo</th><th>Tema</th><th>Speaker</th><th>Duración</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EXPORTAR A IMAGEN PNG (html2canvas)
+// ══════════════════════════════════════════════════════════════════
+async function exportarAgenda(city) {
+  const meta = PUBLIC_CITY_MAP[city];
+  if (!meta) { toast('⚠️ Ciudad inválida', true); return; }
+  const rows = state.principal;
+  if (!rows.length) { toast('⚠️ Sin filas para exportar', true); return; }
+  const tipoColor = t => TIPO_COLORS[t] || '#3b82f6';
+  const rowsHtml = rows.map(r => {
+    const speaker = r[city] || '';
+    const tema = r['tema_'+city] || r.tema || '';
+    return `<tr style="border-bottom:1px solid #252932">
+      <td style="padding:10px 12px;color:#22c55e;font-weight:700;white-space:nowrap">${esc(r.inicio||'—')}</td>
+      <td style="padding:10px 12px"><span style="background:${tipoColor(r.tipo)}28;color:${tipoColor(r.tipo)};padding:2px 8px;border-radius:4px;font-weight:700;font-size:13px">${esc(r.tipo||'')}</span></td>
+      <td style="padding:10px 12px;color:#e8eaf0">${esc(tema)}</td>
+      <td style="padding:10px 12px;color:#F7931A;font-weight:700">${esc(speaker)}</td>
+      <td style="padding:10px 12px;color:#8b909a;text-align:center">${r.dur ? r.dur+'min' : '—'}</td>
+    </tr>`;
+  }).join('');
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;left:-9999px;top:0;background:#0d0d0d;color:#e8eaf0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;padding:32px;width:800px;border-radius:0';
+  div.innerHTML = `
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:28px;font-weight:800;color:${meta.color};margin-bottom:6px">Descentralizar 2026</div>
+      <div style="font-size:20px;font-weight:700;color:#fff">${meta.nombre} — ${meta.fecha}</div>
+    </div>
+    <table style="border-collapse:collapse;width:100%">
+      <thead><tr style="border-bottom:2px solid #F7931A">
+        <th style="padding:8px 12px;text-align:left;color:#F7931A">Inicio</th>
+        <th style="padding:8px 12px;text-align:left;color:#F7931A">Tipo</th>
+        <th style="padding:8px 12px;text-align:left;color:#F7931A">Tema</th>
+        <th style="padding:8px 12px;text-align:left;color:#F7931A">Speaker</th>
+        <th style="padding:8px 12px;text-align:left;color:#F7931A">Dur.</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div style="margin-top:20px;text-align:center;color:#5a5f6b;font-size:12px">descentralizar.ar</div>
+  `;
+  document.body.appendChild(div);
+  try {
+    toast('📸 Generando imagen…');
+    const canvas = await html2canvas(div, { scale: 2, backgroundColor: '#0d0d0d', useCORS: true });
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dex-${city}-agenda.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('✅ Imagen descargada');
+    }, 'image/png');
+  } catch(e) {
+    toast('⚠️ Error al exportar: ' + e.message, true);
+  } finally {
+    document.body.removeChild(div);
+  }
 }
 
 // ── SP PICKER EVENT DELEGATION ───────────────────────────────────
