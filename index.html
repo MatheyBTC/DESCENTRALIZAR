@@ -1248,14 +1248,14 @@ function renderIdeas() {
     return;
   }
   const propColor = p => PROP_COLORS[p] || 'var(--text)';
-  const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700;font-size:15px':p==='importante'?'color:#facc15;font-weight:700;font-size:15px':p==='considerar'?'color:#22c55e;font-weight:700;font-size:15px':'color:var(--dim);font-size:15px';
-  const prioW = 'width:130px;min-width:130px';
+  const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700;font-size:14px':p==='importante'?'color:#facc15;font-weight:700;font-size:14px':'color:var(--muted);font-size:14px';
+  const prioW = 'width:150px;min-width:150px';
   const CW = 'width:80px;text-align:center;white-space:nowrap';
   wrap.innerHTML = `<table class="ideas-table">
     <thead><tr>
       <th style="white-space:nowrap;width:1%">Fecha</th>
       <th style="width:90px">Quién</th>
-      <th style="white-space:nowrap;width:130px;min-width:130px">Prioridad</th>
+      <th style="white-space:nowrap;width:150px;min-width:150px">Prioridad</th>
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
       <th style="${CW}">🟣 San Luis</th>
@@ -1267,7 +1267,7 @@ function renderIdeas() {
       <tr>
         <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc((idea.fecha||'').toString().slice(0,10))}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
-        <td style="white-space:nowrap;${prioW}">
+        <td style="white-space:nowrap;width:150px;min-width:150px">
           <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
             <option value="" ${!idea.prioridad?'selected':''}>—</option>
             <option value="urgente" ${idea.prioridad==='urgente'?'selected':''} style="color:#ef4444">URGENTE</option>
