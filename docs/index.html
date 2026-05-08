@@ -220,16 +220,16 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 
 /* ── ESTRATEGIA ── */
 .fase-section{margin-bottom:28px;}
-.fase-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--btc);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.fase-title{font-size:15px;font-weight:800;color:var(--btc);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .strat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
 .strat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
-.strat-title{font-size:14px;font-weight:700;margin-bottom:6px;outline:none;}
+.strat-title{font-size:17px;font-weight:700;margin-bottom:6px;outline:none;}
 .strat-title[contenteditable]:focus{border-bottom:1px dashed var(--btc);}
-.strat-desc{font-size:12px;color:var(--muted);outline:none;line-height:1.6;}
+.strat-desc{font-size:15px;color:var(--muted);outline:none;line-height:1.6;}
 .strat-desc[contenteditable]:focus{color:var(--text);}
-.strat-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;}
+.strat-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;}
 .strat-del:hover{color:#ef4444;}
-.add-strat-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border:1px dashed var(--border);border-radius:10px;background:none;color:var(--dim);font-size:13px;cursor:pointer;transition:all .15s;width:100%;}
+.add-strat-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border:1px dashed var(--border);border-radius:10px;background:none;color:var(--dim);font-size:16px;cursor:pointer;transition:all .15s;width:100%;}
 .add-strat-btn:hover{color:var(--btc);border-color:var(--btc);background:var(--btc-dim);}
 
 /* ── IDEAS ── */
@@ -328,9 +328,9 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         <tr>
           <th class="col-stk" style="left:0;width:44px"></th>
           <th class="col-stk" style="left:44px;width:70px">Tipo</th>
-          <th class="col-stk" style="left:114px;width:51px;text-align:center">Duración</th>
-          <th class="col-stk" style="left:165px;width:55px;text-align:center">Inicio</th>
-          <th class="col-stk col-stk-sep" style="left:220px;width:55px;text-align:center">Fin</th>
+          <th class="col-stk" style="left:114px;width:44px;text-align:center">Duración</th>
+          <th class="col-stk" style="left:158px;width:55px;text-align:center">Inicio</th>
+          <th class="col-stk col-stk-sep" style="left:213px;width:55px;text-align:center">Fin</th>
           <th style="width:200px">Tema</th>
           <th style="width:240px">Detalle</th>
           <th class="city-h" style="width:220px">🟥 San Luis</th>
@@ -632,14 +632,14 @@ function makePrincipalRow(row, idx) {
     <td class="col-stk" style="left:44px;background:${tipoBg}">
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
-    <td id="durtd-${idx}" class="col-stk" style="left:114px;text-align:center;width:51px;max-width:51px;overflow:hidden">
-      <select class="cell-sel" style="color:${dc};font-weight:700;text-align:center;min-width:0"
+    <td id="durtd-${idx}" class="col-stk" style="left:114px;text-align:center;width:44px;max-width:44px;overflow:hidden;padding:0">
+      <select class="cell-sel" style="color:${dc};font-weight:700;text-align:center;min-width:0;width:100%;box-sizing:border-box"
         onchange="updatePrincipal(${idx},'dur',+this.value);recalcTimes();updateProgress();repaintDur(${idx},+this.value)">
         ${durOpts(row.dur)}
       </select>
     </td>
-    <td class="col-stk" style="left:165px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
-    <td class="col-stk col-stk-sep" style="left:220px;width:55px;max-width:55px;overflow:hidden"><div style="position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></div></td>
+    <td class="col-stk" style="left:158px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
+    <td class="col-stk col-stk-sep" style="left:213px;width:55px;max-width:55px;overflow:hidden"><div style="position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></div></td>
     <td style="min-width:180px"><textarea class="cell-ta" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
     <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis">${esc(row.tema_sl||'')}</textarea></div></td>
@@ -1119,7 +1119,7 @@ function renderEstrategia() {
             <div class="strat-desc"  contenteditable="true" oninput="updateStrat('${fase}',${i},'desc',this.innerText)">${esc(s.desc||'')}</div>
           </div>
         `).join('')}
-        ${!(state.estrategia[fase]||[]).length ? '<div style="color:var(--dim);font-size:12px;font-style:italic">Sin items aún.</div>' : ''}
+        ${!(state.estrategia[fase]||[]).length ? '<div style="color:var(--dim);font-size:15px;font-style:italic">Sin items aún.</div>' : ''}
       </div>
     </div>
   `).join('');
@@ -1176,7 +1176,7 @@ function renderIdeas() {
     <tbody>${state.ideas.map((idea,i)=>`
       <tr>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
-        <td>
+        <td style="white-space:nowrap;width:1%">
           <div style="font-weight:600;font-size:15px">${esc(idea.titulo||'')}</div>
           ${idea.hora?`<div class="idea-hora-sm">🕐 ${esc(idea.hora)}</div>`:''}
         </td>
