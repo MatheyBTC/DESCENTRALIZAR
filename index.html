@@ -1249,12 +1249,13 @@ function renderIdeas() {
   }
   const propColor = p => PROP_COLORS[p] || 'var(--text)';
   const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700;font-size:15px':p==='importante'?'color:#facc15;font-weight:700;font-size:15px':p==='considerar'?'color:#22c55e;font-weight:700;font-size:15px':'color:var(--dim);font-size:15px';
+  const prioW = 'width:130px;min-width:130px';
   const CW = 'width:80px;text-align:center;white-space:nowrap';
   wrap.innerHTML = `<table class="ideas-table">
     <thead><tr>
       <th style="white-space:nowrap;width:1%">Fecha</th>
       <th style="width:90px">Quién</th>
-      <th style="white-space:nowrap;width:1%">Prioridad</th>
+      <th style="white-space:nowrap;width:130px;min-width:130px">Prioridad</th>
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
       <th style="${CW}">🟣 San Luis</th>
@@ -1266,12 +1267,12 @@ function renderIdeas() {
       <tr>
         <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc(idea.fecha||'')}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
-        <td style="white-space:nowrap">
-          <select class="cell-sel" style="font-size:13px;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
+        <td style="white-space:nowrap;${prioW}">
+          <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
             <option value="" ${!idea.prioridad?'selected':''}>—</option>
-            <option value="urgente" ${idea.prioridad==='urgente'?'selected':''}>URGENTE</option>
-            <option value="importante" ${idea.prioridad==='importante'?'selected':''}>IMPORTANTE</option>
-            <option value="considerar" ${idea.prioridad==='considerar'?'selected':''}>CONSIDERAR</option>
+            <option value="urgente" ${idea.prioridad==='urgente'?'selected':''} style="color:#ef4444">URGENTE</option>
+            <option value="importante" ${idea.prioridad==='importante'?'selected':''} style="color:#facc15">IMPORTANTE</option>
+            <option value="considerar" ${idea.prioridad==='considerar'?'selected':''} style="color:#22c55e">CONSIDERAR</option>
           </select>
         </td>
         <td style="white-space:nowrap;width:1%">
