@@ -192,18 +192,18 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tl-city-card.sl{border-color:#ef4444;}
 .tl-city-card.sj{border-color:#facc15;}
 .tl-city-card.cba{border-color:#22c55e;}
-.tl-city-name{font-size:16px;font-weight:800;margin-bottom:14px;}
+.tl-city-name{font-size:19px;font-weight:400;margin-bottom:14px;}
 .tl-city-card.sl .tl-city-name{color:#ef4444;}
 .tl-city-card.sj .tl-city-name{color:#facc15;}
 .tl-city-card.cba .tl-city-name{color:#22c55e;}
-.tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:17px;}
+.tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:19px;}
 .tl-stat-row:last-of-type{border-bottom:none;}
-.tl-stat-label{color:var(--muted);font-size:15px;}
+.tl-stat-label{color:var(--muted);font-size:19px;}
 .tl-stat-val{font-weight:700;color:var(--text);font-size:19px;}
 .tl-stat-val.warn{color:#f97316;}
 .tl-stat-val.ok{color:#22c55e;}
 .tl-prog-wrap{margin-top:12px;}
-.tl-prog-label{display:flex;justify-content:space-between;font-size:15px;color:var(--muted);margin-bottom:5px;}
+.tl-prog-label{display:flex;justify-content:space-between;font-size:19px;color:var(--muted);margin-bottom:5px;}
 .tl-prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
 .tl-prog-fill-sl{height:100%;background:#ef4444;border-radius:4px;transition:width .4s;}
 .tl-prog-fill-sj{height:100%;background:#facc15;border-radius:4px;transition:width .4s;}
@@ -1030,10 +1030,6 @@ function buildTimeline() {
       <div class="tl-stat-row">
         <span class="tl-stat-label">Bloques Libres (sin Speaker)</span>
         <span class="tl-stat-val ${s.sinAsignar > 0 ? 'warn' : 'ok'}">${s.sinAsignar}</span>
-      </div>
-      <div class="tl-stat-row">
-        <span class="tl-stat-label">Huecos detectados</span>
-        <span class="tl-stat-val ${s.huecos > 0 ? 'warn' : 'ok'}">${s.huecos}</span>
       </div>
       <div class="tl-prog-wrap">
         <div class="tl-prog-label">
