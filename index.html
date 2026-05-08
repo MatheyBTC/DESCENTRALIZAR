@@ -1279,23 +1279,21 @@ function renderIdeas() {
     return ideasSort === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
   });
 
-  // Botones de filtro para el encabezado de Prioridad
-  const fltBtns = ['all','urgente','importante','considerar'].map(p => {
-    const label = p==='all'?'Todas': p==='urgente'?'URGENTE': p==='importante'?'IMPORTANTE':'CONSIDERAR';
-    const col   = p==='urgente'?'#ef4444': p==='importante'?'#facc15': p==='considerar'?'#22c55e':'';
-    const act   = ideasFilter===p ? 'background:var(--btc-dim);border-color:var(--btc);color:var(--btc)' : '';
-    const cst   = col && ideasFilter!==p ? `color:${col}` : '';
-    return `<button class="btn sp-flt" style="padding:2px 6px;font-size:11px;${act||cst}" onclick="setIdeasFilter('${p}')">${label}</button>`;
-  }).join('');
+  // Filtro desplegable para el encabezado de Prioridad
+  const fltSel = `<select class="cell-sel" style="margin-top:4px;width:100%;font-size:11px" onchange="setIdeasFilter(this.value)">
+    <option value="all" ${ideasFilter==='all'?'selected':''}>Todas</option>
+    <option value="urgente" ${ideasFilter==='urgente'?'selected':''}>URGENTE</option>
+    <option value="importante" ${ideasFilter==='importante'?'selected':''}>IMPORTANTE</option>
+    <option value="considerar" ${ideasFilter==='considerar'?'selected':''}>CONSIDERAR</option>
+  </select>`;
 
   wrap.innerHTML = `<table class="ideas-table">
     <thead><tr>
       <th style="white-space:nowrap;width:1%;cursor:pointer" onclick="toggleIdeasSort()">Fecha ${sortArrow}</th>
       <th style="width:90px">Quién</th>
       <th style="white-space:nowrap;width:150px;min-width:150px">
-        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">
-          <span>Prioridad</span>
-          <div style="display:flex;gap:3px;flex-wrap:wrap">${fltBtns}</div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span>Prioridad</span>${fltSel}
         </div>
       </th>
       <th style="white-space:nowrap;width:1%">Título</th>
@@ -1312,8 +1310,8 @@ function renderIdeas() {
         <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc((idea.fecha||'').toString().slice(0,10))}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
         <td style="white-space:nowrap;width:150px;min-width:150px">
-          <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioStyle(idea.prioridad||'')}"
-            onchange="updateIdea(${i},'prioridad',this.value);this.setAttribute('style','width:100%;box-sizing:border-box;'+prioStyle(this.value))">
+          <select class="cell-sel" style="width:100%;box-sizing:border-box"
+            onchange="updateIdea(${i},'prioridad',this.value)">
             <option value="" ${!idea.prioridad?'selected':''}>—</option>
             <option value="urgente"   ${idea.prioridad==='urgente'?'selected':''}   style="color:#ef4444">URGENTE</option>
             <option value="importante"${idea.prioridad==='importante'?'selected':''} style="color:#facc15">IMPORTANTE</option>
