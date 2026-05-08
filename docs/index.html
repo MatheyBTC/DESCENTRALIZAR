@@ -440,7 +440,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 ══════════════════════════════════════════════════ -->
 <div class="tab-content" id="tab-timeline">
   <div class="toolbar">
-    <span style="font-size:12px;color:var(--muted)">Vista derivada de Principal + Speakers. Muestra disponibilidad por bloque.</span>
+    <span style="font-size:15px;color:var(--muted)">Vista derivada de Principal + Speakers. Muestra disponibilidad por bloque.</span>
     <button class="btn" style="margin-left:auto" onclick="buildTimeline()">🔄 Recalcular</button>
   </div>
   <div style="padding:20px">
@@ -985,8 +985,13 @@ function buildTimeline() {
       if (!sp) huecos++;
     });
 
+    const cn = (CITY_NAMES[c.key]||'').toLowerCase();
+    const disponibles = state.speakers.filter(s =>
+      s.aprobado && (s.ciudades||'').toLowerCase().includes(cn)
+    ).length;
+
     const pct = totalDay > 0 ? Math.min(100, Math.round(horasOcupadas / totalDay * 100)) : 0;
-    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct };
+    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles };
   });
 
   let html = `<div class="tl-section-title">📊 Resumen ejecutivo por ciudad</div>
@@ -997,23 +1002,27 @@ function buildTimeline() {
     <div class="tl-city-card ${s.cls}">
       <div class="tl-city-name">${s.label}</div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Horas del día</span>
+        <span class="tl-stat-label">Horas de la Jornada</span>
         <span class="tl-stat-val">${minToTime(totalDay)}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Horas ocupadas</span>
+        <span class="tl-stat-label">Horas Ocupadas</span>
         <span class="tl-stat-val">${minToTime(s.horasOcupadas)} (${s.pct}%)</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Bloques totales</span>
+        <span class="tl-stat-label">Bloques Totales</span>
         <span class="tl-stat-val">${s.totalBloques}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Speakers asignados</span>
+        <span class="tl-stat-label">Speakers Disponibles</span>
+        <span class="tl-stat-val">${s.disponibles}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">Speaker Aprobados</span>
         <span class="tl-stat-val ok">${s.asignados}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Sin asignar</span>
+        <span class="tl-stat-label">Bloques Libres (sin Speaker)</span>
         <span class="tl-stat-val ${s.sinAsignar > 0 ? 'warn' : 'ok'}">${s.sinAsignar}</span>
       </div>
       <div class="tl-stat-row">
@@ -1022,7 +1031,7 @@ function buildTimeline() {
       </div>
       <div class="tl-prog-wrap">
         <div class="tl-prog-label">
-          <span>Ocupación</span><span>${s.pct}%</span>
+          <span>Avance (bloques ocupados)</span><span>${s.pct}%</span>
         </div>
         <div class="tl-prog-bar">
           <div class="${s.fillCls}" style="width:${s.pct}%"></div>
