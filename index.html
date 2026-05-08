@@ -249,6 +249,16 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .btn.save.dirty { animation: pulse-save 1.5s infinite; border-color: #f97316; color: #f97316; }
 @keyframes pulse-save { 0%,100%{opacity:1} 50%{opacity:.5} }
 
+/* ── MODAL CLAVE ── */
+#claveModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;}
+#claveModal.show{display:flex;}
+#claveBox{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px 32px;width:320px;text-align:center;}
+#claveBox h3{margin:0 0 8px;font-size:17px;color:var(--text);}
+#claveBox p{margin:0 0 16px;font-size:14px;color:var(--muted);}
+#claveInput{width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:16px;text-align:center;letter-spacing:.1em;margin-bottom:12px;}
+#claveError{color:#ef4444;font-size:13px;margin-bottom:10px;min-height:18px;}
+#claveConfirm{background:var(--btc);color:#000;border:none;padding:10px 24px;border-radius:8px;font-weight:700;cursor:pointer;font-size:15px;width:100%;}
+
 /* ── SPEAKER ESTADO SELECT ── */
 .sp-estado-sel{border:none;border-radius:4px;font-size:12px;font-weight:700;padding:2px 4px;cursor:pointer;outline:none;font-family:inherit;width:100%;}
 .sp-estado-sel.est-empty{background:var(--bg3);color:var(--muted);}
@@ -522,6 +532,17 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 <div id="spDropdown" class="sp-drop"></div>
 <div id="toast"></div>
 
+<!-- ── MODAL CLAVE ── -->
+<div id="claveModal">
+  <div id="claveBox">
+    <h3>🔐 Clave del equipo</h3>
+    <p id="claveMsg">Ingresá la clave para guardar cambios.</p>
+    <input id="claveInput" type="password" placeholder="••••••••" autocomplete="off">
+    <div id="claveError"></div>
+    <button id="claveConfirm">Confirmar</button>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // CONFIG — reemplazar GAS_URL con tu URL de Apps Script desplegado
@@ -548,15 +569,35 @@ let dirty = { principal: false, speakers: false, ideas: false };
 let writeKey = localStorage.getItem('dex_write_key') || '';
 
 function pedirClave(motivo) {
-  const k = prompt(
-    (motivo || '🔐 Esta app requiere una clave para guardar cambios.') +
-    '\n\nIngresá la clave del equipo:'
-  );
-  if (k) {
-    writeKey = k.trim();
-    localStorage.setItem('dex_write_key', writeKey);
-  }
-  return !!k;
+  return new Promise(resolve => {
+    const modal = document.getElementById('claveModal');
+    const input = document.getElementById('claveInput');
+    const msg   = document.getElementById('claveMsg');
+    const err   = document.getElementById('claveError');
+    const btn   = document.getElementById('claveConfirm');
+
+    msg.textContent = motivo || 'Ingresá la clave para guardar cambios.';
+    err.textContent = '';
+    input.value = '';
+    modal.classList.add('show');
+    input.focus();
+
+    function confirmar() {
+      const k = input.value.trim();
+      if (!k) { err.textContent = 'La clave no puede estar vacía.'; return; }
+      writeKey = k;
+      localStorage.setItem('dex_write_key', k);
+      modal.classList.remove('show');
+      btn.removeEventListener('click', confirmar);
+      input.removeEventListener('keydown', onEnter);
+      resolve(true);
+    }
+
+    function onEnter(e) { if (e.key === 'Enter') confirmar(); }
+
+    btn.addEventListener('click', confirmar);
+    input.addEventListener('keydown', onEnter);
+  });
 }
 
 function olvidarClave() {
