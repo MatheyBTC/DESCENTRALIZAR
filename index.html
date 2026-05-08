@@ -490,6 +490,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
   <div class="toolbar">
     <button class="btn save" id="saveBtnIdeas" onclick="saveIdeas()">💾 Guardar</button>
     <button class="btn" onclick="loadIdeas()">🔄 Actualizar</button>
+    <div class="toolbar-sep"></div>
   </div>
   <div style="padding:20px">
     <div class="form-card">
@@ -567,6 +568,23 @@ let dirty = { principal: false, speakers: false, ideas: false };
 
 // ── CLAVE DE ESCRITURA ────────────────────────────────────────────
 let writeKey = localStorage.getItem('dex_write_key') || '';
+let ideasFilter = 'all';
+let ideasSort = 'asc';
+
+function prioStyle(p) {
+  if (p==='urgente')   return 'color:#ef4444;font-weight:700;font-size:14px';
+  if (p==='importante') return 'color:#facc15;font-weight:700;font-size:14px';
+  if (p==='considerar') return 'color:#22c55e;font-weight:700;font-size:14px';
+  return 'color:var(--muted);font-size:14px';
+}
+function setIdeasFilter(prio) {
+  ideasFilter = prio;
+  renderIdeas();
+}
+function toggleIdeasSort() {
+  ideasSort = ideasSort === 'asc' ? 'desc' : 'asc';
+  renderIdeas();
+}
 
 function pedirClave(motivo) {
   return new Promise(resolve => {
@@ -1248,14 +1266,38 @@ function renderIdeas() {
     return;
   }
   const propColor = p => PROP_COLORS[p] || 'var(--text)';
-  const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700;font-size:14px':p==='importante'?'color:#facc15;font-weight:700;font-size:14px':'color:var(--muted);font-size:14px';
-  const prioW = 'width:150px;min-width:150px';
   const CW = 'width:80px;text-align:center;white-space:nowrap';
+  const sortArrow = ideasSort === 'asc' ? '↑' : '↓';
+
+  // Filter + sort (no mutar state.ideas)
+  let rows = state.ideas.filter(idea =>
+    ideasFilter === 'all' || (idea.prioridad || '') === ideasFilter
+  );
+  rows = [...rows].sort((a, b) => {
+    const da = (a.fecha || '').toString().slice(0,10);
+    const db = (b.fecha || '').toString().slice(0,10);
+    return ideasSort === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
+  });
+
+  // Botones de filtro para el encabezado de Prioridad
+  const fltBtns = ['all','urgente','importante','considerar'].map(p => {
+    const label = p==='all'?'Todas': p==='urgente'?'URGENTE': p==='importante'?'IMPORTANTE':'CONSIDERAR';
+    const col   = p==='urgente'?'#ef4444': p==='importante'?'#facc15': p==='considerar'?'#22c55e':'';
+    const act   = ideasFilter===p ? 'background:var(--btc-dim);border-color:var(--btc);color:var(--btc)' : '';
+    const cst   = col && ideasFilter!==p ? `color:${col}` : '';
+    return `<button class="btn sp-flt" style="padding:2px 6px;font-size:11px;${act||cst}" onclick="setIdeasFilter('${p}')">${label}</button>`;
+  }).join('');
+
   wrap.innerHTML = `<table class="ideas-table">
     <thead><tr>
-      <th style="white-space:nowrap;width:1%">Fecha</th>
+      <th style="white-space:nowrap;width:1%;cursor:pointer" onclick="toggleIdeasSort()">Fecha ${sortArrow}</th>
       <th style="width:90px">Quién</th>
-      <th style="white-space:nowrap;width:150px;min-width:150px">Prioridad</th>
+      <th style="white-space:nowrap;width:150px;min-width:150px">
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">
+          <span>Prioridad</span>
+          <div style="display:flex;gap:3px;flex-wrap:wrap">${fltBtns}</div>
+        </div>
+      </th>
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
       <th style="${CW}">🟣 San Luis</th>
@@ -1263,16 +1305,19 @@ function renderIdeas() {
       <th style="${CW}">🔵 Córdoba</th>
       <th style="width:36px"></th>
     </tr></thead>
-    <tbody>${state.ideas.map((idea,i)=>`
+    <tbody>${rows.map((idea)=>{
+      const i = state.ideas.indexOf(idea);
+      return `
       <tr>
         <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc((idea.fecha||'').toString().slice(0,10))}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
         <td style="white-space:nowrap;width:150px;min-width:150px">
-          <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
+          <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioStyle(idea.prioridad||'')}"
+            onchange="updateIdea(${i},'prioridad',this.value);this.setAttribute('style','width:100%;box-sizing:border-box;'+prioStyle(this.value))">
             <option value="" ${!idea.prioridad?'selected':''}>—</option>
-            <option value="urgente" ${idea.prioridad==='urgente'?'selected':''} style="color:#ef4444">URGENTE</option>
-            <option value="importante" ${idea.prioridad==='importante'?'selected':''} style="color:#facc15">IMPORTANTE</option>
-            <option value="considerar" ${idea.prioridad==='considerar'?'selected':''} style="color:#22c55e">CONSIDERAR</option>
+            <option value="urgente"   ${idea.prioridad==='urgente'?'selected':''}   style="color:#ef4444">URGENTE</option>
+            <option value="importante"${idea.prioridad==='importante'?'selected':''} style="color:#facc15">IMPORTANTE</option>
+            <option value="considerar"${idea.prioridad==='considerar'?'selected':''} style="color:#22c55e">CONSIDERAR</option>
           </select>
         </td>
         <td style="white-space:nowrap;width:1%">
@@ -1284,7 +1329,8 @@ function renderIdeas() {
         <td style="text-align:center"><input type="checkbox" ${idea.sj?'checked':''} onchange="updateIdea(${i},'sj',this.checked)"></td>
         <td style="text-align:center"><input type="checkbox" ${idea.cba?'checked':''} onchange="updateIdea(${i},'cba',this.checked)"></td>
         <td style="text-align:center"><button class="del-row" onclick="delIdea(${i})">✕</button></td>
-      </tr>`).join('')}
+      </tr>`;
+    }).join('')}
     </tbody>
   </table>`;
 }
@@ -1310,9 +1356,6 @@ function delIdea(i) {
   state.ideas.splice(i,1);
   markDirty('ideas');
   renderIdeas();
-}
-function updateIdea(i, key, val) {
-  if (state.ideas[i]) { state.ideas[i][key] = val; markDirty('ideas'); }
 }
 function updateIdea(i, key, val) {
   if (state.ideas[i]) { state.ideas[i][key] = val; markDirty('ideas'); }
