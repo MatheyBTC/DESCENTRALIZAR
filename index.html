@@ -544,6 +544,26 @@ const PUBLIC_CITY = urlParams.get('ciudad'); // 'sl', 'sj', 'cba' o null
 // ── DIRTY STATE ───────────────────────────────────────────────────
 let dirty = { principal: false, speakers: false, ideas: false };
 
+// ── CLAVE DE ESCRITURA ────────────────────────────────────────────
+let writeKey = localStorage.getItem('dex_write_key') || '';
+
+function pedirClave(motivo) {
+  const k = prompt(
+    (motivo || '🔐 Esta app requiere una clave para guardar cambios.') +
+    '\n\nIngresá la clave del equipo:'
+  );
+  if (k) {
+    writeKey = k.trim();
+    localStorage.setItem('dex_write_key', writeKey);
+  }
+  return !!k;
+}
+
+function olvidarClave() {
+  writeKey = '';
+  localStorage.removeItem('dex_write_key');
+}
+
 // ── VERSIONES (concurrencia) ───────────────────────────────────────
 let versions = { Principal: '0', Speakers: '0', Ideas: '0' };
 
@@ -1275,11 +1295,20 @@ async function gasGetVersion(sheet) {
 
 async function gasPost(sheet, action, data) {
   if (USE_LOCAL) { saveLocalSheet(sheet, data); return; }
+  if (!writeKey) {
+    const ok = pedirClave();
+    if (!ok) throw new Error('Se necesita la clave para guardar.');
+  }
   const res = await fetch(GAS_URL, {
     method:'POST',
-    body: JSON.stringify({ sheet, action, data }),
+    body: JSON.stringify({ sheet, action, data, key: writeKey }),
   });
   const json = await res.json();
+  if (json.code === 401) {
+    olvidarClave();
+    pedirClave('❌ Clave incorrecta.');
+    throw new Error('Clave incorrecta — intentá guardar de nuevo.');
+  }
   if (json.error) throw new Error(json.error);
   // Actualizar versión local tras guardar exitosamente
   if (json.version) versions[sheet] = json.version;

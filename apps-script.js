@@ -37,7 +37,14 @@ function doGet(e) {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-    const { sheet, action, row, data, rowIndex } = payload;
+    const { sheet, action, row, data, rowIndex, key } = payload;
+
+    // Verificar clave de escritura
+    const props = PropertiesService.getScriptProperties();
+    const writeKey = props.getProperty('write_key');
+    if (writeKey && key !== writeKey) {
+      return respond({ error: 'Clave incorrecta', code: 401 });
+    }
 
     const ss = SpreadsheetApp.openById(SHEET_ID);
     const ws = ss.getSheetByName(sheet);
