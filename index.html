@@ -1248,7 +1248,7 @@ function renderIdeas() {
     return;
   }
   const propColor = p => PROP_COLORS[p] || 'var(--text)';
-  const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700':p==='importante'?'color:#facc15;font-weight:700':p==='considerar'?'color:#22c55e;font-weight:700':'color:var(--dim)';
+  const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700;font-size:15px':p==='importante'?'color:#facc15;font-weight:700;font-size:15px':p==='considerar'?'color:#22c55e;font-weight:700;font-size:15px':'color:var(--dim);font-size:15px';
   const CW = 'width:80px;text-align:center;white-space:nowrap';
   wrap.innerHTML = `<table class="ideas-table">
     <thead><tr>
@@ -1269,9 +1269,9 @@ function renderIdeas() {
         <td style="white-space:nowrap">
           <select class="cell-sel" style="font-size:13px;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
             <option value="" ${!idea.prioridad?'selected':''}>—</option>
-            <option value="urgente" ${idea.prioridad==='urgente'?'selected':''}>🔴 URGENTE</option>
-            <option value="importante" ${idea.prioridad==='importante'?'selected':''}>🟡 IMPORTANTE</option>
-            <option value="considerar" ${idea.prioridad==='considerar'?'selected':''}>🟢 CONSIDERAR</option>
+            <option value="urgente" ${idea.prioridad==='urgente'?'selected':''}>URGENTE</option>
+            <option value="importante" ${idea.prioridad==='importante'?'selected':''}>IMPORTANTE</option>
+            <option value="considerar" ${idea.prioridad==='considerar'?'selected':''}>CONSIDERAR</option>
           </select>
         </td>
         <td style="white-space:nowrap;width:1%">
