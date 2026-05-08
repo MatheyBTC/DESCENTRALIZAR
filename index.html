@@ -1265,7 +1265,7 @@ function renderIdeas() {
     </tr></thead>
     <tbody>${state.ideas.map((idea,i)=>`
       <tr>
-        <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc(idea.fecha||'')}</td>
+        <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc((idea.fecha||'').toString().slice(0,10))}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
         <td style="white-space:nowrap;${prioW}">
           <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
@@ -1324,7 +1324,7 @@ async function loadIdeas() {
     if (!raw||raw.length<2) { state.ideas=[]; renderIdeas(); return; }
     if (raw._version) versions.Ideas = raw._version;
     const [,...rows] = raw;
-    state.ideas = rows.map(r=>({ fecha:r[0]||'', prop:r[1]||'', prioridad:r[2]||'', titulo:r[3]||'', detalle:r[4]||'', sl:r[5]==='true', sj:r[6]==='true', cba:r[7]==='true' }));
+    state.ideas = rows.map(r=>({ fecha:(r[0]||'').toString().slice(0,10), prop:r[1]||'', prioridad:r[2]||'', titulo:r[3]||'', detalle:r[4]||'', sl:r[5]==='true', sj:r[6]==='true', cba:r[7]==='true' }));
     renderIdeas();
     toast('✅ Ideas actualizadas');
   } catch(e) { toast('⚠️ Error: '+e.message,true); }
