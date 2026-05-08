@@ -1248,21 +1248,40 @@ function renderIdeas() {
     return;
   }
   const propColor = p => PROP_COLORS[p] || 'var(--text)';
+  const prioCSS = p => p==='urgente'?'color:#ef4444;font-weight:700':p==='importante'?'color:#facc15;font-weight:700':p==='considerar'?'color:#22c55e;font-weight:700':'color:var(--dim)';
+  const CW = 'width:80px;text-align:center;white-space:nowrap';
   wrap.innerHTML = `<table class="ideas-table">
     <thead><tr>
+      <th style="white-space:nowrap;width:1%">Fecha</th>
       <th style="width:90px">Quién</th>
+      <th style="white-space:nowrap;width:1%">Prioridad</th>
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
+      <th style="${CW}">🟣 San Luis</th>
+      <th style="${CW}">⚪ San Juan</th>
+      <th style="${CW}">🔵 Córdoba</th>
       <th style="width:36px"></th>
     </tr></thead>
     <tbody>${state.ideas.map((idea,i)=>`
       <tr>
+        <td style="white-space:nowrap;color:var(--dim);font-size:13px">${esc(idea.fecha||'')}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
+        <td style="white-space:nowrap">
+          <select class="cell-sel" style="font-size:13px;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
+            <option value="" ${!idea.prioridad?'selected':''}>—</option>
+            <option value="urgente" ${idea.prioridad==='urgente'?'selected':''}>🔴 URGENTE</option>
+            <option value="importante" ${idea.prioridad==='importante'?'selected':''}>🟡 IMPORTANTE</option>
+            <option value="considerar" ${idea.prioridad==='considerar'?'selected':''}>🟢 CONSIDERAR</option>
+          </select>
+        </td>
         <td style="white-space:nowrap;width:1%">
           <div style="font-weight:600;font-size:15px">${esc(idea.titulo||'')}</div>
           ${idea.hora?`<div class="idea-hora-sm">🕐 ${esc(idea.hora)}</div>`:''}
         </td>
         <td style="color:var(--muted);font-size:15px">${esc(idea.detalle||'')}</td>
+        <td style="text-align:center"><input type="checkbox" ${idea.sl?'checked':''} onchange="updateIdea(${i},'sl',this.checked)"></td>
+        <td style="text-align:center"><input type="checkbox" ${idea.sj?'checked':''} onchange="updateIdea(${i},'sj',this.checked)"></td>
+        <td style="text-align:center"><input type="checkbox" ${idea.cba?'checked':''} onchange="updateIdea(${i},'cba',this.checked)"></td>
         <td style="text-align:center"><button class="del-row" onclick="delIdea(${i})">✕</button></td>
       </tr>`).join('')}
     </tbody>
@@ -1273,10 +1292,13 @@ function addIdea() {
   const titulo = document.getElementById('idea-titulo').value.trim();
   if (!titulo) { toast('⚠️ Título requerido',true); return; }
   state.ideas.unshift({
+    fecha:     new Date().toISOString().slice(0,10),
     titulo,
-    prop:    document.getElementById('idea-prop').value,
-    hora:    document.getElementById('idea-hora').value.trim(),
-    detalle: document.getElementById('idea-detalle').value.trim(),
+    prop:      document.getElementById('idea-prop').value,
+    hora:      document.getElementById('idea-hora').value.trim(),
+    detalle:   document.getElementById('idea-detalle').value.trim(),
+    prioridad: '',
+    sl: false, sj: false, cba: false,
   });
   ['idea-titulo','idea-hora','idea-detalle','idea-prop'].forEach(id=>document.getElementById(id).value='');
   markDirty('ideas');
@@ -1292,6 +1314,9 @@ function delIdea(i) {
 function updateIdea(i, key, val) {
   if (state.ideas[i]) { state.ideas[i][key] = val; markDirty('ideas'); }
 }
+function updateIdea(i, key, val) {
+  if (state.ideas[i]) { state.ideas[i][key] = val; markDirty('ideas'); }
+}
 
 async function loadIdeas() {
   try {
@@ -1299,7 +1324,7 @@ async function loadIdeas() {
     if (!raw||raw.length<2) { state.ideas=[]; renderIdeas(); return; }
     if (raw._version) versions.Ideas = raw._version;
     const [,...rows] = raw;
-    state.ideas = rows.map(r=>({ titulo:r[0]||'', prop:r[1]||'', hora:r[2]||'', detalle:r[3]||'' }));
+    state.ideas = rows.map(r=>({ fecha:r[0]||'', titulo:r[1]||'', prop:r[2]||'', hora:r[3]||'', detalle:r[4]||'', prioridad:r[5]||'', sl:r[6]==='true', sj:r[7]==='true', cba:r[8]==='true' }));
     renderIdeas();
     toast('✅ Ideas actualizadas');
   } catch(e) { toast('⚠️ Error: '+e.message,true); }
@@ -1307,7 +1332,7 @@ async function loadIdeas() {
 
 async function saveIdeas() {
   if (!(await checkVersion('Ideas'))) return;
-  const data = state.ideas.map(i=>[i.titulo,i.prop,i.hora,i.detalle]);
+  const data = state.ideas.map(i=>[i.fecha||'',i.titulo,i.prop,i.hora,i.detalle,i.prioridad||'',i.sl?'true':'',i.sj?'true':'',i.cba?'true':'']);
   await gasPost('Ideas','replace_all',data);
   toast('✅ Ideas guardadas');
   markClean('ideas');
@@ -1510,9 +1535,9 @@ async function init() {
   ];
 
   state.ideas = [
-    {titulo:'Exchange sponsor con beneficio en vivo',prop:'DiegoG',hora:'',detalle:'Sponsor abre cuentas en el evento con cashback exclusivo para asistentes.'},
-    {titulo:'Verificar internet antes de cada fecha',prop:'FerS',hora:'',detalle:'El taller de wallets y Kahoot dependen de conectividad. Plan B con datos compartidos.'},
-    {titulo:'Tracks paralelos en la tarde',prop:'MatiM',hora:'15:00',detalle:'Trading / Legal-Contable / DeFi — perfiles separados, no mezclar.'},
+    {fecha:'2026-05-07',titulo:'Exchange sponsor con beneficio en vivo',prop:'DiegoG',hora:'',detalle:'Sponsor abre cuentas en el evento con cashback exclusivo para asistentes.',prioridad:'importante',sl:true,sj:true,cba:true},
+    {fecha:'2026-05-07',titulo:'Verificar internet antes de cada fecha',prop:'FerS',hora:'',detalle:'El taller de wallets y Kahoot dependen de conectividad. Plan B con datos compartidos.',prioridad:'urgente',sl:true,sj:true,cba:true},
+    {fecha:'2026-05-07',titulo:'Tracks paralelos en la tarde',prop:'MatiM',hora:'15:00',detalle:'Trading / Legal-Contable / DeFi — perfiles separados, no mezclar.',prioridad:'considerar',sl:false,sj:false,cba:false},
   ];
 
   // Si no hay Google Sheets configurado, limpiar localStorage
