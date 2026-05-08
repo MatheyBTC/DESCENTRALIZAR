@@ -1264,7 +1264,7 @@ function renderIdeas() {
     </tr></thead>
     <tbody>${state.ideas.map((idea,i)=>`
       <tr>
-        <td style="white-space:nowrap;color:var(--dim);font-size:13px">${esc(idea.fecha||'')}</td>
+        <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc(idea.fecha||'')}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
         <td style="white-space:nowrap">
           <select class="cell-sel" style="font-size:13px;${prioCSS(idea.prioridad||'')}" onchange="updateIdea(${i},'prioridad',this.value)">
