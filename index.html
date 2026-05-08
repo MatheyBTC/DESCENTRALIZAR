@@ -641,9 +641,9 @@ function makePrincipalRow(row, idx) {
     <td style="width:55px;max-width:55px;overflow:hidden;position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></td>
     <td style="min-width:180px"><textarea class="cell-ta" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
     <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
-    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<input class="city-tema-inp" value="${esc(row.tema_sl||'')}" placeholder="${esc(row.tema||'Tema…')}" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis"></div></td>
-    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<input class="city-tema-inp" value="${esc(row.tema_sj||'')}" placeholder="${esc(row.tema||'Tema…')}" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico San Juan"></div></td>
-    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'cba',row.cba||'')}<input class="city-tema-inp" value="${esc(row.tema_cba||'')}" placeholder="${esc(row.tema||'Tema…')}" oninput="updatePrincipal(${idx},'tema_cba',this.value)" title="Tema específico Córdoba"></div></td>
+    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<input class="city-tema-inp" value="${esc(row.tema_sl||'')}" placeholder="Tema" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis"></div></td>
+    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<input class="city-tema-inp" value="${esc(row.tema_sj||'')}" placeholder="Tema" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico San Juan"></div></td>
+    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'cba',row.cba||'')}<input class="city-tema-inp" value="${esc(row.tema_cba||'')}" placeholder="Tema" oninput="updatePrincipal(${idx},'tema_cba',this.value)" title="Tema específico Córdoba"></div></td>
   `;
   return tr;
 }
