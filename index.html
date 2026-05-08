@@ -1279,9 +1279,9 @@ function renderIdeas() {
     return ideasSort === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
   });
 
-  // Filtro desplegable para el encabezado de Prioridad
-  const fltSel = `<select class="cell-sel" style="margin-top:4px;width:100%;font-size:11px" onchange="setIdeasFilter(this.value)">
-    <option value="all" ${ideasFilter==='all'?'selected':''}>Todas</option>
+  // Filtro desplegable — la primera opción "Prioridad" actúa como "mostrar todas"
+  const fltSel = `<select class="cell-sel" style="width:100%;font-size:12px;font-weight:600" onchange="setIdeasFilter(this.value)">
+    <option value="all" ${ideasFilter==='all'?'selected':''}>Prioridad</option>
     <option value="urgente" ${ideasFilter==='urgente'?'selected':''}>URGENTE</option>
     <option value="importante" ${ideasFilter==='importante'?'selected':''}>IMPORTANTE</option>
     <option value="considerar" ${ideasFilter==='considerar'?'selected':''}>CONSIDERAR</option>
@@ -1291,11 +1291,7 @@ function renderIdeas() {
     <thead><tr>
       <th style="white-space:nowrap;width:1%;cursor:pointer" onclick="toggleIdeasSort()">Fecha ${sortArrow}</th>
       <th style="width:90px">Quién</th>
-      <th style="white-space:nowrap;width:150px;min-width:150px">
-        <div style="display:flex;flex-direction:column;gap:2px">
-          <span>Prioridad</span>${fltSel}
-        </div>
-      </th>
+      <th style="white-space:nowrap;width:150px;min-width:150px">${fltSel}</th>
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
       <th style="${CW}">🟣 San Luis</th>
@@ -1310,8 +1306,8 @@ function renderIdeas() {
         <td style="white-space:nowrap;color:var(--text);font-size:15px">${esc((idea.fecha||'').toString().slice(0,10))}</td>
         <td><span class="idea-author" style="color:${propColor(idea.prop)}">${esc(idea.prop||'')}</span></td>
         <td style="white-space:nowrap;width:150px;min-width:150px">
-          <select class="cell-sel" style="width:100%;box-sizing:border-box"
-            onchange="updateIdea(${i},'prioridad',this.value)">
+          <select class="cell-sel" style="width:100%;box-sizing:border-box;${prioStyle(idea.prioridad||'')}"
+            onchange="updateIdea(${i},'prioridad',this.value);this.setAttribute('style','width:100%;box-sizing:border-box;'+prioStyle(this.value))">
             <option value="" ${!idea.prioridad?'selected':''}>—</option>
             <option value="urgente"   ${idea.prioridad==='urgente'?'selected':''}   style="color:#ef4444">URGENTE</option>
             <option value="importante"${idea.prioridad==='importante'?'selected':''} style="color:#facc15">IMPORTANTE</option>
