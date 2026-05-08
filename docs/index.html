@@ -218,20 +218,6 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tl-conflict-table tbody tr:hover{background:rgba(239,68,68,.10);}
 .tl-no-conflict{display:flex;align-items:center;gap:8px;padding:10px 0;font-size:18px;color:#22c55e;font-weight:600;}
 
-/* ── ESTRATEGIA ── */
-.fase-section{margin-bottom:28px;}
-.fase-title{font-size:15px;font-weight:800;color:var(--btc);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.strat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-.strat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;}
-.strat-title{font-size:17px;font-weight:700;margin-bottom:6px;outline:none;}
-.strat-title[contenteditable]:focus{border-bottom:1px dashed var(--btc);}
-.strat-desc{font-size:15px;color:var(--muted);outline:none;line-height:1.6;}
-.strat-desc[contenteditable]:focus{color:var(--text);}
-.strat-del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:15px;}
-.strat-del:hover{color:#ef4444;}
-.add-strat-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border:1px dashed var(--border);border-radius:10px;background:none;color:var(--dim);font-size:16px;cursor:pointer;transition:all .15s;width:100%;}
-.add-strat-btn:hover{color:var(--btc);border-color:var(--btc);background:var(--btc-dim);}
-
 /* ── IDEAS ── */
 .ideas-table{border-collapse:collapse;width:100%;}
 .ideas-table thead th{background:var(--bg3);border:1px solid var(--border);padding:8px 12px;text-align:left;font-size:14px;font-weight:700;color:var(--muted);position:sticky;top:0;z-index:10;}
@@ -267,7 +253,6 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
   <button class="tab-btn active" onclick="switchTab('principal')">📋 Principal</button>
   <button class="tab-btn" onclick="switchTab('speakers')">🎙️ Speakers</button>
   <button class="tab-btn" onclick="switchTab('timeline')">📊 Resumen</button>
-  <button class="tab-btn" onclick="switchTab('estrategia')">🎯 Estrategia</button>
   <button class="tab-btn" onclick="switchTab('ideas')">❓ Ideas</button>
   <div class="nav-right">
     <div class="status-dot" id="statusDot"></div>
@@ -457,18 +442,6 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 </div>
 
 <!-- ══════════════════════════════════════════════════
-     TAB: ESTRATEGIA
-══════════════════════════════════════════════════ -->
-<div class="tab-content" id="tab-estrategia">
-  <div class="toolbar">
-    <button class="btn save" onclick="saveEstrategia()">💾 Guardar</button>
-    <button class="btn" onclick="loadEstrategia()">🔄 Actualizar</button>
-  </div>
-  <div style="padding:20px" id="estrategiaWrap">
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════
      TAB: IDEAS
 ══════════════════════════════════════════════════ -->
 <div class="tab-content" id="tab-ideas">
@@ -528,7 +501,6 @@ const USE_LOCAL = !GAS_URL.startsWith('https://script.google');
 let state = {
   principal: [],
   speakers:  [],
-  estrategia:{ pre:[], durante:[], post:[] },
   ideas:     []
 };
 let spFilter = { tipo:'all', city:'all' };
@@ -570,7 +542,7 @@ function speakerOpts(sel='') {
 // ── TABS ──────────────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active', ['principal','speakers','timeline','estrategia','ideas'][i]===name);
+    b.classList.toggle('active', ['principal','speakers','timeline','ideas'][i]===name);
   });
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
@@ -829,7 +801,6 @@ async function loadPrincipal() {
 function refreshAll() {
   renderPrincipal();
   renderSpeakers();
-  renderEstrategia();
   renderIdeas();
   if (document.getElementById('tab-timeline').classList.contains('active')) buildTimeline();
 }
@@ -1098,65 +1069,6 @@ function buildTimeline() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// ESTRATEGIA
-// ══════════════════════════════════════════════════════════════════
-const FASES = ['pre','durante','post'];
-const FASE_LABELS = { pre:'Antes del evento', durante:'Durante el evento', post:'Post-evento' };
-
-function renderEstrategia() {
-  const wrap = document.getElementById('estrategiaWrap');
-  wrap.innerHTML = FASES.map(fase => `
-    <div class="fase-section">
-      <div class="fase-title">
-        ${fase==='pre'?'⏳':fase==='durante'?'⚡':'🌱'} ${FASE_LABELS[fase]}
-        <button class="btn" style="font-size:11px;padding:3px 10px" onclick="addStrat('${fase}')">+ Agregar</button>
-      </div>
-      <div class="strat-cards" id="strat-${fase}">
-        ${(state.estrategia[fase]||[]).map((s,i)=>`
-          <div class="strat-card">
-            <button class="strat-del" onclick="delStrat('${fase}',${i})">✕</button>
-            <div class="strat-title" contenteditable="true" oninput="updateStrat('${fase}',${i},'titulo',this.innerText)">${esc(s.titulo||'')}</div>
-            <div class="strat-desc"  contenteditable="true" oninput="updateStrat('${fase}',${i},'desc',this.innerText)">${esc(s.desc||'')}</div>
-          </div>
-        `).join('')}
-        ${!(state.estrategia[fase]||[]).length ? '<div style="color:var(--dim);font-size:15px;font-style:italic">Sin items aún.</div>' : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-function addStrat(fase) {
-  if (!state.estrategia[fase]) state.estrategia[fase]=[];
-  state.estrategia[fase].push({ titulo:'Nuevo ítem', desc:'Descripción…' });
-  renderEstrategia();
-}
-function delStrat(fase,i) { state.estrategia[fase].splice(i,1); renderEstrategia(); }
-function updateStrat(fase,i,key,val) { if(state.estrategia[fase][i]) state.estrategia[fase][i][key]=val; }
-
-async function loadEstrategia() {
-  try {
-    const raw = await gasGet('Estrategia');
-    if (!raw || raw.length < 2) { renderEstrategia(); return; }
-    const [,...rows] = raw;
-    state.estrategia = { pre:[], durante:[], post:[] };
-    rows.forEach(r => {
-      const fase = (r[0]||'').toLowerCase();
-      if (state.estrategia[fase]) state.estrategia[fase].push({ titulo:r[1]||'', desc:r[2]||'' });
-    });
-    renderEstrategia();
-    toast('✅ Estrategia actualizada');
-  } catch(e) { toast('⚠️ Error: '+e.message,true); }
-}
-
-async function saveEstrategia() {
-  const data = [];
-  FASES.forEach(fase => (state.estrategia[fase]||[]).forEach(s=>data.push([fase,s.titulo,s.desc])));
-  await gasPost('Estrategia','replace_all',data);
-  toast('✅ Estrategia guardada');
-  refreshAll();
-}
-
-// ══════════════════════════════════════════════════════════════════
 // IDEAS
 // ══════════════════════════════════════════════════════════════════
 function renderIdeas() {
@@ -1376,24 +1288,6 @@ async function init() {
     {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'San Juan',                   temas:'Moderación, Kahoot',contacto:'',notas:''},
   ];
 
-  state.estrategia = {
-    pre:[
-      {titulo:'Comunicación pre-evento',desc:'Abrir inscripciones con encuesta integrada. Activar grupos WhatsApp provinciales. Fogoneo 2 semanas antes.'},
-      {titulo:'Bajar wallets antes',desc:'Incorporar en el form links a WoS, Blue Wallet, Bexo y Rabby para que lleguen listos.'},
-      {titulo:'FOMO en el form',desc:'Anunciar el premio Kahoot 100 USD en BTC y el Trezor sorteado en el form de inscripción.'},
-    ],
-    durante:[
-      {titulo:'AMA como nexo',desc:'Rediseñar los breaks como AMA estructurados. Especialista disponible 1:1 en el break.'},
-      {titulo:'Kahoot con premio real',desc:'100 USD en sats al ganador. Pago en vivo con Lightning. Genera energía y uso real de wallets.'},
-      {titulo:'Embajador local',desc:'Presentar al embajador de la ciudad ante el público. Refuerza identidad local y comunidad.'},
-    ],
-    post:[
-      {titulo:'Grupo WhatsApp provincial permanente',desc:'No llamarlo por el evento ni el año. Ej: Bitcoin San Luis — nombre permanente.'},
-      {titulo:'NPS dentro de 48hs',desc:'Encuesta breve enviada dentro de las 48hs del evento. Máximo 3 preguntas.'},
-      {titulo:'Meetup a 3 meses',desc:'Si hay 20+ personas activas, la ONG provee materiales. La comunidad ejecuta.'},
-    ]
-  };
-
   state.ideas = [
     {titulo:'Exchange sponsor con beneficio en vivo',prop:'DiegoG',hora:'',detalle:'Sponsor abre cuentas en el evento con cashback exclusivo para asistentes.'},
     {titulo:'Verificar internet antes de cada fecha',prop:'FerS',hora:'',detalle:'El taller de wallets y Kahoot dependen de conectividad. Plan B con datos compartidos.'},
@@ -1403,12 +1297,12 @@ async function init() {
   // Si no hay Google Sheets configurado, limpiar localStorage
   // para que siempre se vean los datos del código (Excel importado)
   if (USE_LOCAL) {
-    ['dex_Principal','dex_Speakers','dex_Estrategia','dex_Ideas'].forEach(k => localStorage.removeItem(k));
+    ['dex_Principal','dex_Speakers','dex_Ideas'].forEach(k => localStorage.removeItem(k));
     setStatus(false);
     document.getElementById('statusTxt').textContent = 'Sin Sheets — datos locales';
   } else {
     try {
-      const [hadPrincipal] = await Promise.all([loadPrincipal(),loadSpeakers(),loadEstrategia(),loadIdeas()]);
+      const [hadPrincipal] = await Promise.all([loadPrincipal(),loadSpeakers(),loadIdeas()]);
       if (!hadPrincipal) {
         toast('Primer uso — guardando datos en Sheet…');
         await savePrincipal();
@@ -1420,7 +1314,6 @@ async function init() {
 
   renderPrincipal();
   renderSpeakers();
-  renderEstrategia();
   renderIdeas();
 }
 
