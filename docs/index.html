@@ -486,15 +486,15 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         </div>
         <div class="form-field">
           <label class="form-label">¿Quién la propone?</label>
-          <select class="form-select" id="idea-prop">
-            <option value="DiegoG">DiegoG</option>
-            <option value="FerS">FerS</option>
-            <option value="JuaniP">JuaniP</option>
-            <option value="ManuF">ManuF</option>
-            <option value="MatiM">MatiM</option>
-            <option value="RodoA">RodoA</option>
-            <option value="otro">Otro (escribir abajo)</option>
-          </select>
+          <input class="form-input" id="idea-prop" list="prop-datalist" placeholder="—" autocomplete="off">
+          <datalist id="prop-datalist">
+            <option value="DiegoG">
+            <option value="FerS">
+            <option value="JuaniP">
+            <option value="ManuF">
+            <option value="MatiM">
+            <option value="RodoA">
+          </datalist>
         </div>
         <div class="form-field">
           <label class="form-label">Hora (opcional)</label>
@@ -1196,7 +1196,7 @@ function addIdea() {
     hora:   document.getElementById('idea-hora').value.trim(),
     detalle:document.getElementById('idea-detalle').value.trim(),
   });
-  ['idea-titulo','idea-hora','idea-detalle'].forEach(id=>document.getElementById(id).value='');
+  ['idea-titulo','idea-hora','idea-detalle','idea-prop'].forEach(id=>document.getElementById(id).value='');
   renderIdeas();
   toast('✅ Idea agregada');
 }
