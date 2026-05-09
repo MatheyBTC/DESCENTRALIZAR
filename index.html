@@ -280,6 +280,16 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .public-table .pt-fin{color:#ef4444;font-weight:700;white-space:nowrap;}
 .public-table .pt-speaker{color:var(--btc);font-weight:700;}
 .public-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:16px;}
+
+/* ── TELEPORT ── */
+.tp-btn{position:absolute;top:3px;right:3px;display:none;background:rgba(247,147,26,.18);border:1px solid rgba(247,147,26,.4);color:var(--btc);cursor:pointer;font-size:11px;padding:1px 5px;border-radius:3px;line-height:1.5;font-weight:700;white-space:nowrap;}
+.sp-picker:hover .tp-btn{display:block;}
+.tp-btn:hover{background:var(--btc);color:#000;}
+#teleportMenu{display:none;position:fixed;background:var(--bg3);border:1px solid var(--btc);border-radius:8px;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,.55);min-width:160px;padding:4px 0;overflow:hidden;}
+#teleportMenu.open{display:block;}
+.tp-item{padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;color:var(--text);}
+.tp-item:hover{background:var(--btc-dim);color:var(--btc);}
+.tp-item-all{border-top:1px solid var(--border);color:var(--btc);}
 </style>
 </head>
 <body>
@@ -531,6 +541,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 </div>
 
 <div id="spDropdown" class="sp-drop"></div>
+<div id="teleportMenu"></div>
 <div id="toast"></div>
 
 <!-- ── MODAL CLAVE ── -->
@@ -880,10 +891,54 @@ function renderSpPicker(idx, city, selected) {
   const cellHtml = selected
     ? `<div class="sp-cell-name">${esc(selected)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
     : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
-  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div></div>`;
+  const tpBtn = selected
+    ? `<button class="tp-btn" onclick="openTeleportMenu(${idx},'${city}',event)" title="Teleportar speaker a otras ciudades">⚡</button>`
+    : '';
+  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div>${tpBtn}</div>`;
 }
 
 let _spDrop = { idx:null, city:null };
+let _tpMenu = { idx:null, city:null };
+
+function openTeleportMenu(idx, fromCity, e) {
+  e.stopPropagation();
+  const menu = document.getElementById('teleportMenu');
+  if (_tpMenu.idx === idx && _tpMenu.city === fromCity && menu.classList.contains('open')) {
+    closeTeleportMenu(); return;
+  }
+  _tpMenu = { idx, city: fromCity };
+  const r = e.currentTarget.getBoundingClientRect();
+  const CITY_LABELS = { sl:'🟣 San Luis', sj:'⚪ San Juan', cba:'🔵 Córdoba' };
+  const targets = Object.entries(CITY_LABELS).filter(([k]) => k !== fromCity);
+  menu.innerHTML = targets.map(([k, label]) =>
+    `<div class="tp-item" data-tp-idx="${idx}" data-tp-from="${fromCity}" data-tp-to="${k}">${label}</div>`
+  ).join('') +
+  `<div class="tp-item tp-item-all" data-tp-idx="${idx}" data-tp-from="${fromCity}" data-tp-to="all">→ Todas las ciudades</div>`;
+  const left = Math.min(r.left, window.innerWidth - 168);
+  menu.style.top  = (r.bottom + 4) + 'px';
+  menu.style.left = left + 'px';
+  menu.classList.add('open');
+}
+
+function closeTeleportMenu() {
+  document.getElementById('teleportMenu').classList.remove('open');
+  _tpMenu = { idx:null, city:null };
+}
+
+function teleportSpeaker(idx, fromCity, toCity) {
+  const row = state.principal[idx];
+  if (!row) return;
+  const spName = row[fromCity] || '';
+  const temaVal = row['tema_' + fromCity] || '';
+  const targets = toCity === 'all' ? ['sl','sj','cba'].filter(c => c !== fromCity) : [toCity];
+  targets.forEach(c => { row[c] = spName; row['tema_' + c] = temaVal; });
+  markDirty('principal');
+  renderPrincipal();
+  closeTeleportMenu();
+  const CITY_NAMES_ES = { sl:'San Luis', sj:'San Juan', cba:'Córdoba' };
+  const toLabel = toCity === 'all' ? 'todas las ciudades' : CITY_NAMES_ES[toCity];
+  toast(`⚡ ${spName || '—'} → ${toLabel}`);
+}
 
 function openSpDrop(idx, city, e) {
   e.stopPropagation();
@@ -1716,8 +1771,16 @@ async function exportarAgenda(city) {
   }
 }
 
-// ── SP PICKER EVENT DELEGATION ───────────────────────────────────
+// ── SP PICKER + TELEPORT EVENT DELEGATION ────────────────────────
 document.addEventListener('click', e => {
+  // Teleport menu item
+  const tpItem = e.target.closest('.tp-item');
+  if (tpItem && tpItem.dataset.tpIdx !== undefined) {
+    teleportSpeaker(+tpItem.dataset.tpIdx, tpItem.dataset.tpFrom, tpItem.dataset.tpTo);
+    return;
+  }
+
+  // Speaker picker item
   const item = e.target.closest('.sp-item');
   if (item && item.dataset.idx !== undefined) {
     const idx = +item.dataset.idx, city = item.dataset.city, name = item.dataset.name;
@@ -1729,10 +1792,26 @@ document.addEventListener('click', e => {
         ? `<div class="sp-cell-name">${esc(name)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
         : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
       picker.querySelector('.sp-cell').innerHTML = cellHtml;
+      // Sync teleport button
+      let tpBtn = picker.querySelector('.tp-btn');
+      if (name) {
+        if (!tpBtn) {
+          tpBtn = document.createElement('button');
+          tpBtn.className = 'tp-btn';
+          tpBtn.title = 'Teleportar speaker a otras ciudades';
+          tpBtn.textContent = '⚡';
+          tpBtn.setAttribute('onclick', `openTeleportMenu(${idx},'${city}',event)`);
+          picker.appendChild(tpBtn);
+        }
+      } else if (tpBtn) {
+        tpBtn.remove();
+      }
     }
     closeAllSpDrops();
     return;
   }
+
+  if (!e.target.closest('#teleportMenu') && !e.target.closest('.tp-btn')) closeTeleportMenu();
   if (!e.target.closest('.sp-picker') && !e.target.closest('#spDropdown')) closeAllSpDrops();
 });
 
