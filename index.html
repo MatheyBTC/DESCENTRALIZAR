@@ -730,10 +730,16 @@ function durOpts(sel=15) {
   const custom = !DUR_STD.has(sel) && sel>0 ? `<option value="${sel}" selected>${minToTime(sel)}</option>` : '';
   return opts + custom;
 }
+function parseDur(val) {
+  const s = String(val).trim();
+  if (s.includes(':')) return timeToMin(s);
+  const n = parseInt(s);
+  return isNaN(n) ? 0 : n;
+}
 function repaintDur(idx, min) {
   const td = document.getElementById('durtd-'+idx);
   if (!td) return;
-  td.querySelector('select').style.color = durColor(min);
+  td.querySelector('input.dur-inp').style.color = durColor(min);
 }
 
 function makePrincipalRow(row, idx) {
@@ -749,11 +755,10 @@ function makePrincipalRow(row, idx) {
     <td class="col-stk" style="left:44px;background:${tipoBg}">
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
-    <td id="durtd-${idx}" class="col-stk" style="left:114px;text-align:center;width:33px;max-width:33px;overflow:hidden;padding:0">
-      <select class="cell-sel" style="color:${dc};font-weight:700;text-align:center;text-align-last:center;min-width:0;width:100%;box-sizing:border-box;appearance:none;-webkit-appearance:none;padding:0 2px"
-        onchange="updatePrincipal(${idx},'dur',+this.value);recalcTimes();updateProgress();repaintDur(${idx},+this.value)">
-        ${durOpts(row.dur)}
-      </select>
+    <td id="durtd-${idx}" class="col-stk" style="left:114px;text-align:center;width:44px;max-width:44px;overflow:hidden;padding:0">
+      <input type="text" list="dur-list" class="cell-inp dur-inp" value="${minToTime(row.dur||0)}"
+        style="color:${dc};font-weight:700;text-align:center;min-width:0;width:100%;box-sizing:border-box;padding:0 2px;font-size:13px"
+        onchange="(function(el){const m=parseDur(el.value);if(m>0){updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();repaintDur(${idx},m);el.value=minToTime(m);}else{el.value=minToTime(state.principal[${idx}]?.dur||0);}})(this)">
     </td>
     <td class="col-stk" style="left:147px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
     <td class="col-stk col-stk-sep" style="left:202px;width:55px;max-width:55px;overflow:hidden"><div style="position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></div></td>
@@ -1668,7 +1673,7 @@ function renderPublicView() {
     </div>
     <table class="public-table">
       <thead><tr>
-        <th>Inicio</th><th>Fin</th><th>Tipo</th><th>Tema</th><th>Speaker</th><th>Duración</th>
+        <th>Inicio</th><th>Fin</th><th>Tipo</th><th>Tema</th><th>Speaker</th><th>Tiempo</th>
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
@@ -1756,5 +1761,15 @@ document.addEventListener('click', e => {
 
 init();
 </script>
+<datalist id="dur-list">
+  <option value="00:10">
+  <option value="00:15">
+  <option value="00:20">
+  <option value="00:25">
+  <option value="00:30">
+  <option value="00:45">
+  <option value="01:00">
+  <option value="01:30">
+</datalist>
 </body>
 </html>
