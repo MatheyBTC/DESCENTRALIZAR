@@ -87,6 +87,42 @@ function doPost(e) {
   }
 }
 
+// ── BACKUP diario ───────────────────────────────────────────────────
+function backupPrincipal() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const src = ss.getSheetByName('Principal');
+  if (!src) return;
+
+  const fecha = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HH-mm');
+  const nombre = 'Backup_' + fecha;
+
+  // Borrar backups de más de 7 días para no acumular hojas
+  ss.getSheets().forEach(sh => {
+    if (sh.getName().startsWith('Backup_')) {
+      const partes = sh.getName().replace('Backup_', '').split('_');
+      const fechaSh = new Date(partes[0]);
+      const dias = (new Date() - fechaSh) / 86400000;
+      if (dias > 7) ss.deleteSheet(sh);
+    }
+  });
+
+  src.copyTo(ss).setName(nombre);
+}
+
+// Correr UNA vez desde el editor para instalar el trigger diario
+function installBackupTrigger() {
+  // Eliminar triggers anteriores del mismo tipo para no duplicar
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'backupPrincipal')
+    .forEach(t => ScriptApp.deleteTrigger(t));
+
+  ScriptApp.newTrigger('backupPrincipal')
+    .timeBased()
+    .everyDays(1)
+    .atHour(3)
+    .create();
+}
+
 function respond(obj, code) {
   const out = ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
