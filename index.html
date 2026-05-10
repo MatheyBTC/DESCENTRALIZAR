@@ -745,7 +745,7 @@ function makePrincipalRow(row, idx) {
   const tipoBg = tipoColor + '28'; // ~15% opacity hex
 
   tr.innerHTML = `
-    <td class="row-actions col-stk" style="left:0"><div class="row-act-wrap"><button class="mv-row" onclick="movePrincipalRow(${idx},-1)" title="Subir fila" ${idx===0?'disabled':''}>▲</button><button class="mv-row" onclick="movePrincipalRow(${idx},1)" title="Bajar fila" ${idx===state.principal.length-1?'disabled':''}>▼</button><button class="del-row" onclick="delPrincipalRow(${idx})" title="Eliminar fila">✕</button><button class="ins-row" onclick="insertPrincipalRow(${idx})" title="Insertar fila abajo">+</button></div></td>
+    <td class="row-actions col-stk" style="left:0"><div class="row-act-wrap"><button class="mv-row" onclick="movePrincipalRow(${idx},-1)" title="Subir fila" ${idx===0?'disabled':''}>▲</button><button class="del-row" onclick="delPrincipalRow(${idx})" title="Eliminar fila">✕</button><button class="mv-row" onclick="movePrincipalRow(${idx},1)" title="Bajar fila" ${idx===state.principal.length-1?'disabled':''}>▼</button><button class="ins-row" onclick="insertPrincipalRow(${idx})" title="Insertar fila abajo">+</button></div></td>
     <td class="col-stk" style="left:44px;background:${tipoBg}">
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
