@@ -339,9 +339,9 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
       <thead>
         <tr class="fecha-row">
           <th class="col-stk" style="left:0;width:44px"></th>
-          <th class="col-stk" style="left:44px;width:70px"><input class="date-inp" id="custom-tipo" placeholder="+ Tipo custom" title="Escribí y presioná Enter para agregar al desplegable" onkeydown="addCustomTipo(event,this)"></th>
-          <th class="col-stk" colspan="2" style="left:114px;width:106px"></th>
-          <th class="col-stk col-stk-sep" style="left:220px;width:55px;text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
+          <th class="col-stk" style="left:44px;width:81px"><input class="date-inp" id="custom-tipo" placeholder="+ Tipo custom" title="Escribí y presioná Enter para agregar al desplegable" onkeydown="addCustomTipo(event,this)"></th>
+          <th class="col-stk" colspan="2" style="left:125px;width:106px"></th>
+          <th class="col-stk col-stk-sep" style="left:231px;width:55px;text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
           <th colspan="2"></th>
           <th class="city-h" style="font-weight:400">
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
@@ -355,10 +355,10 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         </tr>
         <tr>
           <th class="col-stk" style="left:0;width:44px"></th>
-          <th class="col-stk" style="left:44px;width:70px">Tipo</th>
-          <th class="col-stk" style="left:114px;width:33px;text-align:center">Dur</th>
-          <th class="col-stk" style="left:147px;width:55px;text-align:center">Inicio</th>
-          <th class="col-stk col-stk-sep" style="left:202px;width:55px;text-align:center">Fin</th>
+          <th class="col-stk" style="left:44px;width:81px">Tipo</th>
+          <th class="col-stk" style="left:125px;width:38px;text-align:center">Tiempo</th>
+          <th class="col-stk" style="left:163px;width:55px;text-align:center">Inicio</th>
+          <th class="col-stk col-stk-sep" style="left:218px;width:55px;text-align:center">Fin</th>
           <th style="width:200px">Tema</th>
           <th style="width:240px">Detalle</th>
           <th class="city-h" style="width:220px">🟣 San Luis</th>
@@ -726,8 +726,9 @@ function addCustomTipo(e, inp) {
 }
 
 function durOpts(sel=15) {
-  const opts = DURS.map(d=>`<option value="${d}" ${d===sel?'selected':''}>${minToTime(d)}</option>`).join('');
-  const custom = !DUR_STD.has(sel) && sel>0 ? `<option value="${sel}" selected>${minToTime(sel)}</option>` : '';
+  const DUR_COLORS = {15:'#22c55e',20:'#eab308',25:'#f97316',30:'#f9a8d4',45:'#f87171'};
+  const opts = DURS.map(d=>`<option value="${d}" ${d===sel?'selected':''} style="color:${DUR_COLORS[d]};background:#111">${minToTime(d)}</option>`).join('');
+  const custom = !DUR_STD.has(sel) && sel>0 ? `<option value="${sel}" selected style="color:#fff;background:#111">${minToTime(sel)}</option>` : '';
   return opts + custom;
 }
 function parseDur(val) {
@@ -737,9 +738,11 @@ function parseDur(val) {
   return isNaN(n) ? 0 : n;
 }
 function repaintDur(idx, min) {
-  const td = document.getElementById('durtd-'+idx);
-  if (!td) return;
-  td.querySelector('input.dur-inp').style.color = durColor(min);
+  const c = durColor(min);
+  const inp = document.getElementById('durinp-'+idx);
+  const sel = document.getElementById('dursel-'+idx);
+  if (inp) inp.style.color = c;
+  if (sel) sel.style.color = c;
 }
 
 function makePrincipalRow(row, idx) {
@@ -755,13 +758,19 @@ function makePrincipalRow(row, idx) {
     <td class="col-stk" style="left:44px;background:${tipoBg}">
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
-    <td id="durtd-${idx}" class="col-stk" style="left:114px;text-align:center;width:44px;max-width:44px;overflow:hidden;padding:0">
-      <input type="text" list="dur-list" class="cell-inp dur-inp" value="${minToTime(row.dur||0)}"
-        style="color:${dc};font-weight:700;text-align:center;min-width:0;width:100%;box-sizing:border-box;padding:0 2px;font-size:13px"
-        onchange="(function(el){const m=parseDur(el.value);if(m>0){updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();repaintDur(${idx},m);el.value=minToTime(m);}else{el.value=minToTime(state.principal[${idx}]?.dur||0);}})(this)">
+    <td id="durtd-${idx}" class="col-stk" style="left:125px;text-align:center;width:51px;max-width:51px;overflow:hidden;padding:0">
+      <input type="text" id="durinp-${idx}" class="cell-inp dur-inp" value="${minToTime(row.dur||0)}"
+        style="color:${dc};font-weight:700;text-align:center;min-width:0;width:100%;box-sizing:border-box;padding:0 2px;font-size:11px;border-bottom:1px solid #222;background:transparent"
+        placeholder="HH:MM"
+        oninput="(function(el){const m=parseDur(el.value);const c=m>0?durColor(m):'#fff';el.style.color=c;if(m>0){updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();const sel=document.getElementById('dursel-${idx}');if(sel){sel.style.color=c;const tv=minToTime(m);for(let i=0;i<sel.options.length;i++){if(sel.options[i].value==m){sel.value=m;break;}}}}})(this)">
+      <select id="dursel-${idx}" class="cell-sel"
+        style="color:${dc};font-weight:700;font-size:11px;width:100%;background:transparent;border:none;padding:1px 0;text-align:center;cursor:pointer"
+        onchange="(function(sel){const m=parseDur(sel.value);const c=durColor(m);sel.style.color=c;updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();const inp=document.getElementById('durinp-${idx}');if(inp){inp.value=minToTime(m);inp.style.color=c;}})(this)">
+        ${durOpts(row.dur)}
+      </select>
     </td>
-    <td class="col-stk" style="left:147px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
-    <td class="col-stk col-stk-sep" style="left:202px;width:55px;max-width:55px;overflow:hidden"><div style="position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></div></td>
+    <td class="col-stk" style="left:163px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
+    <td class="col-stk col-stk-sep" style="left:218px;width:55px;max-width:55px;overflow:hidden"><div style="position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></div></td>
     <td style="min-width:180px"><textarea class="cell-ta" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
     <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis">${esc(row.tema_sl||'')}</textarea></div></td>
