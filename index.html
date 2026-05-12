@@ -772,7 +772,7 @@ function makePrincipalRow(row, idx) {
           sel.style.color=c;updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();
         })(this)">
         ${durOpts(row.dur)}
-        <option value="__custom__" style="color:#888;background:#111">✏️ Otro…</option>
+        <option value="__custom__" style="color:#fff;background:#111">00:00</option>
       </select>
     </td>
     <td class="col-stk" style="left:163px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
