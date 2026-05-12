@@ -738,11 +738,8 @@ function parseDur(val) {
   return isNaN(n) ? 0 : n;
 }
 function repaintDur(idx, min) {
-  const c = durColor(min);
-  const inp = document.getElementById('durinp-'+idx);
   const sel = document.getElementById('dursel-'+idx);
-  if (inp) inp.style.color = c;
-  if (sel) sel.style.color = c;
+  if (sel) sel.style.color = durColor(min);
 }
 
 function makePrincipalRow(row, idx) {
@@ -759,14 +756,23 @@ function makePrincipalRow(row, idx) {
       <select class="cell-sel" style="color:${tipoColor};font-weight:700" onchange="updatePrincipal(${idx},'tipo',this.value);renderPrincipal()">${tipoOpts(row.tipo)}</select>
     </td>
     <td id="durtd-${idx}" class="col-stk" style="left:125px;text-align:center;width:51px;max-width:51px;overflow:hidden;padding:0">
-      <input type="text" id="durinp-${idx}" class="cell-inp dur-inp" value="${minToTime(row.dur||0)}"
-        style="color:${dc};font-weight:700;text-align:center;min-width:0;width:100%;box-sizing:border-box;padding:0 2px;font-size:11px;border-bottom:1px solid #222;background:transparent"
-        placeholder="HH:MM"
-        oninput="(function(el){const m=parseDur(el.value);const c=m>0?durColor(m):'#fff';el.style.color=c;if(m>0){updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();const sel=document.getElementById('dursel-${idx}');if(sel){sel.style.color=c;const tv=minToTime(m);for(let i=0;i<sel.options.length;i++){if(sel.options[i].value==m){sel.value=m;break;}}}}})(this)">
       <select id="dursel-${idx}" class="cell-sel"
-        style="color:${dc};font-weight:700;font-size:11px;width:100%;background:transparent;border:none;padding:1px 0;text-align:center;cursor:pointer"
-        onchange="(function(sel){const m=parseDur(sel.value);const c=durColor(m);sel.style.color=c;updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();const inp=document.getElementById('durinp-${idx}');if(inp){inp.value=minToTime(m);inp.style.color=c;}})(this)">
+        style="color:${dc};font-weight:700;font-size:12px;width:100%;background:transparent;border:none;padding:2px 0;text-align:center;cursor:pointer"
+        onchange="(function(sel){
+          if(sel.value==='__custom__'){
+            const cur=minToTime(state.principal[${idx}]?.dur||15);
+            const raw=prompt('Ingresá el tiempo (ej: 00:22 o 22):',cur);
+            if(raw===null){sel.value=state.principal[${idx}]?.dur||15;return;}
+            const m=parseDur(raw);
+            if(m>0){updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();renderPrincipal();}
+            else sel.value=state.principal[${idx}]?.dur||15;
+            return;
+          }
+          const m=parseDur(sel.value);const c=durColor(m);
+          sel.style.color=c;updatePrincipal(${idx},'dur',m);recalcTimes();updateProgress();
+        })(this)">
         ${durOpts(row.dur)}
+        <option value="__custom__" style="color:#888;background:#111">✏️ Otro…</option>
       </select>
     </td>
     <td class="col-stk" style="left:163px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
