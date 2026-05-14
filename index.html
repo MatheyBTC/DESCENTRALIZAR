@@ -196,7 +196,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tl-city-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:32px;}
 .tl-city-card{background:var(--bg2);border-radius:12px;padding:18px 20px;border:2px solid;}
 .tl-city-card.sl{border-color:#a855f7;}
-.tl-city-card.sj{border-color:#f59e0b;}
+.tl-city-card.sj{border-color:#e2e8f0;}
 .tl-city-card.cba{border-color:#3b82f6;}
 .tl-city-name{font-size:21px;font-weight:700;margin-bottom:14px;color:#ffffff;}
 .tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:19px;}
@@ -209,7 +209,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tl-prog-label{display:flex;justify-content:space-between;font-size:19px;color:var(--muted);margin-bottom:5px;}
 .tl-prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
 .tl-prog-fill-sl{height:100%;background:#a855f7;border-radius:4px;transition:width .4s;}
-.tl-prog-fill-sj{height:100%;background:#f59e0b;border-radius:4px;transition:width .4s;}
+.tl-prog-fill-sj{height:100%;background:#e2e8f0;border-radius:4px;transition:width .4s;}
 .tl-prog-fill-cba{height:100%;background:#3b82f6;border-radius:4px;transition:width .4s;}
 /* conflictos */
 .tl-conflict-wrap{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:18px 20px;}
@@ -1155,7 +1155,7 @@ function buildTimeline() {
   // ── SECCIÓN C — Resumen por ciudad ────────────────────────────
   const cities = [
     { key:'sl',  label:'🟣 San Luis',  cls:'sl',  color:'#ef4444', fillCls:'tl-prog-fill-sl'  },
-    { key:'sj',  label:'🟡 Tucumán',  cls:'sj',  color:'#f59e0b', fillCls:'tl-prog-fill-sj'  },
+    { key:'sj',  label:'🟡 Tucumán',  cls:'sj',  color:'#e2e8f0', fillCls:'tl-prog-fill-sj'  },
     { key:'cba', label:'🔵 Córdoba',   cls:'cba', color:'#22c55e', fillCls:'tl-prog-fill-cba' },
   ];
 
@@ -1644,7 +1644,7 @@ async function init() {
 // ══════════════════════════════════════════════════════════════════
 const PUBLIC_CITY_MAP = {
   sl:  { nombre: 'San Luis',  fecha: '14/08/2026', color: '#a855f7' },
-  sj:  { nombre: 'Tucumán',  fecha: '11/09/2026', color: '#f59e0b' },
+  sj:  { nombre: 'Tucumán',  fecha: '11/09/2026', color: '#e2e8f0' },
   cba: { nombre: 'Córdoba',   fecha: '04/09/2026', color: '#3b82f6' },
 };
 
