@@ -20,7 +20,7 @@ function doGet(e) {
 
     // Acción especial: importar respuestas del Form → Speakers
     if (e.parameter.action === 'import_form_speakers') {
-      const result = importarFormSpeakers();
+      const result = importarFormSpeakers(ss);
       return respond(result);
     }
 
@@ -91,6 +91,81 @@ function doPost(e) {
   } catch(err) {
     return respond({ error: err.message }, 500);
   }
+}
+
+// ── IMPORTAR RESPUESTAS DEL FORM → SPEAKERS ────────────────────────
+const FORM_RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
+
+function importarFormSpeakers(dexSS) {
+  let respSS;
+  try {
+    respSS = SpreadsheetApp.openById(FORM_RESP_SHEET_ID);
+  } catch(e) {
+    return { ok: false, error: 'No puedo abrir el Sheet de respuestas: ' + e.message };
+  }
+
+  const respSheet = respSS.getSheets()[0];
+  const allData   = respSheet.getDataRange().getValues();
+  const totalRows = allData.length;
+
+  const props        = PropertiesService.getScriptProperties();
+  const lastImported = parseInt(props.getProperty('form_last_imported_row') || '1');
+
+  if (totalRows <= lastImported) {
+    return { ok: true, imported: 0, msg: 'No hay respuestas nuevas para importar.' };
+  }
+
+  const spSheet = dexSS.getSheetByName('Speakers');
+  if (!spSheet) return { ok: false, error: 'No existe la pestaña "Speakers".' };
+
+  const newRows  = allData.slice(lastImported);
+  const imported = [];
+
+  newRows.forEach(r => {
+    // Columnas del form (orden del Sheet de respuestas):
+    // [0] Timestamp
+    // [1] Nombre completo
+    // [2] Tipo
+    // [3] Contacto (mail / móvil)
+    // [4] X (Twitter)
+    // [5] Instagram
+    // [6] Empresa / Referencia
+    // [7] Ciudad(es)
+    // [8] Tema que vas a cubrir
+    // [9] Notas / Comentarios
+    const nombre   = String(r[1] || '').trim();
+    const tipo     = String(r[2] || 'speaker').trim().toLowerCase();
+    const contacto = String(r[3] || '').trim();
+    const xUser    = String(r[4] || '').trim();
+    const ig       = String(r[5] || '').trim();
+    const empresa  = String(r[6] || '').trim();
+    const ciudRaw  = String(r[7] || '').trim();
+    const temas    = String(r[8] || '').trim();
+    const notas    = String(r[9] || '').trim();
+
+    if (!nombre) return;
+
+    const ciudades = ciudRaw
+      .replace(/🟣 San Luis \([^)]+\)/g, 'San Luis')
+      .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
+      .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
+
+    // Formato fila Speakers: nombre, tipo, contacto, ciudades, temas,
+    //                        notas, x, ig, empresa, sl_estado, sj_estado, cba_estado
+    spSheet.appendRow([nombre, tipo, contacto, ciudades, temas, notas, xUser, ig, empresa, '', '', '']);
+    imported.push(nombre);
+  });
+
+  props.setProperty('form_last_imported_row', String(totalRows));
+  props.setProperty('version_Speakers', Date.now().toString());
+
+  return {
+    ok: true,
+    imported: imported.length,
+    msg: imported.length > 0
+      ? '✅ ' + imported.length + ' speaker(s) importados: ' + imported.join(', ')
+      : 'No se importó nada (filas sin nombre).'
+  };
 }
 
 // ── BACKUP diario ───────────────────────────────────────────────────
