@@ -18,13 +18,13 @@ function doGet(e) {
       return respond({ ok: true, sheet, version });
     }
 
+    const ss  = SpreadsheetApp.openById(SHEET_ID);
+
     // Acción especial: importar respuestas del Form → Speakers
     if (e.parameter.action === 'import_form_speakers') {
       const result = importarFormSpeakers(ss);
       return respond(result);
     }
-
-    const ss  = SpreadsheetApp.openById(SHEET_ID);
     const ws  = ss.getSheetByName(sheet);
     if (!ws) return respond({ error: 'Hoja no encontrada: ' + sheet }, 404);
     const data = ws.getDataRange().getValues();
