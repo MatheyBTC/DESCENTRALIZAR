@@ -196,7 +196,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tl-city-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:32px;}
 .tl-city-card{background:var(--bg2);border-radius:12px;padding:18px 20px;border:2px solid;}
 .tl-city-card.sl{border-color:#a855f7;}
-.tl-city-card.sj{border-color:#e2e8f0;}
+.tl-city-card.sj{border-color:#f59e0b;}
 .tl-city-card.cba{border-color:#3b82f6;}
 .tl-city-name{font-size:21px;font-weight:700;margin-bottom:14px;color:#ffffff;}
 .tl-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:19px;}
@@ -209,7 +209,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tl-prog-label{display:flex;justify-content:space-between;font-size:19px;color:var(--muted);margin-bottom:5px;}
 .tl-prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
 .tl-prog-fill-sl{height:100%;background:#a855f7;border-radius:4px;transition:width .4s;}
-.tl-prog-fill-sj{height:100%;background:#e2e8f0;border-radius:4px;transition:width .4s;}
+.tl-prog-fill-sj{height:100%;background:#f59e0b;border-radius:4px;transition:width .4s;}
 .tl-prog-fill-cba{height:100%;background:#3b82f6;border-radius:4px;transition:width .4s;}
 /* conflictos */
 .tl-conflict-wrap{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:18px 20px;}
@@ -318,7 +318,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
       <button class="btn save" id="saveBtnPrincipal" onclick="savePrincipal()">💾 Guardar</button>
       <button class="btn" onclick="loadPrincipal()">🔄 Actualizar</button>
       <button class="btn" onclick="exportarAgenda('sl')">📸 SL</button>
-      <button class="btn" onclick="exportarAgenda('sj')">📸 SJ</button>
+      <button class="btn" onclick="exportarAgenda('sj')">📸 TUC</button>
       <button class="btn" onclick="exportarAgenda('cba')">📸 CBA</button>
     </div>
   </div>
@@ -347,7 +347,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="date-inp" id="fecha-sj" value="2026-08-28" title="Fecha San Juan">
+            <input class="date-inp" id="fecha-sj" value="2026-09-11" title="Fecha Tucumán">
           </th>
           <th class="city-h" style="font-weight:400">
             <input class="date-inp" id="fecha-cba" value="2026-09-04" title="Fecha Córdoba">
@@ -362,7 +362,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th style="width:200px">Tema</th>
           <th style="width:240px">Detalle</th>
           <th class="city-h" style="width:220px">🟣 San Luis</th>
-          <th class="city-h" style="width:220px">⚪ San Juan</th>
+          <th class="city-h" style="width:220px">🟡 Tucumán</th>
           <th class="city-h" style="width:220px">🔵 Córdoba</th>
         </tr>
       </thead>
@@ -417,7 +417,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <label class="form-label">Ciudad(es)</label>
           <div class="cities-check" id="sp-ciudades-wrap">
             <label class="city-opt"><input type="checkbox" value="San Luis"> 🟣 San Luis</label>
-            <label class="city-opt"><input type="checkbox" value="San Juan"> ⚪ San Juan</label>
+            <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟡 Tucumán</label>
             <label class="city-opt"><input type="checkbox" value="Córdoba"> 🔵 Córdoba</label>
           </div>
         </div>
@@ -441,7 +441,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
       <div class="toolbar-sep"></div>
       <button class="btn sp-flt active" onclick="setSpFilter('city','all')" data-filter-city="all">Todas</button>
       <button class="btn sp-flt" onclick="setSpFilter('city','San Luis')" data-filter-city="San Luis">🟣 San Luis</button>
-      <button class="btn sp-flt" onclick="setSpFilter('city','San Juan')" data-filter-city="San Juan">⚪ San Juan</button>
+      <button class="btn sp-flt" onclick="setSpFilter('city','Tucumán')" data-filter-city="Tucumán">🟡 Tucumán</button>
       <button class="btn sp-flt" onclick="setSpFilter('city','Córdoba')" data-filter-city="Córdoba">🔵 Córdoba</button>
     </div>
     <div class="table-wrap">
@@ -450,7 +450,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th>Tipo</th>
           <th>Nombre</th>
           <th style="text-align:center">🟣 SL</th>
-          <th style="text-align:center">⚪ SJ</th>
+          <th style="text-align:center">🟡 TUC</th>
           <th style="text-align:center">🔵 CBA</th>
           <th style="text-align:center">Estado SL</th>
           <th style="text-align:center">Estado SJ</th>
@@ -780,7 +780,7 @@ function makePrincipalRow(row, idx) {
     <td style="min-width:180px"><textarea class="cell-ta" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
     <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis">${esc(row.tema_sl||'')}</textarea></div></td>
-    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico San Juan">${esc(row.tema_sj||'')}</textarea></div></td>
+    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico Tucumán">${esc(row.tema_sj||'')}</textarea></div></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'cba',row.cba||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_cba',this.value)" title="Tema específico Córdoba">${esc(row.tema_cba||'')}</textarea></div></td>
   `;
   return tr;
@@ -885,7 +885,7 @@ function updateProgress() {
 }
 
 // ── SPEAKER PICKER ───────────────────────────────────────────────
-const CITY_NAMES = { sl:'San Luis', sj:'San Juan', cba:'Córdoba' };
+const CITY_NAMES = { sl:'San Luis', sj:'Tucumán', cba:'Córdoba' };
 
 function speakersForCity(cityKey) {
   const cn = (CITY_NAMES[cityKey]||'').toLowerCase();
@@ -1041,14 +1041,14 @@ function renderSpeakers() {
     const ri = state.speakers.indexOf(s);
     const tipo = s.tipo||'speaker';
     const hasSL  = (s.ciudades||'').includes('San Luis');
-    const hasSJ  = (s.ciudades||'').includes('San Juan');
+    const hasSJ  = (s.ciudades||'').includes('Tucumán');
     const hasCBA = (s.ciudades||'').includes('Córdoba');
     const hasAny = hasSL || hasSJ || hasCBA;
     return `<tr style="${hasAny?'':'opacity:.55'}">
       <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');renderSpeakers()">${tipoOpts(tipo)}</select></td>
       <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')">${esc(s.nombre||'')}</span></td>
       <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSL?'checked':''} onchange="updateSpeakerCity(${ri},'San Luis',this.checked);markDirty('speakers')"></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'San Juan',this.checked);markDirty('speakers')"></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'Tucumán',this.checked);markDirty('speakers')"></td>
       <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasCBA?'checked':''} onchange="updateSpeakerCity(${ri},'Córdoba',this.checked);markDirty('speakers')"></td>
       <td style="text-align:center">${estadoSelectHtml(ri,'sl_estado',s.sl_estado||'')}</td>
       <td style="text-align:center">${estadoSelectHtml(ri,'sj_estado',s.sj_estado||'')}</td>
@@ -1155,7 +1155,7 @@ function buildTimeline() {
   // ── SECCIÓN C — Resumen por ciudad ────────────────────────────
   const cities = [
     { key:'sl',  label:'🟣 San Luis',  cls:'sl',  color:'#ef4444', fillCls:'tl-prog-fill-sl'  },
-    { key:'sj',  label:'⚪ San Juan',  cls:'sj',  color:'#facc15', fillCls:'tl-prog-fill-sj'  },
+    { key:'sj',  label:'🟡 Tucumán',  cls:'sj',  color:'#f59e0b', fillCls:'tl-prog-fill-sj'  },
     { key:'cba', label:'🔵 Córdoba',   cls:'cba', color:'#22c55e', fillCls:'tl-prog-fill-cba' },
   ];
 
@@ -1250,7 +1250,7 @@ function buildTimeline() {
   rows.forEach(r => {
     // Recolectar speakers no vacíos por ciudad para esta fila
     const spMap = {};
-    [['sl','🟣 San Luis'], ['sj','⚪ San Juan'], ['cba','🔵 Córdoba']].forEach(([key, label]) => {
+    [['sl','🟣 San Luis'], ['sj','🟡 Tucumán'], ['cba','🔵 Córdoba']].forEach(([key, label]) => {
       const sp = (r[key] || '').trim();
       if (!sp) return;
       if (!spMap[sp]) spMap[sp] = [];
@@ -1333,7 +1333,7 @@ function renderIdeas() {
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
       <th style="${CW}">🟣 San Luis</th>
-      <th style="${CW}">⚪ San Juan</th>
+      <th style="${CW}">🟡 Tucumán</th>
       <th style="${CW}">🔵 Córdoba</th>
       <th style="width:36px"></th>
     </tr></thead>
@@ -1601,12 +1601,12 @@ async function init() {
   ];
 
   state.speakers = [
-    {nombre:'Diego Gurpegui',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bitcoin, Dinero, Moderación',contacto:'',notas:'Maestro de ceremonias',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
-    {nombre:'Fernando Secchi', tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Taller Wallet, Autocustodia',contacto:'',notas:'',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
-    {nombre:'Jimena Vallone',  tipo:'speaker',ciudades:'San Luis, San Juan, Córdoba',temas:'Bienvenida, Apertura',contacto:'',notas:'',sl_estado:'invitado',sj_estado:'invitado',cba_estado:'invitado'},
-    {nombre:'Matias Mathey',   tipo:'speaker',ciudades:'San Juan',                    temas:'Descentralizar, Panel',contacto:'@MatheyBTC',notas:'',sl_estado:'',sj_estado:'confirmado',cba_estado:''},
-    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, San Juan',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo',sl_estado:'pendiente',sj_estado:'pendiente',cba_estado:''},
-    {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'San Juan',                   temas:'Moderación, Kahoot',contacto:'',notas:'',sl_estado:'',sj_estado:'invitado',cba_estado:''},
+    {nombre:'Diego Gurpegui',  tipo:'speaker',ciudades:'San Luis, Tucumán, Córdoba',temas:'Bitcoin, Dinero, Moderación',contacto:'',notas:'Maestro de ceremonias',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
+    {nombre:'Fernando Secchi', tipo:'speaker',ciudades:'San Luis, Tucumán, Córdoba',temas:'Taller Wallet, Autocustodia',contacto:'',notas:'',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
+    {nombre:'Jimena Vallone',  tipo:'speaker',ciudades:'San Luis, Tucumán, Córdoba',temas:'Bienvenida, Apertura',contacto:'',notas:'',sl_estado:'invitado',sj_estado:'invitado',cba_estado:'invitado'},
+    {nombre:'Matias Mathey',   tipo:'speaker',ciudades:'Tucumán',                    temas:'Descentralizar, Panel',contacto:'@MatheyBTC',notas:'',sl_estado:'',sj_estado:'confirmado',cba_estado:''},
+    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, Tucumán',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo',sl_estado:'pendiente',sj_estado:'pendiente',cba_estado:''},
+    {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'Tucumán',                   temas:'Moderación, Kahoot',contacto:'',notas:'',sl_estado:'',sj_estado:'invitado',cba_estado:''},
   ];
 
   state.ideas = [
@@ -1644,7 +1644,7 @@ async function init() {
 // ══════════════════════════════════════════════════════════════════
 const PUBLIC_CITY_MAP = {
   sl:  { nombre: 'San Luis',  fecha: '14/08/2026', color: '#a855f7' },
-  sj:  { nombre: 'San Juan',  fecha: '28/08/2026', color: '#e2e8f0' },
+  sj:  { nombre: 'Tucumán',  fecha: '11/09/2026', color: '#f59e0b' },
   cba: { nombre: 'Córdoba',   fecha: '04/09/2026', color: '#3b82f6' },
 };
 
