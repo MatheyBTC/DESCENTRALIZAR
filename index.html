@@ -241,9 +241,10 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .empty-icon{font-size:36px;margin-bottom:12px;}
 
 @media(max-width:700px){
-  thead th:nth-child(n+7){display:none;}
-  td:nth-child(n+7){display:none;}
+  thead th:nth-child(n+8){display:none;}
+  td:nth-child(n+8){display:none;}
   .speakers-grid{grid-template-columns:1fr;}
+  textarea.cell-ta-auto{overflow:hidden;resize:none;}
 }
 
 /* ── DIRTY INDICATOR ── */
@@ -342,7 +343,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th class="col-stk" style="left:44px;width:81px"><input class="date-inp" id="custom-tipo" placeholder="+ Tipo custom" title="Escribí y presioná Enter para agregar al desplegable" onkeydown="addCustomTipo(event,this)"></th>
           <th class="col-stk" colspan="2" style="left:125px;width:106px"></th>
           <th class="col-stk col-stk-sep" style="left:231px;width:55px;text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
-          <th colspan="2"></th>
+          <th colspan="3"></th>
           <th class="city-h" style="font-weight:400">
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
@@ -360,6 +361,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th class="col-stk" style="left:163px;width:55px;text-align:center">Inicio</th>
           <th class="col-stk col-stk-sep" style="left:218px;width:55px;text-align:center">Fin</th>
           <th style="width:200px">Tema</th>
+          <th style="width:200px;color:#facc15">Bajada</th>
           <th style="width:240px">Detalle</th>
           <th class="city-h" style="width:220px">🟣 San Luis</th>
           <th class="city-h" style="width:220px">🔵 Córdoba</th>
@@ -379,6 +381,8 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
   <div class="toolbar">
     <button class="btn save" id="saveBtnSpeakers" onclick="saveSpeakers()">💾 Guardar</button>
     <button class="btn" onclick="loadSpeakers()">🔄 Actualizar</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn" onclick="importarDelForm()" title="Importa las respuestas nuevas del Google Form directo a la lista de Speakers">📥 Importar del Form</button>
   </div>
 
   <div style="padding:20px">
@@ -697,12 +701,22 @@ function switchTab(name) {
 // ══════════════════════════════════════════════════════════════════
 // PRINCIPAL
 // ══════════════════════════════════════════════════════════════════
+function autoExpand(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+
+function autoExpandAll() {
+  document.querySelectorAll('textarea.cell-ta-auto').forEach(autoExpand);
+}
+
 function renderPrincipal() {
   const tbody = document.getElementById('principalTbody');
   tbody.innerHTML = '';
   recalcTimes();
   state.principal.forEach((row,i) => tbody.appendChild(makePrincipalRow(row,i)));
   updateProgress();
+  autoExpandAll();
 }
 
 function durColor(dur) {
@@ -777,8 +791,9 @@ function makePrincipalRow(row, idx) {
     </td>
     <td class="col-stk" style="left:163px;width:55px;max-width:55px;overflow:hidden"><input class="cell-inp time-start" id="inicio-${idx}" style="text-align:center" value="${row.inicio||''}" oninput="updatePrincipal(${idx},'inicio',this.value);recalcTimesFrom(${idx})"></td>
     <td class="col-stk col-stk-sep" style="left:218px;width:55px;max-width:55px;overflow:hidden"><div style="position:relative"><input class="cell-inp time-end" id="fin-${idx}" style="text-align:center" value="${row.fin||''}" oninput="updatePrincipal(${idx},'fin',this.value)"><div class="fin-progress" id="finprog-${idx}" style="width:0%"></div></div></td>
-    <td style="min-width:180px"><textarea class="cell-ta" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
-    <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
+    <td style="min-width:180px"><textarea class="cell-ta cell-ta-auto" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value);autoExpand(this)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
+    <td style="min-width:180px"><textarea class="cell-ta cell-ta-auto" style="font-size:16px;color:#facc15;resize:none;min-height:44px" oninput="updatePrincipal(${idx},'bajada',this.value);autoExpand(this)" placeholder="Bajada…">${esc(row.bajada||'')}</textarea></td>
+    <td style="min-width:220px"><textarea class="cell-ta cell-ta-auto" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value);autoExpand(this)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis">${esc(row.tema_sl||'')}</textarea></div></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'cba',row.cba||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_cba',this.value)" title="Tema específico Córdoba">${esc(row.tema_cba||'')}</textarea></div></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico Tucumán">${esc(row.tema_sj||'')}</textarea></div></td>
@@ -805,7 +820,7 @@ function addPrincipalRow() {
   const inicio = last ? (last.fin||'09:00') : (document.getElementById('horaApertura').value||'09:00');
   const dur = 30;
   const fin = minToTime(timeToMin(inicio)+dur);
-  state.principal.push({ tipo:'Charla',dur,inicio,fin,tema:'',detalle:'',sl:'',sj:'',cba:'',tema_sl:'',tema_sj:'',tema_cba:'' });
+  state.principal.push({ tipo:'Charla',dur,inicio,fin,tema:'',bajada:'',detalle:'',sl:'',sj:'',cba:'',tema_sl:'',tema_sj:'',tema_cba:'' });
   markDirty('principal');
   renderPrincipal();
 }
@@ -830,7 +845,7 @@ function insertPrincipalRow(idx) {
   const prev = state.principal[idx];
   const inicio = prev ? (prev.fin || '09:00') : '09:00';
   const fin = minToTime(timeToMin(inicio) + dur);
-  state.principal.splice(idx + 1, 0, { tipo:'Charla', dur, inicio, fin, tema:'', detalle:'', sl:'', sj:'', cba:'', tema_sl:'', tema_sj:'', tema_cba:'' });
+  state.principal.splice(idx + 1, 0, { tipo:'Charla', dur, inicio, fin, tema:'', bajada:'', detalle:'', sl:'', sj:'', cba:'', tema_sl:'', tema_sj:'', tema_cba:'' });
   renderPrincipal(); // recalcTimes runs inside renderPrincipal
 }
 
@@ -973,7 +988,7 @@ async function loadPrincipal() {
     const [, ...rows] = raw;
     state.principal = rows.map(r=>({
       tipo:r[0]||'Charla', dur:+r[1]||30, inicio:r[2]||'', fin:r[3]||'',
-      tema:r[4]||'', detalle:r[5]||'', sl:r[6]||'', sj:r[7]||'', cba:r[8]||'',
+      tema:r[4]||'', bajada:r[12]||'', detalle:r[5]||'', sl:r[6]||'', sj:r[7]||'', cba:r[8]||'',
       tema_sl:r[9]||'', tema_sj:r[10]||'', tema_cba:r[11]||''
     }));
     renderPrincipal();
@@ -990,7 +1005,7 @@ function refreshAll() {
 
 async function savePrincipal() {
   if (!(await checkVersion('Principal'))) return;
-  const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
+  const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'',r.bajada||'']);
   await gasPost('Principal','replace_all', data);
   toast('✅ Principal guardado');
   markClean('principal');
@@ -1107,6 +1122,20 @@ function delSpeaker(i) {
   state.speakers.splice(i,1);
   markDirty('speakers');
   renderSpeakers();
+}
+
+async function importarDelForm() {
+  toast('⏳ Importando respuestas del Form…');
+  try {
+    const res = await fetch(GAS_URL + '?action=import_form_speakers');
+    const json = await res.json();
+    if (!json.ok) { toast('⚠️ ' + (json.error || 'Error al importar'), true); return; }
+    toast(json.msg || '✅ Importación completa');
+    if (json.imported > 0) {
+      await loadSpeakers();
+      markDirty('speakers');
+    }
+  } catch(e) { toast('⚠️ Error: ' + e.message, true); }
 }
 
 async function loadSpeakers() {
