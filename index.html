@@ -347,10 +347,10 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="date-inp" id="fecha-sj" value="2026-09-11" title="Fecha Tucumán">
+            <input class="date-inp" id="fecha-cba" value="2026-09-04" title="Fecha Córdoba">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="date-inp" id="fecha-cba" value="2026-09-04" title="Fecha Córdoba">
+            <input class="date-inp" id="fecha-sj" value="2026-09-11" title="Fecha Tucumán">
           </th>
         </tr>
         <tr>
@@ -362,8 +362,8 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th style="width:200px">Tema</th>
           <th style="width:240px">Detalle</th>
           <th class="city-h" style="width:220px">🟣 San Luis</th>
-          <th class="city-h" style="width:220px">🟡 Tucumán</th>
           <th class="city-h" style="width:220px">🔵 Córdoba</th>
+          <th class="city-h" style="width:220px">🟡 Tucumán</th>
         </tr>
       </thead>
       <tbody id="principalTbody"></tbody>
@@ -417,8 +417,8 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <label class="form-label">Ciudad(es)</label>
           <div class="cities-check" id="sp-ciudades-wrap">
             <label class="city-opt"><input type="checkbox" value="San Luis"> 🟣 San Luis</label>
-            <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟡 Tucumán</label>
             <label class="city-opt"><input type="checkbox" value="Córdoba"> 🔵 Córdoba</label>
+            <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟡 Tucumán</label>
           </div>
         </div>
         <div class="form-field" style="grid-column:1/-1">
@@ -441,8 +441,8 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
       <div class="toolbar-sep"></div>
       <button class="btn sp-flt active" onclick="setSpFilter('city','all')" data-filter-city="all">Todas</button>
       <button class="btn sp-flt" onclick="setSpFilter('city','San Luis')" data-filter-city="San Luis">🟣 San Luis</button>
-      <button class="btn sp-flt" onclick="setSpFilter('city','Tucumán')" data-filter-city="Tucumán">🟡 Tucumán</button>
       <button class="btn sp-flt" onclick="setSpFilter('city','Córdoba')" data-filter-city="Córdoba">🔵 Córdoba</button>
+      <button class="btn sp-flt" onclick="setSpFilter('city','Tucumán')" data-filter-city="Tucumán">🟡 Tucumán</button>
     </div>
     <div class="table-wrap">
       <table class="sp-table">
@@ -450,8 +450,8 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th>Tipo</th>
           <th>Nombre</th>
           <th style="text-align:center">🟣 SL</th>
-          <th style="text-align:center">🟡 TUC</th>
           <th style="text-align:center">🔵 CBA</th>
+          <th style="text-align:center">🟡 TUC</th>
           <th style="text-align:center">Estado SL</th>
           <th style="text-align:center">Estado SJ</th>
           <th style="text-align:center">Estado CBA</th>
@@ -780,8 +780,8 @@ function makePrincipalRow(row, idx) {
     <td style="min-width:180px"><textarea class="cell-ta" style="font-size:16px;color:var(--btc);resize:none;min-height:44px" oninput="updatePrincipal(${idx},'tema',this.value)" placeholder="Tema…">${esc(row.tema||'')}</textarea></td>
     <td style="min-width:220px"><textarea class="cell-ta" style="font-size:16px" oninput="updatePrincipal(${idx},'detalle',this.value)" placeholder="Detalle…">${esc(row.detalle||'')}</textarea></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sl',row.sl||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sl',this.value)" title="Tema específico San Luis">${esc(row.tema_sl||'')}</textarea></div></td>
-    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico Tucumán">${esc(row.tema_sj||'')}</textarea></div></td>
     <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'cba',row.cba||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_cba',this.value)" title="Tema específico Córdoba">${esc(row.tema_cba||'')}</textarea></div></td>
+    <td style="min-width:220px"><div class="city-cell-wrap">${renderSpPicker(idx,'sj',row.sj||'')}<textarea class="city-tema-inp" placeholder="Tema&#10;Opcional" oninput="updatePrincipal(${idx},'tema_sj',this.value)" title="Tema específico Tucumán">${esc(row.tema_sj||'')}</textarea></div></td>
   `;
   return tr;
 }
@@ -1048,11 +1048,11 @@ function renderSpeakers() {
       <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');renderSpeakers()">${tipoOpts(tipo)}</select></td>
       <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')">${esc(s.nombre||'')}</span></td>
       <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSL?'checked':''} onchange="updateSpeakerCity(${ri},'San Luis',this.checked);markDirty('speakers')"></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'Tucumán',this.checked);markDirty('speakers')"></td>
       <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasCBA?'checked':''} onchange="updateSpeakerCity(${ri},'Córdoba',this.checked);markDirty('speakers')"></td>
+      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'Tucumán',this.checked);markDirty('speakers')"></td>
       <td style="text-align:center">${estadoSelectHtml(ri,'sl_estado',s.sl_estado||'')}</td>
-      <td style="text-align:center">${estadoSelectHtml(ri,'sj_estado',s.sj_estado||'')}</td>
       <td style="text-align:center">${estadoSelectHtml(ri,'cba_estado',s.cba_estado||'')}</td>
+      <td style="text-align:center">${estadoSelectHtml(ri,'sj_estado',s.sj_estado||'')}</td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'temas',this.innerText.trim());markDirty('speakers')">${esc(s.temas||'')}</span></td>
       <td><span class="sp-edit" style="color:var(--muted);font-size:12px" contenteditable="true" onblur="updateSpeaker(${ri},'notas',this.innerText.trim());markDirty('speakers')">${esc(s.notas||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span></td>
@@ -1155,8 +1155,8 @@ function buildTimeline() {
   // ── SECCIÓN C — Resumen por ciudad ────────────────────────────
   const cities = [
     { key:'sl',  label:'🟣 San Luis',  cls:'sl',  color:'#ef4444', fillCls:'tl-prog-fill-sl'  },
-    { key:'sj',  label:'🟡 Tucumán',  cls:'sj',  color:'#e2e8f0', fillCls:'tl-prog-fill-sj'  },
     { key:'cba', label:'🔵 Córdoba',   cls:'cba', color:'#22c55e', fillCls:'tl-prog-fill-cba' },
+    { key:'sj',  label:'🟡 Tucumán',  cls:'sj',  color:'#e2e8f0', fillCls:'tl-prog-fill-sj'  },
   ];
 
   const cityStats = cities.map(c => {
@@ -1250,7 +1250,7 @@ function buildTimeline() {
   rows.forEach(r => {
     // Recolectar speakers no vacíos por ciudad para esta fila
     const spMap = {};
-    [['sl','🟣 San Luis'], ['sj','🟡 Tucumán'], ['cba','🔵 Córdoba']].forEach(([key, label]) => {
+    [['sl','🟣 San Luis'], ['cba','🔵 Córdoba'], ['sj','🟡 Tucumán']].forEach(([key, label]) => {
       const sp = (r[key] || '').trim();
       if (!sp) return;
       if (!spMap[sp]) spMap[sp] = [];
@@ -1333,8 +1333,8 @@ function renderIdeas() {
       <th style="white-space:nowrap;width:1%">Título</th>
       <th>Detalle</th>
       <th style="${CW}">🟣 San Luis</th>
-      <th style="${CW}">🟡 Tucumán</th>
       <th style="${CW}">🔵 Córdoba</th>
+      <th style="${CW}">🟡 Tucumán</th>
       <th style="width:36px"></th>
     </tr></thead>
     <tbody>${rows.map((idea)=>{
@@ -1358,8 +1358,8 @@ function renderIdeas() {
         </td>
         <td style="color:var(--muted);font-size:15px">${esc(idea.detalle||'')}</td>
         <td style="text-align:center"><input type="checkbox" ${idea.sl?'checked':''} onchange="updateIdea(${i},'sl',this.checked)"></td>
-        <td style="text-align:center"><input type="checkbox" ${idea.sj?'checked':''} onchange="updateIdea(${i},'sj',this.checked)"></td>
         <td style="text-align:center"><input type="checkbox" ${idea.cba?'checked':''} onchange="updateIdea(${i},'cba',this.checked)"></td>
+        <td style="text-align:center"><input type="checkbox" ${idea.sj?'checked':''} onchange="updateIdea(${i},'sj',this.checked)"></td>
         <td style="text-align:center"><button class="del-row" onclick="delIdea(${i})">✕</button></td>
       </tr>`;
     }).join('')}
