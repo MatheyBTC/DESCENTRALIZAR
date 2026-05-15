@@ -988,8 +988,8 @@ async function loadPrincipal() {
     const [, ...rows] = raw;
     state.principal = rows.map(r=>({
       tipo:r[0]||'Charla', dur:+r[1]||30, inicio:r[2]||'', fin:r[3]||'',
-      tema:r[4]||'', bajada:r[12]||'', detalle:r[5]||'', sl:r[6]||'', sj:r[7]||'', cba:r[8]||'',
-      tema_sl:r[9]||'', tema_sj:r[10]||'', tema_cba:r[11]||''
+      tema:r[4]||'', bajada:r[5]||'', detalle:r[6]||'', sl:r[7]||'', sj:r[8]||'', cba:r[9]||'',
+      tema_sl:r[10]||'', tema_sj:r[11]||'', tema_cba:r[12]||''
     }));
     renderPrincipal();
     return true;
@@ -1005,7 +1005,7 @@ function refreshAll() {
 
 async function savePrincipal() {
   if (!(await checkVersion('Principal'))) return;
-  const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'',r.bajada||'']);
+  const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
   await gasPost('Principal','replace_all', data);
   toast('✅ Principal guardado');
   markClean('principal');

@@ -126,22 +126,28 @@ function importarFormSpeakers(dexSS) {
     // [0] Timestamp
     // [1] Nombre completo
     // [2] Tipo
-    // [3] Contacto (mail / móvil)
-    // [4] X (Twitter)
-    // [5] Instagram
-    // [6] Empresa / Referencia
-    // [7] Ciudad(es)
-    // [8] Tema que vas a cubrir
-    // [9] Notas / Comentarios
-    const nombre   = String(r[1] || '').trim();
-    const tipo     = String(r[2] || 'speaker').trim().toLowerCase();
-    const contacto = String(r[3] || '').trim();
-    const xUser    = String(r[4] || '').trim();
-    const ig       = String(r[5] || '').trim();
-    const empresa  = String(r[6] || '').trim();
-    const ciudRaw  = String(r[7] || '').trim();
-    const temas    = String(r[8] || '').trim();
-    const notas    = String(r[9] || '').trim();
+    // [3] Mail
+    // [4] Móvil (WhatsApp)
+    // [5] X (Twitter)
+    // [6] Instagram
+    // [7] LinkedIn
+    // [8] Empresa/Referencia
+    // [9] Ciudad(es)
+    // [10] Tema(s) que vas a cubrir
+    // [11] Notas / Comentarios
+    const nombre   = String(r[1]  || '').trim();
+    const tipo     = String(r[2]  || 'speaker').trim().toLowerCase();
+    const mail     = String(r[3]  || '').trim();
+    const movil    = String(r[4]  || '').trim();
+    const xUser    = String(r[5]  || '').trim();
+    const ig       = String(r[6]  || '').trim();
+    const linkedin = String(r[7]  || '').trim();
+    const empresa  = String(r[8]  || '').trim();
+    const ciudRaw  = String(r[9]  || '').trim();
+    // r[10]: "Tema1 — Bajada1, Tema2 — Bajada2" (checkboxes, hasta 3)
+    const temasRaw = String(r[10] || '').trim();
+    const temas    = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean).join(', ');
+    const notas    = String(r[11] || '').trim();
 
     if (!nombre) return;
 
@@ -150,9 +156,10 @@ function importarFormSpeakers(dexSS) {
       .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
       .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
 
-    // Formato fila Speakers: nombre, tipo, contacto, ciudades, temas,
-    //                        notas, x, ig, empresa, sl_estado, sj_estado, cba_estado
-    spSheet.appendRow([nombre, tipo, contacto, ciudades, temas, notas, xUser, ig, empresa, '', '', '']);
+    // Formato fila Speakers:
+    // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
+    // sl_estado, sj_estado, cba_estado, movil, linkedin
+    spSheet.appendRow([nombre, tipo, mail, ciudades, temas, notas, xUser, ig, empresa, '', '', '', movil, linkedin]);
     imported.push(nombre);
   });
 

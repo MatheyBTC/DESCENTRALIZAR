@@ -1,34 +1,160 @@
 /**
- * form-creator.gs — Crea el Google Form de inscripción de Speakers DEX 2026
+ * form-creator.gs — Google Form de inscripción de Speakers DEX 2026
  *
- * INSTRUCCIONES (una sola vez):
- *   1. Abrí el Google Sheet del DEX → Extensiones → Apps Script
- *   2. Nuevo archivo → "form-creator" → pegá este código
- *   3. Ejecutá createSpeakerForm() → aceptá permisos
- *   4. El log te da la URL pública para compartir con speakers
+ * Dónde pegar este código:
+ *   → script.google.com → el proyecto donde creaste el form
+ *   → Reemplazá todo el código → Guardar
  *
- * Las respuestas van a un Sheet INDEPENDIENTE (no toca el Sheet del DEX).
- * Para importar al DEX: botón "📥 Importar del Form" en la pestaña Speakers.
+ * Funciones disponibles:
+ *   · updateFormCampos()   — actualiza campos del form existente (correr 1 vez)
+ *   · updateTemaQuestion() — convierte Tema a checkboxes con bajada (correr 1 vez)
+ *   · createSpeakerForm()  — solo si necesitás crear el form desde cero
  */
 
 const DEX_SHEET_ID = '1wl2ClpRqJ5I4j92D0Xa3vinm0JHckCUCAu0fMfXJ07U';
 
-// Tipos que NO son charlas (se excluyen del desplegable de temas)
 const TIPOS_EXCLUIDOS = ['Kahoot', 'Break', 'Almuerzo', 'Apertura', 'Cierre', 'Premios', 'Sorteo', 'Concurso'];
 
 // ═══════════════════════════════════════════════════════════════
-// CREAR EL FORM (ejecutar una sola vez)
+// PASO 1 — Actualizar campos del form existente
+// Ejecutar UNA VEZ. Orden final:
+// Nombre | Tipo | Mail | Móvil (WhatsApp) | X | Instagram |
+// LinkedIn | Empresa/Referencia | Ciudad(es) | Tema(s) | Notas
 // ═══════════════════════════════════════════════════════════════
-function createSpeakerForm() {
+function updateFormCampos() {
+  const form = _abrirForm();
+  if (!form) return;
 
-  // ── Leer temas reales desde la hoja Principal ────────────────
-  const temas = getTemasDesdeSheet();
-  if (temas.length === 0) {
-    Logger.log('⚠️  No se encontraron temas en el Sheet. El desplegable quedará vacío.');
-    Logger.log('    Verificá que la hoja "Principal" tenga datos en la columna Tema.');
+  // ── 1. Eliminar campos que se van a recrear o ya no van ──────
+  const ELIMINAR = [
+    'Contacto (mail / móvil)', 'Contacto',
+    'Móvil / WhatsApp', 'LinkedIn', 'Empresa / Referencia'
+  ];
+  // iterar sobre copia porque deleteItem modifica el array
+  form.getItems().slice().forEach(i => {
+    if (ELIMINAR.includes(i.getTitle())) {
+      form.deleteItem(i);
+      Logger.log('🗑️  Eliminado: ' + i.getTitle());
+    }
+  });
+
+  // ── 2. Asegurar campo Tipo (texto libre, después de Nombre) ──
+  if (!form.getItems().find(i => i.getTitle() === 'Tipo')) {
+    const nombreIdx = form.getItems().findIndex(i => i.getTitle() === 'Nombre completo');
+    const tipoNew   = form.addTextItem()
+      .setTitle('Tipo')
+      .setHelpText('Ej: Speaker, Panelista, Moderador');
+    form.moveItem(tipoNew.getIndex(), nombreIdx >= 0 ? nombreIdx + 1 : 1);
+    Logger.log('➕ Agregado: Tipo');
   }
 
-  // ── Crear el Form ────────────────────────────────────────────
+  // ── 3. Renombrar "Empresa / Referencia" → "Empresa/Referencia"
+  const empresaItem = form.getItems().find(i => i.getTitle().includes('Empresa'));
+  if (empresaItem) {
+    empresaItem.asTextItem().setTitle('Empresa/Referencia');
+    Logger.log('✏️  Renombrado: Empresa/Referencia');
+  }
+
+  // ── 4. Agregar Mail (después de Tipo, requerido) ─────────────
+  const tipoIdx = form.getItems().findIndex(i => i.getTitle() === 'Tipo');
+  const mailItem = form.addTextItem()
+    .setTitle('Mail')
+    .setHelpText('Ej: nombre@mail.com')
+    .setRequired(true);
+  form.moveItem(mailItem.getIndex(), tipoIdx >= 0 ? tipoIdx + 1 : 2);
+  Logger.log('➕ Agregado: Mail');
+
+  // ── 5. Agregar Móvil (WhatsApp) después de Mail ──────────────
+  const mailIdx  = form.getItems().findIndex(i => i.getTitle() === 'Mail');
+  const movilItem = form.addTextItem()
+    .setTitle('Móvil (WhatsApp)')
+    .setHelpText('Ej: +54 9 11 1234-5678');
+  form.moveItem(movilItem.getIndex(), mailIdx + 1);
+  Logger.log('➕ Agregado: Móvil (WhatsApp)');
+
+  // ── 6. Agregar LinkedIn antes de Empresa/Referencia ──────────
+  const empresaIdx = form.getItems().findIndex(i => i.getTitle() === 'Empresa/Referencia');
+  const linkedinItem = form.addTextItem()
+    .setTitle('LinkedIn')
+    .setHelpText('Ej: linkedin.com/in/usuario');
+  form.moveItem(linkedinItem.getIndex(), empresaIdx >= 0 ? empresaIdx : form.getItems().length - 2);
+  Logger.log('➕ Agregado: LinkedIn');
+
+  Logger.log('');
+  Logger.log('✅ Campos actualizados. Orden final:');
+  Logger.log('   Nombre → Tipo → Mail → Móvil (WhatsApp) → X → Instagram → LinkedIn → Empresa/Referencia → Ciudad(es) → Tema(s) → Notas');
+  Logger.log('');
+  Logger.log('👉 Ahora ejecutá updateTemaQuestion() para actualizar los temas con bajada.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PASO 2 — Actualizar pregunta de Tema(s) con bajada
+// Convierte el campo a checkboxes (hasta 3), mostrando
+// "Tema — Bajada" como etiqueta de cada opción.
+// Ejecutar UNA VEZ (o cada vez que cambien los temas en el Sheet).
+// ═══════════════════════════════════════════════════════════════
+function updateTemaQuestion() {
+  const form = _abrirForm();
+  if (!form) return;
+
+  const temaItem = form.getItems().find(i => i.getTitle().startsWith('Tema'));
+  if (!temaItem) { Logger.log('❌ No se encontró la pregunta de Tema en el form.'); return; }
+
+  const opciones = getTemasDesdeSheet();
+  if (opciones.length === 0) { Logger.log('⚠️ No hay temas en el Sheet. Cargá la hoja Principal primero.'); return; }
+
+  const idx = temaItem.getIndex();
+  form.deleteItem(temaItem);
+
+  const nuevo = form.addCheckboxItem()
+    .setTitle('Tema(s) que vas a cubrir')
+    .setHelpText('Seleccioná uno o más temas.')
+    .setRequired(true)
+    .setChoiceValues(opciones);
+
+  form.moveItem(nuevo.getIndex(), idx);
+
+  Logger.log('✅ Tema(s) actualizado: ' + opciones.length + ' opciones (checkboxes, máx. 3).');
+  opciones.slice(0, 3).forEach(o => Logger.log('   • ' + o));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LEER TEMAS DESDE EL SHEET DEX
+// Devuelve array de "Tema — Bajada" (o solo "Tema" si no hay bajada)
+// Tema = col 4 | Bajada = col 12
+// ═══════════════════════════════════════════════════════════════
+function getTemasDesdeSheet() {
+  try {
+    const ss    = SpreadsheetApp.openById(DEX_SHEET_ID);
+    const sheet = ss.getSheetByName('Principal');
+    if (!sheet) return [];
+
+    const data    = sheet.getDataRange().getValues();
+    const seen    = new Set();
+    const opciones = [];
+
+    data.slice(1).forEach(r => {
+      const tipo   = String(r[0]  || '').trim();
+      const tema   = String(r[4]  || '').trim();
+      const bajada = String(r[5]  || '').trim();
+      if (!tema || TIPOS_EXCLUIDOS.includes(tipo) || seen.has(tema)) return;
+      seen.add(tema);
+      opciones.push(bajada ? tema + ' — ' + bajada : tema);
+    });
+
+    return opciones;
+  } catch(e) {
+    Logger.log('Error leyendo temas: ' + e.message);
+    return [];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CREAR FORM DESDE CERO (solo si necesitás uno nuevo)
+// ═══════════════════════════════════════════════════════════════
+function createSpeakerForm() {
+  const temas = getTemasDesdeSheet();
+
   const form = FormApp.create('DEX 2026 — Inscripción de Speaker');
   form.setDescription(
     'Completá este formulario para participar como speaker en el DEX 2026.\n' +
@@ -38,42 +164,15 @@ function createSpeakerForm() {
   form.setAllowResponseEdits(true);
   form.setConfirmationMessage('✅ ¡Gracias! Recibimos tu inscripción. Te contactamos pronto.');
 
-  // ── Campo 1: Nombre ──────────────────────────────────────────
-  form.addTextItem()
-    .setTitle('Nombre completo')
-    .setRequired(true);
+  form.addTextItem().setTitle('Nombre completo').setRequired(true);
+  form.addTextItem().setTitle('Tipo').setHelpText('Ej: Speaker, Panelista, Moderador');
+  form.addTextItem().setTitle('Mail').setHelpText('Ej: nombre@mail.com').setRequired(true);
+  form.addTextItem().setTitle('Móvil (WhatsApp)').setHelpText('Ej: +54 9 11 1234-5678');
+  form.addTextItem().setTitle('X (Twitter)').setHelpText('Ej: @usuario');
+  form.addTextItem().setTitle('Instagram').setHelpText('Ej: @usuario');
+  form.addTextItem().setTitle('LinkedIn').setHelpText('Ej: linkedin.com/in/usuario');
+  form.addTextItem().setTitle('Empresa/Referencia').setHelpText('Proyecto, empresa o rol actual.');
 
-  // ── Campo 2: Tipo ────────────────────────────────────────────
-  form.addMultipleChoiceItem()
-    .setTitle('Tipo')
-    .setRequired(true)
-    .setChoiceValues(['Speaker', 'Empresa', 'Sponsor']);
-
-  // ── Campo 3: Contacto ────────────────────────────────────────
-  form.addTextItem()
-    .setTitle('Contacto (mail / móvil)')
-    .setHelpText('Ej: nombre@mail.com / +54 9 11 1234-5678')
-    .setRequired(true);
-
-  // ── Campo 4: X (Twitter) ─────────────────────────────────────
-  form.addTextItem()
-    .setTitle('X (Twitter)')
-    .setHelpText('Ej: @usuario')
-    .setRequired(false);
-
-  // ── Campo 5: Instagram ───────────────────────────────────────
-  form.addTextItem()
-    .setTitle('Instagram')
-    .setHelpText('Ej: @usuario')
-    .setRequired(false);
-
-  // ── Campo 6: Empresa / Referencia ────────────────────────────
-  form.addTextItem()
-    .setTitle('Empresa / Referencia')
-    .setHelpText('Proyecto, empresa o rol actual.')
-    .setRequired(false);
-
-  // ── Campo 7: Ciudad(es) ──────────────────────────────────────
   form.addCheckboxItem()
     .setTitle('Ciudad(es) en las que podés participar')
     .setRequired(true)
@@ -83,163 +182,37 @@ function createSpeakerForm() {
       '🟡 Tucumán (11 sep 2026)'
     ]);
 
-  // ── Campo 8: Tema(s) — desplegable con los temas del Sheet ───
-  const temaItem = form.addListItem()
-    .setTitle('Tema que vas a cubrir')
-    .setHelpText('Seleccioná el tema principal de tu charla.')
-    .setRequired(true);
+  const opcionesTema = temas.length > 0 ? temas : ['(Sin temas cargados aún)'];
+  form.addCheckboxItem()
+    .setTitle('Tema(s) que vas a cubrir')
+    .setHelpText('Seleccioná uno o más temas.')
+    .setRequired(true)
+    .setChoiceValues(opcionesTema);
 
-  const opciones = temas.length > 0
-    ? temas
-    : ['(Sin temas cargados aún — completar manualmente)'];
-  temaItem.setChoiceValues(opciones);
-
-  // ── Campo 9: Notas ───────────────────────────────────────────
   form.addParagraphTextItem()
     .setTitle('Notas / Comentarios')
-    .setHelpText('Disponibilidad, restricciones horarias, necesidades técnicas, lo que quieras aclarar.')
-    .setRequired(false);
+    .setHelpText('Disponibilidad, restricciones horarias, necesidades técnicas.');
 
-  // ── Linkear respuestas a un Sheet NUEVO e independiente ──────
-  // Google crea automáticamente un Sheet nuevo con las respuestas
   const respSheet = SpreadsheetApp.create('DEX2026 — Respuestas Speakers');
   form.setDestination(FormApp.DestinationType.SPREADSHEET, respSheet.getId());
 
-  // Guardar el ID del Sheet de respuestas para que el import lo encuentre
-  PropertiesService.getScriptProperties().setProperty('FORM_RESP_SHEET_ID', respSheet.getId());
-  PropertiesService.getScriptProperties().setProperty('SPEAKER_FORM_URL', form.getPublishedUrl());
-  PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
+  const props = PropertiesService.getScriptProperties();
+  props.setProperty('FORM_RESP_SHEET_ID', respSheet.getId());
+  props.setProperty('SPEAKER_FORM_URL', form.getPublishedUrl());
+  props.setProperty('form_last_imported_row', '1');
 
-  Logger.log('');
-  Logger.log('✅ Form creado exitosamente');
-  Logger.log('');
-  Logger.log('🔗 URL para compartir con speakers:');
-  Logger.log('   ' + form.getPublishedUrl());
-  Logger.log('');
-  Logger.log('📊 Sheet de respuestas (independiente):');
-  Logger.log('   https://docs.google.com/spreadsheets/d/' + respSheet.getId());
-  Logger.log('');
-  Logger.log('Cuando quieras importar al DEX, usá el botón "📥 Importar del Form" en la app.');
+  Logger.log('✅ Form creado: ' + form.getPublishedUrl());
+  Logger.log('📊 Sheet de respuestas: https://docs.google.com/spreadsheets/d/' + respSheet.getId());
 }
 
-// ═══════════════════════════════════════════════════════════════
-// LEER TEMAS DESDE EL SHEET DEX
-// Lee columna Tipo (col 0) y Tema (col 4), excluye tipos no-charla
-// ═══════════════════════════════════════════════════════════════
-function getTemasDesdeSheet() {
+// ── Helper: abre el form por ID hardcodeado ────────────────────
+const SPEAKER_FORM_ID = '1x5OzFZXkSv2dqt7933fCiB3zQO7pYeFhlKPfSm-BCI0';
+
+function _abrirForm() {
   try {
-    const ss    = SpreadsheetApp.openById(DEX_SHEET_ID);
-    const sheet = ss.getSheetByName('Principal');
-    if (!sheet) return [];
-
-    const data = sheet.getDataRange().getValues();
-
-    const temas = data.slice(1) // saltar header
-      .filter(r => {
-        const tipo  = String(r[0] || '').trim();
-        const tema  = String(r[4] || '').trim();
-        return tema.length > 0 && !TIPOS_EXCLUIDOS.includes(tipo);
-      })
-      .map(r => String(r[4]).trim());
-
-    return [...new Set(temas)]; // únicos, sin duplicados
+    return FormApp.openById(SPEAKER_FORM_ID);
   } catch(e) {
-    Logger.log('Error leyendo temas: ' + e.message);
-    return [];
+    Logger.log('❌ No se pudo abrir el form: ' + e.message);
+    return null;
   }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// IMPORTAR RESPUESTAS → SPEAKERS (llamado desde la app)
-// ═══════════════════════════════════════════════════════════════
-function importarFormSpeakers() {
-  const props       = PropertiesService.getScriptProperties();
-  const respSheetId = props.getProperty('FORM_RESP_SHEET_ID');
-
-  if (!respSheetId) {
-    return { ok: false, error: 'No encontré el Sheet de respuestas. Ejecutá createSpeakerForm() primero.' };
-  }
-
-  // Abrir el Sheet de respuestas independiente
-  let respSS;
-  try {
-    respSS = SpreadsheetApp.openById(respSheetId);
-  } catch(e) {
-    return { ok: false, error: 'No puedo abrir el Sheet de respuestas: ' + e.message };
-  }
-
-  const respSheet = respSS.getSheets()[0]; // primera pestaña = respuestas
-  const allData   = respSheet.getDataRange().getValues();
-  const totalRows = allData.length;
-
-  const lastImported = parseInt(props.getProperty('form_last_imported_row') || '1');
-
-  if (totalRows <= lastImported) {
-    return { ok: true, imported: 0, msg: 'No hay respuestas nuevas para importar.' };
-  }
-
-  // Abrir el Sheet del DEX y la pestaña Speakers
-  const dexSS   = SpreadsheetApp.openById(DEX_SHEET_ID);
-  const spSheet = dexSS.getSheetByName('Speakers');
-  if (!spSheet) return { ok: false, error: 'No existe la pestaña "Speakers" en el Sheet del DEX.' };
-
-  const newRows  = allData.slice(lastImported);
-  const imported = [];
-
-  newRows.forEach(r => {
-    // Columnas del form (en orden de aparición en el Sheet de respuestas):
-    // [0] Timestamp
-    // [1] Nombre completo
-    // [2] Tipo
-    // [3] Contacto (mail / móvil)
-    // [4] X (Twitter)
-    // [5] Instagram
-    // [6] Empresa / Referencia
-    // [7] Ciudad(es)
-    // [8] Tema que vas a cubrir
-    // [9] Notas / Comentarios
-
-    const nombre   = String(r[1] || '').trim();
-    const tipo     = String(r[2] || 'Speaker').trim().toLowerCase();
-    const contacto = String(r[3] || '').trim();
-    const xUser    = String(r[4] || '').trim();
-    const ig       = String(r[5] || '').trim();
-    const empresa  = String(r[6] || '').trim();
-    const ciudRaw  = String(r[7] || '').trim();
-    const temas    = String(r[8] || '').trim();
-    const notas    = String(r[9] || '').trim();
-
-    if (!nombre) return;
-
-    // Normalizar ciudades (quitar emoji y fecha)
-    const ciudades = ciudRaw
-      .replace(/🟣 San Luis \([^)]+\)/g, 'San Luis')
-      .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
-      .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
-
-    // Formato fila Speakers (igual al loadSpeakers del frontend):
-    // [0]=nombre [1]=tipo [2]=contacto [3]=ciudades [4]=temas
-    // [5]=notas  [6]=x   [7]=ig       [8]=empresa
-    // [9]=sl_estado [10]=sj_estado [11]=cba_estado
-    spSheet.appendRow([
-      nombre, tipo, contacto, ciudades, temas,
-      notas, xUser, ig, empresa,
-      '', '', ''
-    ]);
-
-    imported.push(nombre);
-  });
-
-  // Actualizar puntero para no reimportar en el futuro
-  props.setProperty('form_last_imported_row', String(totalRows));
-  // Invalidar versión Speakers para que el frontend detecte el cambio
-  props.setProperty('version_Speakers', Date.now().toString());
-
-  return {
-    ok: true,
-    imported: imported.length,
-    msg: imported.length > 0
-      ? '✅ ' + imported.length + ' speaker(s) importados: ' + imported.join(', ')
-      : 'No se importó nada (filas sin nombre).'
-  };
 }
