@@ -1003,13 +1003,23 @@ function refreshAll() {
   if (document.getElementById('tab-timeline').classList.contains('active')) buildTimeline();
 }
 
+function withSaveBtn(btnId, label, fn) {
+  const btn = document.getElementById(btnId);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Guardando...'; }
+  return fn().finally(() => {
+    if (btn) { btn.disabled = false; btn.textContent = label; }
+  });
+}
+
 async function savePrincipal() {
   if (!(await checkVersion('Principal'))) return;
-  const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
-  await gasPost('Principal','replace_all', data);
-  toast('✅ Principal guardado');
-  markClean('principal');
-  refreshAll();
+  await withSaveBtn('saveBtnPrincipal', '💾 Guardar', async () => {
+    const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
+    await gasPost('Principal','replace_all', data);
+    toast('✅ Principal guardado');
+    markClean('principal');
+    refreshAll();
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1157,11 +1167,13 @@ async function loadSpeakers() {
 
 async function saveSpeakers() {
   if (!(await checkVersion('Speakers'))) return;
-  const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'',s.sl_estado||'',s.sj_estado||'',s.cba_estado||'']);
-  await gasPost('Speakers','replace_all', data);
-  toast('✅ Speakers guardados');
-  markClean('speakers');
-  refreshAll();
+  await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
+    const data = state.speakers.map(s=>[s.nombre,s.tipo,s.contacto,s.ciudades,s.temas,s.notas,s.x||'',s.ig||'',s.empresa||'',s.sl_estado||'',s.sj_estado||'',s.cba_estado||'']);
+    await gasPost('Speakers','replace_all', data);
+    toast('✅ Speakers guardados');
+    markClean('speakers');
+    refreshAll();
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1436,11 +1448,13 @@ async function loadIdeas() {
 
 async function saveIdeas() {
   if (!(await checkVersion('Ideas'))) return;
-  const data = state.ideas.map(i=>[i.fecha||'',i.prop,i.prioridad||'',i.titulo,i.detalle,i.sl?'true':'',i.sj?'true':'',i.cba?'true':'']);
-  await gasPost('Ideas','replace_all',data);
-  toast('✅ Ideas guardadas');
-  markClean('ideas');
-  refreshAll();
+  await withSaveBtn('saveBtnIdeas', '💾 Guardar', async () => {
+    const data = state.ideas.map(i=>[i.fecha||'',i.prop,i.prioridad||'',i.titulo,i.detalle,i.sl?'true':'',i.sj?'true':'',i.cba?'true':'']);
+    await gasPost('Ideas','replace_all',data);
+    toast('✅ Ideas guardadas');
+    markClean('ideas');
+    refreshAll();
+  });
 }
 
 // ══════════════════════════════════════════════════════════════════
