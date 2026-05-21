@@ -195,15 +195,22 @@ function resetRespuestasSheet() {
     return;
   }
   const sheet = ss.getSheets()[0];
-  const lastRow = sheet.getLastRow();
 
-  // Borrar todos los datos (mantener fila 1 para encabezados)
-  if (lastRow >= 1) {
-    sheet.clearContents();
+  // 1. Eliminar todas las protecciones (el form protege sus columnas)
+  sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(p => p.remove());
+  sheet.getProtections(SpreadsheetApp.ProtectionType.SHEET).forEach(p => p.remove());
+
+  // 2. Borrar TODO el contenido
+  sheet.clear();
+
+  // 3. Eliminar columnas extra (más allá de las 14 que necesitamos)
+  const lastCol = sheet.getMaxColumns();
+  if (lastCol > 14) {
+    sheet.deleteColumns(15, lastCol - 14);
   }
 
-  // Escribir encabezados en el orden correcto
-  sheet.getRange(1, 1, 1, 14).setValues([[
+  // 4. Escribir encabezados en el orden correcto
+  const encabezados = [
     'Timestamp',
     'Nombre completo',
     'Tipo',
@@ -218,12 +225,25 @@ function resetRespuestasSheet() {
     'Notas / Comentarios',
     'Biografía',
     'Eventos anteriores'
-  ]]);
+  ];
+  sheet.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
+  sheet.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
 
-  // Resetear el contador de importación para empezar desde fila 1
+  // 5. Resetear el contador de importación
   PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
 
-  Logger.log('✅ Sheet de respuestas limpio. Encabezados escritos. Contador de importación reseteado a 1.');
+  Logger.log('✅ Sheet de respuestas limpio:');
+  Logger.log('   · Protecciones eliminadas');
+  Logger.log('   · Contenido borrado');
+  Logger.log('   · Columnas extra eliminadas (quedaron solo 14)');
+  Logger.log('   · Encabezados escritos en orden correcto');
+  Logger.log('   · Contador de importación reseteado a 1');
+  Logger.log('');
+  Logger.log('⚠️  PASO FINAL MANUAL: desvinculá y re-vinculá el form al sheet para');
+  Logger.log('   que los próximos envíos vayan a la columna 1.');
+  Logger.log('   → Formulario → Respuestas → ⋮ → Desvincular hoja de cálculo');
+  Logger.log('   → Respuestas → ícono de Sheet → Seleccionar hoja de cálculo existente');
+  Logger.log('   → Pegá este ID: ' + RESP_SHEET_ID);
 }
 
 // ═══════════════════════════════════════════════════════════════════

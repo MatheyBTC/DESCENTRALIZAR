@@ -114,6 +114,24 @@ function _extenderEstados(existingCsv, nViejo, nNuevo, fill) {
   return arr.slice(0, nNuevo).join(',');
 }
 
+// ── Detectar offset de columnas en el Sheet de respuestas ───────────
+// El form puede haber generado columnas duplicadas si se reinició.
+// Esta función lee la fila de encabezados y detecta en qué columna
+// empieza el bloque que tiene datos reales en la fila `dataRow`.
+// Devuelve el índice (0-based) de la columna "Nombre completo" activa.
+function _detectarOffsetNombre(headers, dataRow) {
+  const nombreIndices = [];
+  headers.forEach((h, i) => {
+    if (String(h).trim() === 'Nombre completo') nombreIndices.push(i);
+  });
+  // Encontrar cuál de los bloques tiene datos
+  for (const idx of nombreIndices) {
+    if (dataRow[idx] && String(dataRow[idx]).trim()) return idx;
+  }
+  // Fallback: primer "Nombre completo" encontrado
+  return nombreIndices[0] !== undefined ? nombreIndices[0] : 1;
+}
+
 function importarFormSpeakers(dexSS) {
   let respSS;
   try {
@@ -138,40 +156,43 @@ function importarFormSpeakers(dexSS) {
 
   // ── Cargar speakers existentes indexados por mail ────────────────
   const existingData = spSheet.getDataRange().getValues();
-  // Fila 0 = encabezados (o primer dato si no hay encabezado)
-  // Datos desde fila índice 1 → rowIndex en sheet = i + 2
   const byMail = {};
   existingData.slice(1).forEach((row, i) => {
     const m = String(row[2]||'').trim().toLowerCase();
     if (m) byMail[m] = { sheetRow: i + 2, row: [...row] };
   });
 
+  // ── Encabezados del sheet de respuestas (para detectar offset) ───
+  const headers = allData[0] || [];
+
   const newRows      = allData.slice(lastImported);
   const imported     = [];
   const actualizados = [];
 
   newRows.forEach(r => {
-    // Columnas del form (orden del Sheet de respuestas del Form):
-    // [0] Timestamp  [1] Nombre completo  [2] Tipo  [3] Mail
-    // [4] Móvil (WhatsApp)  [5] X (Twitter)  [6] Instagram  [7] LinkedIn
-    // [8] Empresa/Referencia  [9] Ciudad(es)  [10] Tema(s)
-    // [11] Notas / Comentarios  [12] Biografía  [13] Eventos anteriores
-    const nombre   = String(r[1]  || '').trim();
-    const tipo     = String(r[2]  || 'speaker').trim().toLowerCase();
-    const mail     = String(r[3]  || '').trim();
-    const movil    = String(r[4]  || '').trim();
-    const xUser    = String(r[5]  || '').trim();
-    const ig       = String(r[6]  || '').trim();
-    const linkedin = String(r[7]  || '').trim();
-    const empresa  = String(r[8]  || '').trim();
-    const ciudRaw  = String(r[9]  || '').trim();
-    // r[10]: checkboxes separados por coma, cada opción "Tema — Bajada"
-    const temasRaw  = String(r[10] || '').trim();
-    const temasArr  = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
-    const temasCsv  = temasArr.join(', ');
-    const notas     = String(r[11] || '').trim();
-    const bio       = String(r[12] || '').trim().slice(0, 100);
-    const eventos   = String(r[13] || '').trim();
+    // Detectar en qué bloque de columnas cayeron los datos de esta fila
+    // (el form puede generar columnas duplicadas si fue reseteado)
+    const nombreCol = _detectarOffsetNombre(headers, r);
+    // nombreCol = índice de "Nombre completo" → los demás campos van +1, +2, etc.
+    // Timestamp siempre está en col 0 (independiente del bloque)
+    const c = (offset) => r[nombreCol + offset] || '';
+
+    const nombre   = String(c(0)  || '').trim();              // Nombre completo
+    const tipo     = String(c(1)  || 'speaker').trim();        // Tipo
+    const mail     = String(c(2)  || '').trim();               // Mail
+    const movil    = String(c(3)  || '').trim();               // Móvil (WhatsApp)
+    const xUser    = String(c(4)  || '').trim();               // X (Twitter)
+    const ig       = String(c(5)  || '').trim();               // Instagram
+    const linkedin = String(c(6)  || '').trim();               // LinkedIn
+    const empresa  = String(c(7)  || '').trim();               // Empresa/Referencia
+    const ciudRaw  = String(c(8)  || '').trim();               // Ciudad(es)
+    const temasRaw = String(c(9)  || '').trim();               // Tema(s)
+    const notas    = String(c(10) || '').trim();               // Notas
+    const bio      = String(c(11) || '').trim().slice(0, 100); // Biografía
+    const eventos  = String(c(12) || '').trim();               // Eventos anteriores
+
+    const temasArr = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
+    const temasCsv = temasArr.join(', ');
 
     if (!nombre) return;
 
