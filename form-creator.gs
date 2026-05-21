@@ -187,6 +187,20 @@ function updateTemaQuestion() {
 // ═══════════════════════════════════════════════════════════════════
 function resetRespuestasSheet() {
   const RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
+
+  // 1. Abrir el form y DESVINCULAR el sheet
+  //    (mientras está vinculado, Google bloquea borrar/mover sus columnas)
+  const form = _abrirForm();
+  if (form) {
+    try {
+      form.removeDestination();
+      Logger.log('✅ Form desvinculado del sheet.');
+    } catch(e) {
+      Logger.log('⚠️  No se pudo desvincular el form: ' + e.message);
+    }
+  }
+
+  // 2. Abrir el sheet y limpiarlo
   let ss;
   try {
     ss = SpreadsheetApp.openById(RESP_SHEET_ID);
@@ -196,20 +210,17 @@ function resetRespuestasSheet() {
   }
   const sheet = ss.getSheets()[0];
 
-  // 1. Eliminar todas las protecciones (el form protege sus columnas)
-  sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(p => p.remove());
-  sheet.getProtections(SpreadsheetApp.ProtectionType.SHEET).forEach(p => p.remove());
-
-  // 2. Borrar TODO el contenido
+  // 3. Borrar TODO el contenido (ya sin la protección del form)
   sheet.clear();
 
-  // 3. Eliminar columnas extra (más allá de las 14 que necesitamos)
+  // 4. Eliminar columnas extra (más allá de las 14 que necesitamos)
   const lastCol = sheet.getMaxColumns();
   if (lastCol > 14) {
     sheet.deleteColumns(15, lastCol - 14);
+    Logger.log('✅ Columnas extra eliminadas. Quedan ' + sheet.getMaxColumns() + ' columnas.');
   }
 
-  // 4. Escribir encabezados en el orden correcto
+  // 5. Escribir encabezados en el orden correcto
   const encabezados = [
     'Timestamp',
     'Nombre completo',
@@ -229,21 +240,27 @@ function resetRespuestasSheet() {
   sheet.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
   sheet.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
 
-  // 5. Resetear el contador de importación
+  // 6. Re-vincular el form al sheet limpio
+  if (form) {
+    try {
+      form.setDestination(FormApp.DestinationType.SPREADSHEET, RESP_SHEET_ID);
+      Logger.log('✅ Form re-vinculado al sheet limpio.');
+    } catch(e) {
+      Logger.log('⚠️  No se pudo re-vincular el form: ' + e.message);
+      Logger.log('   Hacelo manualmente: Respuestas → ícono Sheet → ID: ' + RESP_SHEET_ID);
+    }
+  }
+
+  // 7. Resetear el contador de importación
   PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
 
-  Logger.log('✅ Sheet de respuestas limpio:');
-  Logger.log('   · Protecciones eliminadas');
-  Logger.log('   · Contenido borrado');
-  Logger.log('   · Columnas extra eliminadas (quedaron solo 14)');
-  Logger.log('   · Encabezados escritos en orden correcto');
+  Logger.log('');
+  Logger.log('✅ Todo listo:');
+  Logger.log('   · Sheet limpio con 14 columnas correctas');
+  Logger.log('   · Form desvinculado y re-vinculado → próximos envíos van a col 1');
   Logger.log('   · Contador de importación reseteado a 1');
   Logger.log('');
-  Logger.log('⚠️  PASO FINAL MANUAL: desvinculá y re-vinculá el form al sheet para');
-  Logger.log('   que los próximos envíos vayan a la columna 1.');
-  Logger.log('   → Formulario → Respuestas → ⋮ → Desvincular hoja de cálculo');
-  Logger.log('   → Respuestas → ícono de Sheet → Seleccionar hoja de cálculo existente');
-  Logger.log('   → Pegá este ID: ' + RESP_SHEET_ID);
+  Logger.log('👉 Verificá el sheet: https://docs.google.com/spreadsheets/d/' + RESP_SHEET_ID);
 }
 
 // ═══════════════════════════════════════════════════════════════════
