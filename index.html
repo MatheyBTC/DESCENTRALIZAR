@@ -264,10 +264,11 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 /* ── SPEAKER ESTADO SELECT ── */
 .sp-estado-sel{border:none;border-radius:4px;font-size:12px;font-weight:700;padding:2px 4px;cursor:pointer;outline:none;font-family:inherit;width:100%;}
 .sp-estado-sel.est-empty{background:var(--bg3);color:var(--muted);}
+.sp-estado-sel.est-disponible{background:rgba(255,255,255,.1);color:#e8eaf0;}
 .sp-estado-sel.est-invitado{background:rgba(59,130,246,.2);color:#3b82f6;}
-.sp-estado-sel.est-pendiente{background:rgba(234,179,8,.2);color:#eab308;}
+.sp-estado-sel.est-revision{background:rgba(234,179,8,.2);color:#eab308;}
 .sp-estado-sel.est-confirmado{background:rgba(34,197,94,.2);color:#22c55e;}
-.sp-estado-sel.est-no_aprobado{background:rgba(239,68,68,.2);color:#ef4444;}
+.sp-estado-sel.est-rechazado{background:rgba(239,68,68,.2);color:#ef4444;}
 
 /* ── PUBLIC VIEW ── */
 .public-view{max-width:900px;margin:0 auto;padding:32px 20px;}
@@ -404,7 +405,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 
   <div style="padding:20px">
     <div class="form-card">
-      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker</span> <span style="color:var(--muted)">|</span> <span style="color:#facc15">Empresa</span> <span style="color:var(--muted)">|</span> <span style="color:#22c55e">Sponsor</span></h3>
+      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker</span> <span style="color:var(--muted)">|</span> <span style="color:#22c55e">Sponsor</span></h3>
       <div class="form-grid">
         <div class="form-field">
           <label class="form-label">Nombre</label>
@@ -414,7 +415,6 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <label class="form-label">Tipo</label>
           <select class="form-select" id="sp-tipo">
             <option value="speaker">Speaker</option>
-            <option value="empresa">Empresa</option>
             <option value="sponsor">Sponsor</option>
           </select>
         </div>
@@ -457,7 +457,6 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
     <div class="sp-filter-bar">
       <button class="btn sp-flt active" onclick="setSpFilter('tipo','all')" data-filter-tipo="all">Todos</button>
       <button class="btn sp-flt" onclick="setSpFilter('tipo','speaker')" data-filter-tipo="speaker">Speaker</button>
-      <button class="btn sp-flt" onclick="setSpFilter('tipo','empresa')" data-filter-tipo="empresa">Empresa</button>
       <button class="btn sp-flt" onclick="setSpFilter('tipo','sponsor')" data-filter-tipo="sponsor">Sponsor</button>
       <div class="toolbar-sep"></div>
       <button class="btn sp-flt active" onclick="setSpFilter('city','all')" data-filter-city="all">Todas</button>
@@ -470,12 +469,9 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
         <thead><tr>
           <th>Tipo</th>
           <th>Nombre</th>
-          <th style="text-align:center">🟣 SL</th>
-          <th style="text-align:center">🔵 CBA</th>
-          <th style="text-align:center">🟡 TUC</th>
           <th style="text-align:center">Estado SL</th>
-          <th style="text-align:center">Estado SJ</th>
           <th style="text-align:center">Estado CBA</th>
+          <th style="text-align:center">Estado TUC</th>
           <th>Tema(s)</th>
           <th>Notas</th>
           <th>Contacto</th>
@@ -485,7 +481,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th style="width:36px"></th>
         </tr></thead>
         <tbody id="speakersTableBody">
-          <tr><td colspan="15" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
+          <tr><td colspan="12" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
         </tbody>
       </table>
     </div>
@@ -924,14 +920,21 @@ function speakersForCity(cityKey) {
   return state.speakers.filter(s => (s.ciudades||'').toLowerCase().includes(cn));
 }
 
-const ESTADO_ICON = { confirmado:'✅', pendiente:'⏳', invitado:'📩', no_aprobado:'❌', '':'' };
+const ESTADO_ICON = { confirmado:'✅', revision:'⏳', invitado:'📩', rechazado:'❌', disponible:'⚪', '':'' };
 
-// Devuelve speakers disponibles para un slot (ciudad + tema), excluyendo combos ya usados
+// Devuelve speakers disponibles para un slot (ciudad + tema)
+// Solo muestra estados != rechazado; excluye combos ya usados en mismo tema
 function speakersForSlot(city, tema, excludeIdx) {
   const cn = (CITY_NAMES[city]||'').toLowerCase();
-  const available = state.speakers.filter(s =>
-    cn ? (s.ciudades||'').toLowerCase().includes(cn) : true
-  );
+  const estadoField = city + '_estado';
+  const available = state.speakers.filter(s => {
+    // Debe estar en esa ciudad
+    if (cn && !(s.ciudades||'').toLowerCase().includes(cn)) return false;
+    // Rechazado queda fuera
+    const est = s[estadoField] || '';
+    if (est === 'rechazado') return false;
+    return true;
+  });
   const temaKey = (tema||'').trim().toLowerCase();
   if (!temaKey) return available;
   // Recolectar speakers ya asignados al mismo (ciudad + tema) en otras filas
@@ -1018,6 +1021,20 @@ function removeSpFromSlot(idx, city, name) {
   if (!row) return;
   row[city] = parseSpeakerField(row[city]).filter(n => n !== name);
   markDirty('principal');
+  // Verificar si el speaker sigue asignado en OTRA fila de la misma ciudad
+  const stillUsed = state.principal.some((r, i) =>
+    i !== idx && parseSpeakerField(r[city]).includes(name)
+  );
+  if (!stillUsed) {
+    // Volver a disponible solo si sigue registrado para esa ciudad
+    const estadoField = city + '_estado';
+    const sp = state.speakers.find(s => s.nombre === name);
+    const cn = (CITY_NAMES[city]||'').toLowerCase();
+    if (sp && (sp.ciudades||'').toLowerCase().includes(cn)) {
+      sp[estadoField] = 'disponible';
+      markDirty('speakers');
+    }
+  }
   const el = document.getElementById(`spp-${idx}-${city}`);
   if (el) el.outerHTML = renderSpPicker(idx, city, row[city]);
 }
@@ -1102,16 +1119,23 @@ function estadoSelectHtml(ri, field, val) {
   const cls = val ? 'est-'+val : 'est-empty';
   return `<select class="sp-estado-sel ${cls}" onchange="updateSpeakerEstado(${ri},'${field}',this.value)">
     <option value="" ${val===''?'selected':''}>—</option>
+    <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disponible</option>
     <option value="invitado" ${val==='invitado'?'selected':''}>📩 Invitado</option>
-    <option value="pendiente" ${val==='pendiente'?'selected':''}>⏳ Pendiente</option>
+    <option value="revision" ${val==='revision'?'selected':''}>⏳ Revisión</option>
     <option value="confirmado" ${val==='confirmado'?'selected':''}>✅ Confirmado</option>
-    <option value="no_aprobado" ${val==='no_aprobado'?'selected':''}>❌ No aprobado</option>
+    <option value="rechazado" ${val==='rechazado'?'selected':''}>❌ Rechazado</option>
   </select>`;
 }
 
 function updateSpeakerEstado(ri, field, val) {
   if (state.speakers[ri]) { state.speakers[ri][field] = val; markDirty('speakers'); }
-  renderSpeakers();
+  // Actualizar clase CSS del select sin re-renderizar toda la tabla
+  const sel = document.querySelector(`select[onchange*="updateSpeakerEstado(${ri},'${field}'"]`);
+  if (sel) {
+    sel.className = `sp-estado-sel ${val ? 'est-'+val : 'est-empty'}`;
+  } else {
+    renderSpeakers();
+  }
 }
 
 function renderSpeakers() {
@@ -1121,24 +1145,18 @@ function renderSpeakers() {
   if (spFilter.tipo !== 'all') list = list.filter(s => (s.tipo||'speaker') === spFilter.tipo);
   if (spFilter.city !== 'all') list = list.filter(s => (s.ciudades||'').includes(spFilter.city));
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
     return;
   }
-  const tipoColor = { speaker:'var(--btc)', empresa:'#facc15', sponsor:'#06b6d4' };
-  const tipoOpts = (cur) => ['speaker','empresa','sponsor'].map(t=>`<option value="${t}"${cur===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
+  const tipoColor = { speaker:'var(--btc)', sponsor:'#06b6d4' };
+  const tipoOpts = (cur) => ['speaker','sponsor'].map(t=>`<option value="${t}"${cur===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
   tbody.innerHTML = list.map(s => {
     const ri = state.speakers.indexOf(s);
     const tipo = s.tipo||'speaker';
-    const hasSL  = (s.ciudades||'').includes('San Luis');
-    const hasSJ  = (s.ciudades||'').includes('Tucumán');
-    const hasCBA = (s.ciudades||'').includes('Córdoba');
-    const hasAny = hasSL || hasSJ || hasCBA;
+    const hasAny = !!(s.ciudades||'').trim();
     return `<tr style="${hasAny?'':'opacity:.55'}">
       <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');renderSpeakers()">${tipoOpts(tipo)}</select></td>
       <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')">${esc(s.nombre||'')}</span></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSL?'checked':''} onchange="updateSpeakerCity(${ri},'San Luis',this.checked);markDirty('speakers')"></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasCBA?'checked':''} onchange="updateSpeakerCity(${ri},'Córdoba',this.checked);markDirty('speakers')"></td>
-      <td style="text-align:center"><input type="checkbox" class="sp-city-chk" ${hasSJ?'checked':''} onchange="updateSpeakerCity(${ri},'Tucumán',this.checked);markDirty('speakers')"></td>
       <td style="text-align:center">${estadoSelectHtml(ri,'sl_estado',s.sl_estado||'')}</td>
       <td style="text-align:center">${estadoSelectHtml(ri,'cba_estado',s.cba_estado||'')}</td>
       <td style="text-align:center">${estadoSelectHtml(ri,'sj_estado',s.sj_estado||'')}</td>
@@ -1157,6 +1175,7 @@ function addSpeaker() {
   const nombre = document.getElementById('sp-nombre').value.trim();
   if (!nombre) { toast('⚠️ Nombre requerido', true); return; }
   const ciudadesChecked = [...document.querySelectorAll('#sp-ciudades-wrap input:checked')].map(c=>c.value).join(', ');
+  const ciudadesList = ciudadesChecked.split(',').map(c=>c.trim()).filter(Boolean);
   state.speakers.push({
     nombre,
     tipo:      document.getElementById('sp-tipo').value,
@@ -1167,9 +1186,9 @@ function addSpeaker() {
     ciudades:  ciudadesChecked,
     temas:     document.getElementById('sp-temas').value.trim(),
     notas:     document.getElementById('sp-notas').value.trim(),
-    sl_estado: '',
-    sj_estado: '',
-    cba_estado:'',
+    sl_estado:  ciudadesList.includes('San Luis') ? 'disponible' : '',
+    sj_estado:  ciudadesList.includes('Tucumán')  ? 'disponible' : '',
+    cba_estado: ciudadesList.includes('Córdoba')  ? 'disponible' : '',
   });
   ['sp-nombre','sp-contacto','sp-x','sp-ig','sp-empresa','sp-temas','sp-notas'].forEach(id=>document.getElementById(id).value='');
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
@@ -1285,10 +1304,10 @@ function buildTimeline() {
     const disponibles = spEnCiudad.length;
     const confirmados = spEnCiudad.filter(s => s[estadoField] === 'confirmado').length;
     const invitados   = spEnCiudad.filter(s => s[estadoField] === 'invitado').length;
-    const pendientes  = spEnCiudad.filter(s => s[estadoField] === 'pendiente').length;
+    const enRevision  = spEnCiudad.filter(s => s[estadoField] === 'revision').length;
 
     const pct = totalDay > 0 ? Math.min(100, Math.round(horasOcupadas / totalDay * 100)) : 0;
-    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles, confirmados, invitados, pendientes };
+    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles, confirmados, invitados, enRevision };
   });
 
   let html = `<div class="tl-section-title">📊 Resumen ejecutivo por ciudad</div>
@@ -1323,8 +1342,8 @@ function buildTimeline() {
         <span class="tl-stat-val" style="color:#3b82f6">${s.invitados}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">⚠️ Pendientes</span>
-        <span class="tl-stat-val ${s.pendientes > 0 ? 'warn' : ''}">${s.pendientes}</span>
+        <span class="tl-stat-label">⏳ En Revisión</span>
+        <span class="tl-stat-val ${s.enRevision > 0 ? 'warn' : ''}">${s.enRevision}</span>
       </div>
       <div class="tl-stat-row">
         <span class="tl-stat-label">Bloques Ocupados</span>
@@ -1713,7 +1732,7 @@ async function init() {
     {nombre:'Fernando Secchi', tipo:'speaker',ciudades:'San Luis, Tucumán, Córdoba',temas:'Taller Wallet, Autocustodia',contacto:'',notas:'',sl_estado:'confirmado',sj_estado:'confirmado',cba_estado:'confirmado'},
     {nombre:'Jimena Vallone',  tipo:'speaker',ciudades:'San Luis, Tucumán, Córdoba',temas:'Bienvenida, Apertura',contacto:'',notas:'',sl_estado:'invitado',sj_estado:'invitado',cba_estado:'invitado'},
     {nombre:'Matias Mathey',   tipo:'speaker',ciudades:'Tucumán',                    temas:'Descentralizar, Panel',contacto:'@MatheyBTC',notas:'',sl_estado:'',sj_estado:'confirmado',cba_estado:''},
-    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, Tucumán',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo',sl_estado:'pendiente',sj_estado:'pendiente',cba_estado:''},
+    {nombre:'Juani Podesta',   tipo:'speaker',ciudades:'San Luis, Tucumán',           temas:'DeFi, Rootstock, Panel',contacto:'',notas:'Founder Bexo',sl_estado:'revision',sj_estado:'revision',cba_estado:''},
     {nombre:'Rodolfo Andragnes',tipo:'speaker',ciudades:'Tucumán',                   temas:'Moderación, Kahoot',contacto:'',notas:'',sl_estado:'',sj_estado:'invitado',cba_estado:''},
   ];
 
@@ -1877,7 +1896,7 @@ document.addEventListener('click', e => {
     openSpDrop(+add.dataset.idx, add.dataset.city, e);
     return;
   }
-  // Dropdown item — ADD speaker to array
+  // Dropdown item — ADD speaker to array + auto-confirmar estado
   const item = e.target.closest('.sp-item');
   if (item && item.dataset.idx !== undefined) {
     const idx = +item.dataset.idx, city = item.dataset.city, name = item.dataset.name;
@@ -1887,6 +1906,13 @@ document.addEventListener('click', e => {
       if (!arr.includes(name)) arr.push(name);
       row[city] = arr;
       markDirty('principal');
+      // Auto-confirmar estado del speaker en esa ciudad
+      const estadoField = city + '_estado';
+      const sp = state.speakers.find(s => s.nombre === name);
+      if (sp) {
+        sp[estadoField] = 'confirmado';
+        markDirty('speakers');
+      }
     }
     const el = document.getElementById(`spp-${idx}-${city}`);
     if (el) el.outerHTML = renderSpPicker(idx, city, state.principal[idx]?.[city] || []);

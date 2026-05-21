@@ -156,10 +156,15 @@ function importarFormSpeakers(dexSS) {
       .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
       .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
 
+    // Estado inicial: disponible en cada ciudad seleccionada
+    const slEst  = ciudades.includes('San Luis') ? 'disponible' : '';
+    const sjEst  = ciudades.includes('Tucumán')  ? 'disponible' : '';
+    const cbaEst = ciudades.includes('Córdoba')  ? 'disponible' : '';
+
     // Formato fila Speakers:
     // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
     // sl_estado, sj_estado, cba_estado, movil, linkedin
-    spSheet.appendRow([nombre, tipo, mail, ciudades, temas, notas, xUser, ig, empresa, '', '', '', movil, linkedin]);
+    spSheet.appendRow([nombre, tipo, mail, ciudades, temas, notas, xUser, ig, empresa, slEst, sjEst, cbaEst, movil, linkedin]);
     imported.push(nombre);
   });
 
