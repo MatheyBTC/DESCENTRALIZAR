@@ -1128,14 +1128,21 @@ function withSaveBtn(btnId, label, fn) {
 }
 
 async function savePrincipal() {
-  if (!(await checkVersion('Principal'))) return;
-  await withSaveBtn('saveBtnPrincipal', '💾 Guardar', async () => {
-    const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,JSON.stringify(r.sl||[]),JSON.stringify(r.sj||[]),JSON.stringify(r.cba||[]),r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
-    await gasPost('Principal','replace_all', data);
-    toast('✅ Principal guardado');
-    markClean('principal');
-    refreshAll();
-  });
+  if (!(await checkVersion('Principal'))) {
+    toast('⚠️ Guardado cancelado — otro usuario modificó los datos. Usá 🔄 Actualizar primero.', true);
+    return;
+  }
+  try {
+    await withSaveBtn('saveBtnPrincipal', '💾 Guardar', async () => {
+      const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,JSON.stringify(r.sl||[]),JSON.stringify(r.sj||[]),JSON.stringify(r.cba||[]),r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
+      await gasPost('Principal','replace_all', data);
+      toast('✅ Principal guardado');
+      markClean('principal');
+      refreshAll();
+    });
+  } catch(e) {
+    toast('⚠️ Error al guardar Principal: ' + e.message, true);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1307,19 +1314,26 @@ async function loadSpeakers() {
 }
 
 async function saveSpeakers() {
-  if (!(await checkVersion('Speakers'))) return;
-  await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
-    const data = state.speakers.map(s=>[
-      s.nombre, s.tipo, s.contacto, s.ciudades, s.temas, s.notas,
-      s.x||'', s.ig||'', s.empresa||'',
-      s.sl_estado||'', s.sj_estado||'', s.cba_estado||'',
-      s.movil||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||''
-    ]);
-    await gasPost('Speakers','replace_all', data);
-    toast('✅ Speakers guardados');
-    markClean('speakers');
-    refreshAll();
-  });
+  if (!(await checkVersion('Speakers'))) {
+    toast('⚠️ Guardado cancelado — otro usuario modificó los datos. Usá 🔄 Actualizar primero.', true);
+    return;
+  }
+  try {
+    await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
+      const data = state.speakers.map(s=>[
+        s.nombre, s.tipo, s.contacto, s.ciudades, s.temas, s.notas,
+        s.x||'', s.ig||'', s.empresa||'',
+        s.sl_estado||'', s.sj_estado||'', s.cba_estado||'',
+        s.movil||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||''
+      ]);
+      await gasPost('Speakers','replace_all', data);
+      toast('✅ Speakers guardados');
+      markClean('speakers');
+      refreshAll();
+    });
+  } catch(e) {
+    toast('⚠️ Error al guardar Speakers: ' + e.message, true);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1594,14 +1608,21 @@ async function loadIdeas() {
 }
 
 async function saveIdeas() {
-  if (!(await checkVersion('Ideas'))) return;
-  await withSaveBtn('saveBtnIdeas', '💾 Guardar', async () => {
-    const data = state.ideas.map(i=>[i.fecha||'',i.prop,i.prioridad||'',i.titulo,i.detalle,i.sl?'true':'',i.sj?'true':'',i.cba?'true':'']);
-    await gasPost('Ideas','replace_all',data);
-    toast('✅ Ideas guardadas');
-    markClean('ideas');
-    refreshAll();
-  });
+  if (!(await checkVersion('Ideas'))) {
+    toast('⚠️ Guardado cancelado — otro usuario modificó los datos. Usá 🔄 Actualizar primero.', true);
+    return;
+  }
+  try {
+    await withSaveBtn('saveBtnIdeas', '💾 Guardar', async () => {
+      const data = state.ideas.map(i=>[i.fecha||'',i.prop,i.prioridad||'',i.titulo,i.detalle,i.sl?'true':'',i.sj?'true':'',i.cba?'true':'']);
+      await gasPost('Ideas','replace_all',data);
+      toast('✅ Ideas guardadas');
+      markClean('ideas');
+      refreshAll();
+    });
+  } catch(e) {
+    toast('⚠️ Error al guardar Ideas: ' + e.message, true);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════
