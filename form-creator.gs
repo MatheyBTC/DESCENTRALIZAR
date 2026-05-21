@@ -66,9 +66,10 @@ function resetFormCampos() {
     .setTitle('Nombre completo')
     .setRequired(true);
 
-  // [2] Tipo
-  form.addMultipleChoiceItem()
+  // [2] Tipo — checkbox (permite seleccionar múltiples roles)
+  form.addCheckboxItem()
     .setTitle('Tipo')
+    .setHelpText('Podés seleccionar más de uno. Ej: Speaker + Panelista.')
     .setChoiceValues(['Speaker', 'Moderador', 'Panelista', 'Sponsor'])
     .setRequired(false);
 
@@ -270,7 +271,7 @@ function createSpeakerForm() {
   form.setConfirmationMessage('✅ ¡Gracias! Recibimos tu inscripción. Te contactamos pronto.');
 
   form.addTextItem().setTitle('Nombre completo').setRequired(true);
-  form.addMultipleChoiceItem().setTitle('Tipo').setChoiceValues(['Speaker','Moderador','Panelista','Sponsor']);
+  form.addCheckboxItem().setTitle('Tipo').setHelpText('Podés seleccionar más de uno.').setChoiceValues(['Speaker','Moderador','Panelista','Sponsor']);
   form.addTextItem().setTitle('Mail').setHelpText('Ej: nombre@mail.com').setRequired(true);
   form.addTextItem().setTitle('Móvil (WhatsApp)').setHelpText('Ej: +54 9 11 1234-5678');
   form.addTextItem().setTitle('X (Twitter)').setHelpText('Ej: @usuario');

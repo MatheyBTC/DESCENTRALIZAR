@@ -477,6 +477,8 @@ tr.sp-topic-row td{background:rgba(247,147,26,.05);padding-top:3px!important;pad
     <div class="sp-filter-bar">
       <button class="btn sp-flt active" onclick="setSpFilter('tipo','all')" data-filter-tipo="all">Todos</button>
       <button class="btn sp-flt" onclick="setSpFilter('tipo','speaker')" data-filter-tipo="speaker">Speaker</button>
+      <button class="btn sp-flt" onclick="setSpFilter('tipo','panelista')" data-filter-tipo="panelista">Panelista</button>
+      <button class="btn sp-flt" onclick="setSpFilter('tipo','moderador')" data-filter-tipo="moderador">Moderador</button>
       <button class="btn sp-flt" onclick="setSpFilter('tipo','sponsor')" data-filter-tipo="sponsor">Sponsor</button>
       <div class="toolbar-sep"></div>
       <button class="btn sp-flt active" onclick="setSpFilter('city','all')" data-filter-city="all">Todas</button>
@@ -1248,7 +1250,7 @@ function renderSpeakers() {
   const tbody = document.getElementById('speakersTableBody');
   if (!tbody) return;
   let list = state.speakers;
-  if (spFilter.tipo !== 'all') list = list.filter(s => (s.tipo||'speaker') === spFilter.tipo);
+  if (spFilter.tipo !== 'all') list = list.filter(s => (s.tipo||'speaker').toLowerCase().includes(spFilter.tipo));
   if (spFilter.city !== 'all') list = list.filter(s => (s.ciudades||'').includes(spFilter.city));
   if (spFilter.topic !== 'all') list = list.filter(s => spTemas(s).includes(spFilter.topic));
   if (!list.length) {
@@ -1256,8 +1258,13 @@ function renderSpeakers() {
     renderTopicFilters();
     return;
   }
-  const tipoColor = { speaker:'var(--btc)', sponsor:'#06b6d4' };
-  const tipoOpts = (cur) => ['speaker','sponsor'].map(t=>`<option value="${t}"${cur===t?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
+  const tipoColor = (t) => {
+    const tl = (t||'').toLowerCase();
+    if (tl.includes('sponsor'))   return '#06b6d4';
+    if (tl.includes('moderador')) return '#a78bfa';
+    if (tl.includes('panelista')) return '#fb923c';
+    return 'var(--btc)'; // speaker por defecto
+  };
   tbody.innerHTML = list.map(s => {
     const ri = state.speakers.indexOf(s);
     const tipo = s.tipo||'speaker';
@@ -1266,7 +1273,7 @@ function renderSpeakers() {
     const n      = temas.length;
     const temasStr = esc(temas.join(', ') || '— sin temas —');
     return `<tr data-sp-ri="${ri}" style="${hasAny?'':'opacity:.55'}">
-      <td><select class="sp-tipo-sel" style="color:${tipoColor[tipo]||'var(--text)'}" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');renderSpeakers()">${tipoOpts(tipo)}</select></td>
+      <td><span class="sp-edit" style="color:${tipoColor(tipo)};font-size:12px;font-weight:600" contenteditable="true" onblur="updateSpeaker(${ri},'tipo',this.innerText.trim());markDirty('speakers')">${esc(tipo)}</span></td>
       <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')">${esc(s.nombre||'')}</span></td>
       <td style="text-align:center"><span class="tema-badge" onclick="toggleSpTopics(${ri})" title="🟣 SL · 🔵 CBA · 🟡 TUC — clic para editar estados">${n||'?'}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeakerTemas(${ri},this.innerText.trim())">${temasStr}</span></td>
