@@ -142,13 +142,15 @@ function importarFormSpeakers(dexSS) {
 
   // Buscar la hoja de respuestas activa (la que tiene más datos entre las "Form Responses X")
   const allSheets = respSS.getSheets();
+  // Buscar la pestaña de respuestas activa: preferir "Form Responses X"
+  // (la que Google crea al vincular); si no hay, usar la de más filas
   const formSheets = allSheets.filter(s => {
     const n = s.getName().toLowerCase();
-    return n.includes('form response') || n.includes('respuestas del formulario') || n === 'respuestas';
+    return n.includes('form response') || n.includes('respuestas del formulario');
   });
   const respSheet = formSheets.length > 0
-    ? formSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0]
-    : allSheets[0];
+    ? formSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0] // la de más datos
+    : allSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0]; // fallback: la de más filas
 
   const allData   = respSheet.getDataRange().getValues();
   const totalRows = allData.length;

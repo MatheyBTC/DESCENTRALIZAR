@@ -188,7 +188,7 @@ function updateTemaQuestion() {
 function resetRespuestasSheet() {
   const RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
 
-  // 1. Desvincular el form (libera el bloqueo sobre las columnas)
+  // 1. Desvincular el form
   const form = _abrirForm();
   if (form) {
     try { form.removeDestination(); Logger.log('✅ Form desvinculado.'); }
@@ -200,38 +200,19 @@ function resetRespuestasSheet() {
   try { ss = SpreadsheetApp.openById(RESP_SHEET_ID); }
   catch(e) { Logger.log('❌ No se pudo abrir el Sheet: ' + e.message); return; }
 
-  // 3. Eliminar todas las hojas "Form Responses X" que creó el form
-  const allSheets = ss.getSheets();
-  const formSheets = allSheets.filter(s => {
-    const n = s.getName().toLowerCase();
-    return n.includes('form response') || n.includes('respuestas del formulario');
-  });
-
-  // Si todas las hojas son de respuestas, crear una vacía primero
-  // (Google no permite dejar el spreadsheet sin ninguna hoja)
-  if (formSheets.length === allSheets.length) {
-    ss.insertSheet('Respuestas');
-    Logger.log('➕ Hoja "Respuestas" creada.');
-  }
-
-  formSheets.forEach(s => {
-    try { ss.deleteSheet(s); Logger.log('🗑️  Eliminada: ' + s.getName()); }
-    catch(e) { Logger.log('⚠️  No se pudo eliminar ' + s.getName() + ': ' + e.message); }
-  });
-
-  // 4. Usar o crear la hoja "Respuestas" como destino limpio
+  // 3. Crear (o limpiar) una hoja llamada "Respuestas" como destino limpio
+  //    No intentamos borrar las viejas "Form Responses X" — Google lo bloquea.
+  //    El import las ignora porque busca por nombre y toma la de más datos.
   let target = ss.getSheetByName('Respuestas');
   if (!target) {
-    target = ss.getSheets()[0];
-    target.setName('Respuestas');
+    target = ss.insertSheet('Respuestas', 0); // primera posición
+    Logger.log('➕ Hoja "Respuestas" creada.');
+  } else {
+    target.clear();
+    Logger.log('🧹 Hoja "Respuestas" limpiada.');
   }
-  target.clear();
 
-  // Eliminar columnas extra si quedaron
-  const lastCol = target.getMaxColumns();
-  if (lastCol > 14) target.deleteColumns(15, lastCol - 14);
-
-  // 5. Escribir encabezados en el orden correcto
+  // 4. Escribir encabezados correctos en las 14 columnas
   const encabezados = [
     'Timestamp', 'Nombre completo', 'Tipo', 'Mail',
     'Móvil (WhatsApp)', 'X (Twitter)', 'Instagram', 'LinkedIn',
@@ -241,25 +222,28 @@ function resetRespuestasSheet() {
   ];
   target.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
   target.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
-  Logger.log('✅ Encabezados escritos en hoja "Respuestas".');
+  Logger.log('✅ Encabezados escritos.');
 
-  // 6. Re-vincular el form a este spreadsheet
-  //    Google creará una nueva pestaña "Form Responses 1" dentro del mismo spreadsheet
+  // 5. Re-vincular el form → Google crea "Form Responses 1" dentro del mismo spreadsheet
+  //    Los próximos envíos van a esa nueva pestaña con columnas en orden correcto
   if (form) {
     try {
       form.setDestination(FormApp.DestinationType.SPREADSHEET, RESP_SHEET_ID);
-      Logger.log('✅ Form re-vinculado. Google generará "Form Responses 1" al primer envío.');
+      Logger.log('✅ Form re-vinculado al spreadsheet.');
+      Logger.log('   Al primer envío Google crea "Form Responses X" con columnas en orden correcto.');
     } catch(e) {
-      Logger.log('⚠️  Re-vincular: ' + e.message);
+      Logger.log('⚠️  No se pudo re-vincular: ' + e.message);
     }
   }
 
-  // 7. Resetear contador
+  // 6. Resetear contador de importación
   PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
 
   Logger.log('');
-  Logger.log('✅ Listo. Al próximo envío del form, Google crea "Form Responses 1"');
-  Logger.log('   con las columnas en el orden correcto (col 1 = Timestamp, col 2 = Nombre, etc.)');
+  Logger.log('✅ Todo listo. Próximos pasos:');
+  Logger.log('   1. Mandá una respuesta de prueba al form');
+  Logger.log('   2. Google crea "Form Responses X" con columnas correctas');
+  Logger.log('   3. Importá desde la app → debería funcionar');
   Logger.log('👉 ' + 'https://docs.google.com/spreadsheets/d/' + RESP_SHEET_ID);
 }
 
