@@ -171,7 +171,7 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .sp-cell-name{font-size:13px;font-weight:700;color:var(--btc);line-height:1.3;}
 .sp-cell-tema{font-size:11px;color:var(--text);line-height:1.3;margin-top:2px;}
 .sp-cell-empty{font-size:14px;color:var(--dim);}
-.sp-drop{display:none;position:fixed;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.5);max-height:220px;overflow-y:auto;}
+.sp-drop{display:none;position:fixed;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.5);max-height:280px;overflow-y:auto;}
 .sp-drop.open{display:block;}
 .sp-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);}
 .sp-item:last-child{border-bottom:none;}
@@ -282,6 +282,20 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .public-table .pt-fin{color:#ef4444;font-weight:700;white-space:nowrap;}
 .public-table .pt-speaker{color:var(--btc);font-weight:700;}
 .public-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-bottom:16px;}
+
+/* ── MULTI-SPEAKER CHIPS ── */
+.sp-chips-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;min-height:40px;}
+.sp-chip{display:inline-flex;align-items:center;gap:2px;background:rgba(247,147,26,.15);border:1px solid rgba(247,147,26,.3);border-radius:10px;padding:2px 7px 2px 8px;}
+.sp-chip-name{font-size:12px;font-weight:700;color:var(--btc);}
+.sp-chip-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 2px;line-height:1;}
+.sp-chip-del:hover{color:#ef4444;}
+.sp-add-btn{display:inline-flex;align-items:center;padding:2px 8px;color:var(--dim);font-size:12px;cursor:pointer;border-radius:10px;background:var(--bg3);border:1px solid var(--border);}
+.sp-add-btn:hover{color:var(--btc);border-color:var(--btc);background:var(--btc-dim);}
+.mc-inp{background:transparent;border:none;color:#a855f7;font-size:12px;font-weight:600;width:100%;outline:none;padding:2px 6px;cursor:text;display:block;}
+.mc-inp::placeholder{color:var(--dim);font-weight:400;}
+.mc-inp:focus{background:rgba(168,85,247,.1);border-radius:4px;}
+.sp-search{position:sticky;top:0;z-index:1;width:100%;background:var(--bg2);border:none;border-bottom:1px solid var(--border);color:var(--text);padding:7px 10px;font-size:13px;outline:none;font-family:inherit;}
+.sp-search:focus{border-bottom-color:var(--btc);}
 </style>
 </head>
 <body>
@@ -345,12 +359,15 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
           <th class="col-stk col-stk-sep" style="left:231px;width:55px;text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
           <th colspan="3"></th>
           <th class="city-h" style="font-weight:400">
+            <input class="mc-inp" id="mc-sl" placeholder="MC: nombre…" oninput="saveMcLocal()">
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
           <th class="city-h" style="font-weight:400">
+            <input class="mc-inp" id="mc-cba" placeholder="MC: nombre…" oninput="saveMcLocal()">
             <input class="date-inp" id="fecha-cba" value="2026-09-04" title="Fecha Córdoba">
           </th>
           <th class="city-h" style="font-weight:400">
+            <input class="mc-inp" id="mc-sj" placeholder="MC: nombre…" oninput="saveMcLocal()">
             <input class="date-inp" id="fecha-sj" value="2026-09-11" title="Fecha Tucumán">
           </th>
         </tr>
@@ -820,7 +837,7 @@ function addPrincipalRow() {
   const inicio = last ? (last.fin||'09:00') : (document.getElementById('horaApertura').value||'09:00');
   const dur = 30;
   const fin = minToTime(timeToMin(inicio)+dur);
-  state.principal.push({ tipo:'Charla',dur,inicio,fin,tema:'',bajada:'',detalle:'',sl:'',sj:'',cba:'',tema_sl:'',tema_sj:'',tema_cba:'' });
+  state.principal.push({ tipo:'Charla',dur,inicio,fin,tema:'',bajada:'',detalle:'',sl:[],sj:[],cba:[],tema_sl:'',tema_sj:'',tema_cba:'' });
   markDirty('principal');
   renderPrincipal();
 }
@@ -845,7 +862,7 @@ function insertPrincipalRow(idx) {
   const prev = state.principal[idx];
   const inicio = prev ? (prev.fin || '09:00') : '09:00';
   const fin = minToTime(timeToMin(inicio) + dur);
-  state.principal.splice(idx + 1, 0, { tipo:'Charla', dur, inicio, fin, tema:'', bajada:'', detalle:'', sl:'', sj:'', cba:'', tema_sl:'', tema_sj:'', tema_cba:'' });
+  state.principal.splice(idx + 1, 0, { tipo:'Charla', dur, inicio, fin, tema:'', bajada:'', detalle:'', sl:[], sj:[], cba:[], tema_sl:'', tema_sj:'', tema_cba:'' });
   renderPrincipal(); // recalcTimes runs inside renderPrincipal
 }
 
@@ -922,18 +939,17 @@ function speakersForSlot(city, tema, excludeIdx) {
   state.principal.forEach((row, i) => {
     if (i === excludeIdx) return;
     if ((row.tema||'').trim().toLowerCase() !== temaKey) return;
-    const sp = (row[city]||'').trim();
-    if (sp) used.add(sp.toLowerCase());
+    parseSpeakerField(row[city]).forEach(sp => { if (sp) used.add(sp.toLowerCase()); });
   });
   return available.filter(s => !used.has((s.nombre||'').trim().toLowerCase()));
 }
 
 function renderSpPicker(idx, city, selected) {
-  const selSp = state.speakers.find(s => s.nombre === selected);
-  const cellHtml = selected
-    ? `<div class="sp-cell-name">${esc(selected)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
-    : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
-  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-cell" onclick="openSpDrop(${idx},'${city}',event)">${cellHtml}</div></div>`;
+  const arr = parseSpeakerField(selected);
+  const chips = arr.map(name =>
+    `<span class="sp-chip"><span class="sp-chip-name">${esc(name)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(name).replace(/"/g,'&quot;')}">✕</button></span>`
+  ).join('');
+  return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-chips-wrap">${chips}<span class="sp-add-btn" data-idx="${idx}" data-city="${city}">+</span></div></div>`;
 }
 
 let _spDrop = { idx:null, city:null };
@@ -945,27 +961,75 @@ function openSpDrop(idx, city, e) {
     closeAllSpDrops(); return;
   }
   _spDrop = { idx, city };
-  const cell = document.getElementById(`spp-${idx}-${city}`).querySelector('.sp-cell');
-  const r = cell.getBoundingClientRect();
+  const anchor = document.getElementById(`spp-${idx}-${city}`);
+  const r = anchor.getBoundingClientRect();
   const tema = (state.principal[idx]?.tema || '');
-  const spList = speakersForSlot(city, tema, idx);
+  const alreadySelected = parseSpeakerField(state.principal[idx]?.[city]);
+  const spList = speakersForSlot(city, tema, idx).filter(s => !alreadySelected.includes(s.nombre));
   const estadoField = city + '_estado';
-  dd.innerHTML = [
-    `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name=""><span style="color:var(--dim);font-size:12px">— Sin aplicar —</span></div>`,
-    ...spList.map(s=>{
-      const icon = ESTADO_ICON[s[estadoField]||''] || '';
-      return `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${icon ? icon+' ' : ''}${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`;
-    })
-  ].join('');
+  const items = spList.map(s => {
+    const icon = ESTADO_ICON[s[estadoField]||''] || '';
+    return `<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(s.nombre)}"><div class="sp-item-name">${icon ? icon+' ' : ''}${esc(s.nombre)}</div><div class="sp-item-tema">${esc(s.temas||'')}</div></div>`;
+  });
+  dd.innerHTML = `<input class="sp-search" placeholder="Buscar speaker…" oninput="filterSpDrop(this.value)">` +
+    (items.length ? items.join('') : `<div style="padding:10px 12px;color:var(--dim);font-size:12px">Sin speakers disponibles</div>`);
   dd.style.top   = r.bottom + 'px';
   dd.style.left  = r.left   + 'px';
-  dd.style.width = Math.max(r.width, 190) + 'px';
+  dd.style.width = Math.max(r.width, 210) + 'px';
   dd.classList.add('open');
+  setTimeout(() => dd.querySelector('.sp-search')?.focus(), 30);
 }
 
 function closeAllSpDrops() {
   document.getElementById('spDropdown').classList.remove('open');
   _spDrop = { idx:null, city:null };
+}
+
+function parseSpeakerField(val) {
+  if (Array.isArray(val)) return val.filter(Boolean);
+  if (!val) return [];
+  const s = String(val).trim();
+  if (!s) return [];
+  if (s.startsWith('[')) { try { return JSON.parse(s).filter(Boolean); } catch(e) {} }
+  return [s];
+}
+
+function saveMcLocal() {
+  const mc = {
+    sl:  (document.getElementById('mc-sl')  || {}).value || '',
+    cba: (document.getElementById('mc-cba') || {}).value || '',
+    sj:  (document.getElementById('mc-sj')  || {}).value || '',
+  };
+  localStorage.setItem('dex_mc', JSON.stringify(mc));
+}
+
+function loadMcLocal() {
+  try {
+    const mc = JSON.parse(localStorage.getItem('dex_mc') || '{}');
+    ['sl','cba','sj'].forEach(k => {
+      const el = document.getElementById('mc-'+k);
+      if (el && mc[k] !== undefined) el.value = mc[k];
+    });
+  } catch(e) {}
+}
+
+function removeSpFromSlot(idx, city, name) {
+  const row = state.principal[idx];
+  if (!row) return;
+  row[city] = parseSpeakerField(row[city]).filter(n => n !== name);
+  markDirty('principal');
+  const el = document.getElementById(`spp-${idx}-${city}`);
+  if (el) el.outerHTML = renderSpPicker(idx, city, row[city]);
+}
+
+function filterSpDrop(query) {
+  const dd = document.getElementById('spDropdown');
+  const q = query.toLowerCase();
+  dd.querySelectorAll('.sp-item').forEach(item => {
+    const name = (item.dataset.name || '').toLowerCase();
+    const tema = (item.querySelector('.sp-item-tema') || {}).textContent || '';
+    item.style.display = (!q || name.includes(q) || tema.toLowerCase().includes(q)) ? '' : 'none';
+  });
 }
 
 function updateFinProgress(apertura, total) {
@@ -988,7 +1052,7 @@ async function loadPrincipal() {
     const [, ...rows] = raw;
     state.principal = rows.map(r=>({
       tipo:r[0]||'Charla', dur:+r[1]||30, inicio:r[2]||'', fin:r[3]||'',
-      tema:r[4]||'', bajada:r[5]||'', detalle:r[6]||'', sl:r[7]||'', sj:r[8]||'', cba:r[9]||'',
+      tema:r[4]||'', bajada:r[5]||'', detalle:r[6]||'', sl:parseSpeakerField(r[7]), sj:parseSpeakerField(r[8]), cba:parseSpeakerField(r[9]),
       tema_sl:r[10]||'', tema_sj:r[11]||'', tema_cba:r[12]||''
     }));
     renderPrincipal();
@@ -1014,7 +1078,7 @@ function withSaveBtn(btnId, label, fn) {
 async function savePrincipal() {
   if (!(await checkVersion('Principal'))) return;
   await withSaveBtn('saveBtnPrincipal', '💾 Guardar', async () => {
-    const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,r.sl,r.sj,r.cba,r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
+    const data = state.principal.map(r=>[r.tipo,r.dur,r.inicio,r.fin,r.tema,r.bajada||'',r.detalle,JSON.stringify(r.sl||[]),JSON.stringify(r.sj||[]),JSON.stringify(r.cba||[]),r.tema_sl||'',r.tema_sj||'',r.tema_cba||'']);
     await gasPost('Principal','replace_all', data);
     toast('✅ Principal guardado');
     markClean('principal');
@@ -1210,9 +1274,9 @@ function buildTimeline() {
     rows.forEach(r => {
       const dur = durVal(r.dur) || 0;
       horasOcupadas += dur;
-      const sp = (r[c.key] || '').trim();
-      if (sp) asignados++; else sinAsignar++;
-      if (!sp) huecos++;
+      const spArr = parseSpeakerField(r[c.key]);
+      if (spArr.length) asignados++; else sinAsignar++;
+      if (!spArr.length) huecos++;
     });
 
     const cn = (CITY_NAMES[c.key]||'').toLowerCase();
@@ -1292,10 +1356,11 @@ function buildTimeline() {
     // Recolectar speakers no vacíos por ciudad para esta fila
     const spMap = {};
     [['sl','🟣 San Luis'], ['cba','🔵 Córdoba'], ['sj','🟡 Tucumán']].forEach(([key, label]) => {
-      const sp = (r[key] || '').trim();
-      if (!sp) return;
-      if (!spMap[sp]) spMap[sp] = [];
-      spMap[sp].push(label);
+      parseSpeakerField(r[key]).forEach(sp => {
+        if (!sp) return;
+        if (!spMap[sp]) spMap[sp] = [];
+        if (!spMap[sp].includes(label)) spMap[sp].push(label);
+      });
     });
     // Si el mismo speaker aparece en 2+ ciudades → conflicto
     Object.entries(spMap).forEach(([sp, ciudadesConflicto]) => {
@@ -1555,92 +1620,92 @@ async function init() {
     {tipo:'Charla', dur:15,
      tema:'Apertura al evento',
      detalle:'Bienvenida al evento, presentación y agradecimiento a partner local.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Kahoot', dur:10,
      tema:'Kahoot (preguntas de entender la audiencia)',
      detalle:'Ej. ¿Cuánto creés que demora una transacción en Bitcoin?\nEj. ¿Cuánto querés que cueste una transacción?',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Charla', dur:15,
      tema:'Datos de Impacto',
      detalle:'Bullet + reflexionar + independiente del Kahoot',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Charla', dur:30,
      tema:'¿De dónde viene el dinero y a dónde va?',
      detalle:'Pregunta abierta que el asistente ya se hizo. La historia como thriller, no como clase de economía.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Taller', dur:30,
      tema:'Instalar + Compartir QR y/o Alias',
      detalle:'Recomendamos que bajen estas dos billeteras:\nWallets of Satoshi + Blue Wallet + Rabby + Bexo',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Charla', dur:20,
      tema:'Bitcoin no es una app, es un protocolo',
      detalle:'Elimina "capas" (jerga técnica). Usa la analogía de internet que todo el mundo entiende.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Panel', dur:45,
      tema:'¿Por qué no alcanza con el dólar?',
      detalle:'Parte desde la pregunta que el asistente ya tiene. El dólar es el punto de referencia local.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Kahoot', dur:0,
      tema:'',
      detalle:'4 preguntas nuevas',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Break', dur:25,
      tema:'Café / AMA',
      detalle:'',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Charla', dur:30,
      tema:'Cómo te roban sin que te das cuenta',
      detalle:'"Falopa" suena a jerga del ecosistema. "Te roban sin que te das cuenta" activa la autoprotección.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Charla', dur:20,
      tema:'El Estado y tu Bitcoin',
      detalle:'"Falopa" suena a jerga del ecosistema. "Te roban sin que te das cuenta" activa la autoprotección.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Kahoot', dur:0,
      tema:'',
      detalle:'4 preguntas nuevas',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Panel', dur:30,
      tema:'Empresas que ya lo hacen',
      detalle:'"Strategy" es una referencia interna. "Ya lo hacen" comunica que no es teoría futura, es presente.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Panel', dur:30,
      tema:'¿Para qué quiero ser mi propio banco?',
      detalle:'"El poder de descentralizar" es para convencidos. La pregunta abre el debate sin presuponer convicción.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Kahoot', dur:15,
      tema:'',
      detalle:'4 preguntas finales',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Break', dur:90,
      tema:'Almuerzo / AMA',
      detalle:'',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Taller', dur:90,
      tema:'Tu Bitcoin, tu responsabilidad',
      detalle:'"No-custodial" y "Lightning" son jerga pura. "Tu responsabilidad" comunica el concepto central en lenguaje de vida cotidiana.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
 
     {tipo:'Taller', dur:90,
      tema:'Hacé que tu Bitcoin trabaje — casos de uso avanzado',
      detalle:'"DeFi" y "Rootstock" no significan nada para el público general. Se reformula desde el beneficio, no desde la tecnología.',
-     sl:'', sj:'', cba:''},
+     sl:[], sj:[], cba:[]},
   ];
 
   state.speakers = [
@@ -1676,6 +1741,7 @@ async function init() {
     } catch(e) { setStatus(false); }
   }
 
+  loadMcLocal();
   renderPrincipal();
   renderSpeakers();
   renderIdeas();
@@ -1706,10 +1772,10 @@ function renderPublicView() {
     wrap.id = 'publicView';
     document.body.insertBefore(wrap, document.getElementById('spDropdown'));
   }
-  const rows = state.principal.filter(r => (r[PUBLIC_CITY]||'').trim() !== '' || r.tipo === 'Break' || r.tipo === 'Apertura' || r.tipo === 'Cierre');
+  const rows = state.principal.filter(r => parseSpeakerField(r[PUBLIC_CITY]).length > 0 || r.tipo === 'Break' || r.tipo === 'Apertura' || r.tipo === 'Cierre');
   const tipoColor = t => TIPO_COLORS[t] || '#3b82f6';
   const rowsHtml = rows.map(r => {
-    const speaker = r[PUBLIC_CITY] || '';
+    const speaker = parseSpeakerField(r[PUBLIC_CITY]).join(', ');
     const tema = r['tema_'+PUBLIC_CITY] || r.tema || '';
     return `<tr>
       <td class="pt-hora">${r.inicio||'—'}</td>
@@ -1748,7 +1814,7 @@ async function exportarAgenda(city) {
   if (!rows.length) { toast('⚠️ Sin filas para exportar', true); return; }
   const tipoColor = t => TIPO_COLORS[t] || '#3b82f6';
   const rowsHtml = rows.map(r => {
-    const speaker = r[city] || '';
+    const speaker = parseSpeakerField(r[city]).join(', ');
     const tema = r['tema_'+city] || r.tema || '';
     return `<tr style="border-bottom:1px solid #252932">
       <td style="padding:10px 12px;color:#22c55e;font-weight:700;white-space:nowrap">${esc(r.inicio||'—')}</td>
@@ -1799,22 +1865,35 @@ async function exportarAgenda(city) {
 
 // ── SP PICKER EVENT DELEGATION ───────────────────────────────────
 document.addEventListener('click', e => {
+  // Chip delete
+  const del = e.target.closest('.sp-chip-del');
+  if (del) {
+    removeSpFromSlot(+del.dataset.idx, del.dataset.city, del.dataset.name);
+    return;
+  }
+  // Add button
+  const add = e.target.closest('.sp-add-btn');
+  if (add) {
+    openSpDrop(+add.dataset.idx, add.dataset.city, e);
+    return;
+  }
+  // Dropdown item — ADD speaker to array
   const item = e.target.closest('.sp-item');
   if (item && item.dataset.idx !== undefined) {
     const idx = +item.dataset.idx, city = item.dataset.city, name = item.dataset.name;
-    updatePrincipal(idx, city, name);
-    const picker = document.getElementById(`spp-${idx}-${city}`);
-    if (picker) {
-      const selSp = state.speakers.find(s => s.nombre === name);
-      const cellHtml = name
-        ? `<div class="sp-cell-name">${esc(name)}</div><div class="sp-cell-tema">${esc(selSp?selSp.temas||'':'')}</div>`
-        : `<div class="sp-cell-empty">— Sin aplicar —</div>`;
-      picker.querySelector('.sp-cell').innerHTML = cellHtml;
+    const row = state.principal[idx];
+    if (row && name) {
+      const arr = parseSpeakerField(row[city]);
+      if (!arr.includes(name)) arr.push(name);
+      row[city] = arr;
+      markDirty('principal');
     }
+    const el = document.getElementById(`spp-${idx}-${city}`);
+    if (el) el.outerHTML = renderSpPicker(idx, city, state.principal[idx]?.[city] || []);
     closeAllSpDrops();
     return;
   }
-  if (!e.target.closest('.sp-picker') && !e.target.closest('#spDropdown')) closeAllSpDrops();
+  if (!e.target.closest('.sp-picker') && !e.target.closest('#spDropdown') && !e.target.closest('.sp-add-btn')) closeAllSpDrops();
 });
 
 init();
