@@ -80,9 +80,29 @@ function updateFormCampos() {
   form.moveItem(linkedinItem.getIndex(), empresaIdx >= 0 ? empresaIdx : form.getItems().length - 2);
   Logger.log('➕ Agregado: LinkedIn');
 
+  // ── 7. Agregar Biografía si no existe (después de Notas) ────────
+  if (!form.getItems().find(i => i.getTitle() === 'Biografía')) {
+    const notasIdx = form.getItems().findIndex(i => i.getTitle() === 'Notas / Comentarios');
+    const bioItem = form.addParagraphTextItem()
+      .setTitle('Biografía')
+      .setHelpText('Descripción breve de tu perfil profesional (máx. 100 caracteres).');
+    form.moveItem(bioItem.getIndex(), notasIdx >= 0 ? notasIdx + 1 : form.getItems().length - 1);
+    Logger.log('➕ Agregado: Biografía');
+  }
+
+  // ── 8. Agregar Eventos anteriores si no existe (después de Biografía) ──
+  if (!form.getItems().find(i => i.getTitle() === 'Eventos anteriores')) {
+    const bioIdx = form.getItems().findIndex(i => i.getTitle() === 'Biografía');
+    const eventosItem = form.addTextItem()
+      .setTitle('Eventos anteriores')
+      .setHelpText('Eventos en los que participaste como speaker (opcional).');
+    form.moveItem(eventosItem.getIndex(), bioIdx >= 0 ? bioIdx + 1 : form.getItems().length - 1);
+    Logger.log('➕ Agregado: Eventos anteriores');
+  }
+
   Logger.log('');
   Logger.log('✅ Campos actualizados. Orden final:');
-  Logger.log('   Nombre → Tipo → Mail → Móvil (WhatsApp) → X → Instagram → LinkedIn → Empresa/Referencia → Ciudad(es) → Tema(s) → Notas');
+  Logger.log('   Nombre → Tipo → Mail → Móvil (WhatsApp) → X → Instagram → LinkedIn → Empresa/Referencia → Ciudad(es) → Tema(s) → Notas → Biografía → Eventos anteriores');
   Logger.log('');
   Logger.log('👉 Ahora ejecutá updateTemaQuestion() para actualizar los temas con bajada.');
 }
@@ -192,6 +212,14 @@ function createSpeakerForm() {
   form.addParagraphTextItem()
     .setTitle('Notas / Comentarios')
     .setHelpText('Disponibilidad, restricciones horarias, necesidades técnicas.');
+
+  form.addParagraphTextItem()
+    .setTitle('Biografía')
+    .setHelpText('Descripción breve de tu perfil profesional (máx. 100 caracteres).');
+
+  form.addTextItem()
+    .setTitle('Eventos anteriores')
+    .setHelpText('Eventos en los que participaste como speaker (opcional).');
 
   const respSheet = SpreadsheetApp.create('DEX2026 — Respuestas Speakers');
   form.setDestination(FormApp.DestinationType.SPREADSHEET, respSheet.getId());

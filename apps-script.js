@@ -135,6 +135,8 @@ function importarFormSpeakers(dexSS) {
     // [9] Ciudad(es)
     // [10] Tema(s) que vas a cubrir
     // [11] Notas / Comentarios
+    // [12] Biografía
+    // [13] Eventos anteriores
     const nombre   = String(r[1]  || '').trim();
     const tipo     = String(r[2]  || 'speaker').trim().toLowerCase();
     const mail     = String(r[3]  || '').trim();
@@ -148,6 +150,8 @@ function importarFormSpeakers(dexSS) {
     const temasRaw = String(r[10] || '').trim();
     const temas    = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean).join(', ');
     const notas    = String(r[11] || '').trim();
+    const bio      = String(r[12] || '').trim().slice(0, 100);
+    const eventos  = String(r[13] || '').trim();
 
     if (!nombre) return;
 
@@ -163,8 +167,8 @@ function importarFormSpeakers(dexSS) {
 
     // Formato fila Speakers:
     // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
-    // sl_estado, sj_estado, cba_estado, movil, linkedin
-    spSheet.appendRow([nombre, tipo, mail, ciudades, temas, notas, xUser, ig, empresa, slEst, sjEst, cbaEst, movil, linkedin]);
+    // sl_estado, sj_estado, cba_estado, movil, linkedin, bio, eventos_anteriores
+    spSheet.appendRow([nombre, tipo, mail, ciudades, temas, notas, xUser, ig, empresa, slEst, sjEst, cbaEst, movil, linkedin, bio, eventos]);
     imported.push(nombre);
   });
 
