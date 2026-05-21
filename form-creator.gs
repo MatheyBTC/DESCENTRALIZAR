@@ -2,117 +2,157 @@
  * form-creator.gs — Google Form de inscripción de Speakers DEX 2026
  *
  * Dónde pegar este código:
- *   → script.google.com → el proyecto donde creaste el form
+ *   → script.google.com → el proyecto del form (Apps Script del form)
  *   → Reemplazá todo el código → Guardar
  *
- * Funciones disponibles:
- *   · updateFormCampos()   — actualiza campos del form existente (correr 1 vez)
- *   · updateTemaQuestion() — convierte Tema a checkboxes con bajada (correr 1 vez)
- *   · createSpeakerForm()  — solo si necesitás crear el form desde cero
+ * ═══════════════════════════════════════════════════════════════════
+ * FUNCIONES DISPONIBLES — ejecutar desde el editor (▷ Run):
+ *
+ *   resetFormCampos()    ← USA ESTA para resetear el form al orden correcto
+ *                          Borra todos los campos y los recrea en el orden
+ *                          exacto que espera el backend.
+ *
+ *   updateTemaQuestion() ← Actualiza la pregunta de temas con bajada
+ *                          (correr después de resetFormCampos, o cada vez
+ *                          que cambien los temas en el Sheet Principal)
+ *
+ *   createSpeakerForm()  ← Solo si necesitás crear un form NUEVO desde cero
+ * ═══════════════════════════════════════════════════════════════════
+ *
+ * ORDEN FINAL DE CAMPOS (= columnas en el Sheet de respuestas):
+ *   [0] Timestamp (auto)
+ *   [1] Nombre completo
+ *   [2] Tipo
+ *   [3] Mail
+ *   [4] Móvil (WhatsApp)
+ *   [5] X (Twitter)
+ *   [6] Instagram
+ *   [7] LinkedIn
+ *   [8] Empresa/Referencia
+ *   [9] Ciudad(es)
+ *  [10] Tema(s)
+ *  [11] Notas / Comentarios
+ *  [12] Biografía
+ *  [13] Eventos anteriores
  */
 
 const DEX_SHEET_ID = '1wl2ClpRqJ5I4j92D0Xa3vinm0JHckCUCAu0fMfXJ07U';
-
 const TIPOS_EXCLUIDOS = ['Kahoot', 'Break', 'Almuerzo', 'Apertura', 'Cierre', 'Premios', 'Sorteo', 'Concurso'];
 
-// ═══════════════════════════════════════════════════════════════
-// PASO 1 — Actualizar campos del form existente
-// Ejecutar UNA VEZ. Orden final:
-// Nombre | Tipo | Mail | Móvil (WhatsApp) | X | Instagram |
-// LinkedIn | Empresa/Referencia | Ciudad(es) | Tema(s) | Notas
-// ═══════════════════════════════════════════════════════════════
-function updateFormCampos() {
+// ═══════════════════════════════════════════════════════════════════
+// RESET — Borra todos los campos y los recrea en el orden correcto
+// Ejecutar UNA VEZ. No toca la configuración del form (título,
+// mensaje de confirmación, destino del Sheet de respuestas).
+// ═══════════════════════════════════════════════════════════════════
+function resetFormCampos() {
   const form = _abrirForm();
   if (!form) return;
 
-  // ── 1. Eliminar campos que se van a recrear o ya no van ──────
-  const ELIMINAR = [
-    'Contacto (mail / móvil)', 'Contacto',
-    'Móvil / WhatsApp', 'LinkedIn', 'Empresa / Referencia'
-  ];
-  // iterar sobre copia porque deleteItem modifica el array
+  // 1. Borrar TODOS los items existentes
   form.getItems().slice().forEach(i => {
-    if (ELIMINAR.includes(i.getTitle())) {
-      form.deleteItem(i);
-      Logger.log('🗑️  Eliminado: ' + i.getTitle());
-    }
+    try { form.deleteItem(i); } catch(e) {}
   });
+  Logger.log('🗑️  Todos los campos eliminados. Recreando en orden correcto…');
 
-  // ── 2. Asegurar campo Tipo (texto libre, después de Nombre) ──
-  if (!form.getItems().find(i => i.getTitle() === 'Tipo')) {
-    const nombreIdx = form.getItems().findIndex(i => i.getTitle() === 'Nombre completo');
-    const tipoNew   = form.addTextItem()
-      .setTitle('Tipo')
-      .setHelpText('Ej: Speaker, Panelista, Moderador');
-    form.moveItem(tipoNew.getIndex(), nombreIdx >= 0 ? nombreIdx + 1 : 1);
-    Logger.log('➕ Agregado: Tipo');
-  }
+  // 2. Obtener temas desde el Sheet Principal
+  const temas = getTemasDesdeSheet();
+  const opcionesTema = temas.length > 0 ? temas : ['(Sin temas cargados aún)'];
 
-  // ── 3. Renombrar "Empresa / Referencia" → "Empresa/Referencia"
-  const empresaItem = form.getItems().find(i => i.getTitle().includes('Empresa'));
-  if (empresaItem) {
-    empresaItem.asTextItem().setTitle('Empresa/Referencia');
-    Logger.log('✏️  Renombrado: Empresa/Referencia');
-  }
+  // 3. Recrear campos EN EL ORDEN EXACTO que espera el backend
+  //    → cada campo agrega una columna al Sheet de respuestas
 
-  // ── 4. Agregar Mail (después de Tipo, requerido) ─────────────
-  const tipoIdx = form.getItems().findIndex(i => i.getTitle() === 'Tipo');
-  const mailItem = form.addTextItem()
-    .setTitle('Mail')
-    .setHelpText('Ej: nombre@mail.com')
+  // [1] Nombre completo
+  form.addTextItem()
+    .setTitle('Nombre completo')
     .setRequired(true);
-  form.moveItem(mailItem.getIndex(), tipoIdx >= 0 ? tipoIdx + 1 : 2);
-  Logger.log('➕ Agregado: Mail');
 
-  // ── 5. Agregar Móvil (WhatsApp) después de Mail ──────────────
-  const mailIdx  = form.getItems().findIndex(i => i.getTitle() === 'Mail');
-  const movilItem = form.addTextItem()
+  // [2] Tipo
+  form.addMultipleChoiceItem()
+    .setTitle('Tipo')
+    .setChoiceValues(['Speaker', 'Moderador', 'Panelista', 'Sponsor'])
+    .setRequired(false);
+
+  // [3] Mail
+  form.addTextItem()
+    .setTitle('Mail')
+    .setHelpText('Ej: nombre@mail.com — se usa para evitar duplicados al importar.')
+    .setRequired(true);
+
+  // [4] Móvil (WhatsApp)
+  form.addTextItem()
     .setTitle('Móvil (WhatsApp)')
     .setHelpText('Ej: +54 9 11 1234-5678');
-  form.moveItem(movilItem.getIndex(), mailIdx + 1);
-  Logger.log('➕ Agregado: Móvil (WhatsApp)');
 
-  // ── 6. Agregar LinkedIn antes de Empresa/Referencia ──────────
-  const empresaIdx = form.getItems().findIndex(i => i.getTitle() === 'Empresa/Referencia');
-  const linkedinItem = form.addTextItem()
+  // [5] X (Twitter)
+  form.addTextItem()
+    .setTitle('X (Twitter)')
+    .setHelpText('Ej: @usuario');
+
+  // [6] Instagram
+  form.addTextItem()
+    .setTitle('Instagram')
+    .setHelpText('Ej: @usuario');
+
+  // [7] LinkedIn
+  form.addTextItem()
     .setTitle('LinkedIn')
     .setHelpText('Ej: linkedin.com/in/usuario');
-  form.moveItem(linkedinItem.getIndex(), empresaIdx >= 0 ? empresaIdx : form.getItems().length - 2);
-  Logger.log('➕ Agregado: LinkedIn');
 
-  // ── 7. Agregar Biografía si no existe (después de Notas) ────────
-  if (!form.getItems().find(i => i.getTitle() === 'Biografía')) {
-    const notasIdx = form.getItems().findIndex(i => i.getTitle() === 'Notas / Comentarios');
-    const bioItem = form.addParagraphTextItem()
-      .setTitle('Biografía')
-      .setHelpText('Descripción breve de tu perfil profesional (máx. 100 caracteres).');
-    form.moveItem(bioItem.getIndex(), notasIdx >= 0 ? notasIdx + 1 : form.getItems().length - 1);
-    Logger.log('➕ Agregado: Biografía');
-  }
+  // [8] Empresa/Referencia
+  form.addTextItem()
+    .setTitle('Empresa/Referencia')
+    .setHelpText('Proyecto, empresa o rol actual.');
 
-  // ── 8. Agregar Eventos anteriores si no existe (después de Biografía) ──
-  if (!form.getItems().find(i => i.getTitle() === 'Eventos anteriores')) {
-    const bioIdx = form.getItems().findIndex(i => i.getTitle() === 'Biografía');
-    const eventosItem = form.addTextItem()
-      .setTitle('Eventos anteriores')
-      .setHelpText('Eventos en los que participaste como speaker (opcional).');
-    form.moveItem(eventosItem.getIndex(), bioIdx >= 0 ? bioIdx + 1 : form.getItems().length - 1);
-    Logger.log('➕ Agregado: Eventos anteriores');
-  }
+  // [9] Ciudad(es) — checkboxes
+  form.addCheckboxItem()
+    .setTitle('Ciudad(es) en las que podés participar')
+    .setRequired(true)
+    .setChoiceValues([
+      '🟣 San Luis (14 ago 2026)',
+      '🔵 Córdoba (4 sep 2026)',
+      '🟡 Tucumán (11 sep 2026)'
+    ]);
+
+  // [10] Tema(s) — checkboxes con bajada (cargados desde Sheet)
+  form.addCheckboxItem()
+    .setTitle('Tema(s) que vas a cubrir')
+    .setHelpText('Seleccioná uno o más temas.')
+    .setRequired(true)
+    .setChoiceValues(opcionesTema);
+
+  // [11] Notas / Comentarios
+  form.addParagraphTextItem()
+    .setTitle('Notas / Comentarios')
+    .setHelpText('Disponibilidad, restricciones horarias, necesidades técnicas.');
+
+  // [12] Biografía
+  form.addParagraphTextItem()
+    .setTitle('Biografía')
+    .setHelpText('Descripción breve de tu perfil profesional (máx. 100 caracteres).');
+
+  // [13] Eventos anteriores
+  form.addTextItem()
+    .setTitle('Eventos anteriores')
+    .setHelpText('Eventos en los que participaste como speaker (opcional).');
 
   Logger.log('');
-  Logger.log('✅ Campos actualizados. Orden final:');
-  Logger.log('   Nombre → Tipo → Mail → Móvil (WhatsApp) → X → Instagram → LinkedIn → Empresa/Referencia → Ciudad(es) → Tema(s) → Notas → Biografía → Eventos anteriores');
+  Logger.log('✅ Form reseteado. Orden final:');
+  Logger.log('   [1] Nombre · [2] Tipo · [3] Mail · [4] Móvil · [5] X · [6] IG');
+  Logger.log('   [7] LinkedIn · [8] Empresa · [9] Ciudad(es) · [10] Tema(s)');
+  Logger.log('   [11] Notas · [12] Biografía · [13] Eventos anteriores');
   Logger.log('');
-  Logger.log('👉 Ahora ejecutá updateTemaQuestion() para actualizar los temas con bajada.');
+  Logger.log('⚠️  IMPORTANTE: el Sheet de respuestas ahora tiene columnas viejas.');
+  Logger.log('   → Si querés empezar limpio, borrá las filas de respuestas pasadas,');
+  Logger.log('     o corré resetRespuestasSheet() para limpiar los encabezados.');
+  Logger.log('');
+  Logger.log('👉  Verificá el form: ' + form.getPublishedUrl());
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PASO 2 — Actualizar pregunta de Tema(s) con bajada
-// Convierte el campo a checkboxes (hasta 3), mostrando
-// "Tema — Bajada" como etiqueta de cada opción.
-// Ejecutar UNA VEZ (o cada vez que cambien los temas en el Sheet).
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// ACTUALIZAR PREGUNTA DE TEMAS (con bajada desde el Sheet)
+// Correr después de resetFormCampos(), o cada vez que cambien los
+// temas en la pestaña Principal del Sheet DEX.
+// ═══════════════════════════════════════════════════════════════════
 function updateTemaQuestion() {
   const form = _abrirForm();
   if (!form) return;
@@ -134,15 +174,60 @@ function updateTemaQuestion() {
 
   form.moveItem(nuevo.getIndex(), idx);
 
-  Logger.log('✅ Tema(s) actualizado: ' + opciones.length + ' opciones (checkboxes, máx. 3).');
-  opciones.slice(0, 3).forEach(o => Logger.log('   • ' + o));
+  Logger.log('✅ Temas actualizados: ' + opciones.length + ' opciones.');
+  opciones.forEach(o => Logger.log('   • ' + o));
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// LIMPIAR SHEET DE RESPUESTAS
+// Borra todas las filas de respuestas anteriores y recrea los
+// encabezados con el orden correcto. Usar si querés empezar limpio
+// después de resetFormCampos().
+// ═══════════════════════════════════════════════════════════════════
+function resetRespuestasSheet() {
+  const RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
+  let ss;
+  try {
+    ss = SpreadsheetApp.openById(RESP_SHEET_ID);
+  } catch(e) {
+    Logger.log('❌ No se pudo abrir el Sheet de respuestas: ' + e.message);
+    return;
+  }
+  const sheet = ss.getSheets()[0];
+  const lastRow = sheet.getLastRow();
+
+  // Borrar todos los datos (mantener fila 1 para encabezados)
+  if (lastRow >= 1) {
+    sheet.clearContents();
+  }
+
+  // Escribir encabezados en el orden correcto
+  sheet.getRange(1, 1, 1, 14).setValues([[
+    'Timestamp',
+    'Nombre completo',
+    'Tipo',
+    'Mail',
+    'Móvil (WhatsApp)',
+    'X (Twitter)',
+    'Instagram',
+    'LinkedIn',
+    'Empresa/Referencia',
+    'Ciudad(es) en las que podés participar',
+    'Tema(s) que vas a cubrir',
+    'Notas / Comentarios',
+    'Biografía',
+    'Eventos anteriores'
+  ]]);
+
+  // Resetear el contador de importación para empezar desde fila 1
+  PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
+
+  Logger.log('✅ Sheet de respuestas limpio. Encabezados escritos. Contador de importación reseteado a 1.');
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // LEER TEMAS DESDE EL SHEET DEX
-// Devuelve array de "Tema — Bajada" (o solo "Tema" si no hay bajada)
-// Tema = col 4 | Bajada = col 12
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function getTemasDesdeSheet() {
   try {
     const ss    = SpreadsheetApp.openById(DEX_SHEET_ID);
@@ -169,9 +254,9 @@ function getTemasDesdeSheet() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 // CREAR FORM DESDE CERO (solo si necesitás uno nuevo)
-// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
 function createSpeakerForm() {
   const temas = getTemasDesdeSheet();
 
@@ -185,7 +270,7 @@ function createSpeakerForm() {
   form.setConfirmationMessage('✅ ¡Gracias! Recibimos tu inscripción. Te contactamos pronto.');
 
   form.addTextItem().setTitle('Nombre completo').setRequired(true);
-  form.addTextItem().setTitle('Tipo').setHelpText('Ej: Speaker, Panelista, Moderador');
+  form.addMultipleChoiceItem().setTitle('Tipo').setChoiceValues(['Speaker','Moderador','Panelista','Sponsor']);
   form.addTextItem().setTitle('Mail').setHelpText('Ej: nombre@mail.com').setRequired(true);
   form.addTextItem().setTitle('Móvil (WhatsApp)').setHelpText('Ej: +54 9 11 1234-5678');
   form.addTextItem().setTitle('X (Twitter)').setHelpText('Ej: @usuario');
@@ -233,7 +318,7 @@ function createSpeakerForm() {
   Logger.log('📊 Sheet de respuestas: https://docs.google.com/spreadsheets/d/' + respSheet.getId());
 }
 
-// ── Helper: abre el form por ID hardcodeado ────────────────────
+// ── Helper: abre el form por ID hardcodeado ──────────────────────
 const SPEAKER_FORM_ID = '1x5OzFZXkSv2dqt7933fCiB3zQO7pYeFhlKPfSm-BCI0';
 
 function _abrirForm() {
