@@ -96,6 +96,24 @@ function doPost(e) {
 // ── IMPORTAR RESPUESTAS DEL FORM → SPEAKERS ────────────────────────
 const FORM_RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
 
+// ── HELPERS internos ────────────────────────────────────────────────
+// Normaliza ciudades del form → nombres simples
+function _parseCiudadesForm(raw) {
+  return String(raw||'')
+    .replace(/🟣 San Luis \([^)]+\)/g, 'San Luis')
+    .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
+    .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
+}
+
+// Extiende un string CSV de estados para que tenga `n` elementos
+// (los nuevos llevan el valor `fill` si la ciudad aplica, '' si no)
+function _extenderEstados(existingCsv, nViejo, nNuevo, fill) {
+  const arr = String(existingCsv||'').split(',').map(s=>s.trim());
+  while (arr.length < nViejo) arr.push('');      // completar hasta el viejo largo
+  for (let i = nViejo; i < nNuevo; i++) arr.push(fill); // nuevos temas
+  return arr.slice(0, nNuevo).join(',');
+}
+
 function importarFormSpeakers(dexSS) {
   let respSS;
   try {
@@ -118,25 +136,26 @@ function importarFormSpeakers(dexSS) {
   const spSheet = dexSS.getSheetByName('Speakers');
   if (!spSheet) return { ok: false, error: 'No existe la pestaña "Speakers".' };
 
-  const newRows  = allData.slice(lastImported);
-  const imported = [];
+  // ── Cargar speakers existentes indexados por mail ────────────────
+  const existingData = spSheet.getDataRange().getValues();
+  // Fila 0 = encabezados (o primer dato si no hay encabezado)
+  // Datos desde fila índice 1 → rowIndex en sheet = i + 2
+  const byMail = {};
+  existingData.slice(1).forEach((row, i) => {
+    const m = String(row[2]||'').trim().toLowerCase();
+    if (m) byMail[m] = { sheetRow: i + 2, row: [...row] };
+  });
+
+  const newRows      = allData.slice(lastImported);
+  const imported     = [];
+  const actualizados = [];
 
   newRows.forEach(r => {
-    // Columnas del form (orden del Sheet de respuestas):
-    // [0] Timestamp
-    // [1] Nombre completo
-    // [2] Tipo
-    // [3] Mail
-    // [4] Móvil (WhatsApp)
-    // [5] X (Twitter)
-    // [6] Instagram
-    // [7] LinkedIn
-    // [8] Empresa/Referencia
-    // [9] Ciudad(es)
-    // [10] Tema(s) que vas a cubrir
-    // [11] Notas / Comentarios
-    // [12] Biografía
-    // [13] Eventos anteriores
+    // Columnas del form (orden del Sheet de respuestas del Form):
+    // [0] Timestamp  [1] Nombre completo  [2] Tipo  [3] Mail
+    // [4] Móvil (WhatsApp)  [5] X (Twitter)  [6] Instagram  [7] LinkedIn
+    // [8] Empresa/Referencia  [9] Ciudad(es)  [10] Tema(s)
+    // [11] Notas / Comentarios  [12] Biografía  [13] Eventos anteriores
     const nombre   = String(r[1]  || '').trim();
     const tipo     = String(r[2]  || 'speaker').trim().toLowerCase();
     const mail     = String(r[3]  || '').trim();
@@ -146,42 +165,100 @@ function importarFormSpeakers(dexSS) {
     const linkedin = String(r[7]  || '').trim();
     const empresa  = String(r[8]  || '').trim();
     const ciudRaw  = String(r[9]  || '').trim();
-    // r[10]: "Tema1 — Bajada1, Tema2 — Bajada2" (checkboxes, hasta 3)
-    const temasRaw = String(r[10] || '').trim();
-    const temas    = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean).join(', ');
-    const notas    = String(r[11] || '').trim();
-    const bio      = String(r[12] || '').trim().slice(0, 100);
-    const eventos  = String(r[13] || '').trim();
+    // r[10]: checkboxes separados por coma, cada opción "Tema — Bajada"
+    const temasRaw  = String(r[10] || '').trim();
+    const temasArr  = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
+    const temasCsv  = temasArr.join(', ');
+    const notas     = String(r[11] || '').trim();
+    const bio       = String(r[12] || '').trim().slice(0, 100);
+    const eventos   = String(r[13] || '').trim();
 
     if (!nombre) return;
 
-    const ciudades = ciudRaw
-      .replace(/🟣 San Luis \([^)]+\)/g, 'San Luis')
-      .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
-      .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
+    const ciudades = _parseCiudadesForm(ciudRaw);
+    const hasSL  = ciudades.includes('San Luis');
+    const hasCBA = ciudades.includes('Córdoba');
+    const hasTUC = ciudades.includes('Tucumán');
 
-    // Estado inicial: disponible en cada ciudad seleccionada
-    const slEst  = ciudades.includes('San Luis') ? 'disponible' : '';
-    const sjEst  = ciudades.includes('Tucumán')  ? 'disponible' : '';
-    const cbaEst = ciudades.includes('Córdoba')  ? 'disponible' : '';
+    const mailKey = mail.toLowerCase();
 
-    // Formato fila Speakers:
-    // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
-    // sl_estado, sj_estado, cba_estado, movil, linkedin, bio, eventos_anteriores
-    spSheet.appendRow([nombre, tipo, mail, ciudades, temas, notas, xUser, ig, empresa, slEst, sjEst, cbaEst, movil, linkedin, bio, eventos]);
-    imported.push(nombre);
+    if (mailKey && byMail[mailKey]) {
+      // ── Speaker ya existe → fusionar temas / ciudades ────────────
+      const entry = byMail[mailKey];
+      const exRow = entry.row;
+
+      const existTemasArr = String(exRow[4]||'').split(',').map(t=>t.trim()).filter(Boolean);
+      const addedTemas = temasArr.filter(t => t && !existTemasArr.includes(t));
+      const mergedTemas = [...existTemasArr, ...addedTemas];
+      const nViejo = existTemasArr.length;
+      const nNuevo = mergedTemas.length;
+
+      // Ciudades: agregar las nuevas
+      const existCiuds = String(exRow[3]||'');
+      const ciudNuevas = ['San Luis','Córdoba','Tucumán'].filter(c => ciudades.includes(c) && !existCiuds.includes(c));
+      const mergedCiuds = ciudNuevas.length
+        ? (existCiuds ? existCiuds + ', ' + ciudNuevas.join(', ') : ciudNuevas.join(', '))
+        : existCiuds;
+
+      // Extender arrays de estado para los temas nuevos
+      const mergedSL  = _extenderEstados(exRow[9],  nViejo, nNuevo, hasSL  ? 'disponible' : '');
+      const mergedSJ  = _extenderEstados(exRow[10], nViejo, nNuevo, hasTUC ? 'disponible' : '');
+      const mergedCBA = _extenderEstados(exRow[11], nViejo, nNuevo, hasCBA ? 'disponible' : '');
+
+      const updRow = [...exRow];
+      updRow[3]  = mergedCiuds;
+      updRow[4]  = mergedTemas.join(', ');
+      updRow[9]  = mergedSL;
+      updRow[10] = mergedSJ;
+      updRow[11] = mergedCBA;
+      // Completar campos vacíos con los del form
+      if (!updRow[5]  && notas)    updRow[5]  = notas;
+      if (!updRow[12] && movil)    updRow[12] = movil;
+      if (!updRow[13] && linkedin) updRow[13] = linkedin;
+      if (!updRow[14] && bio)      updRow[14] = bio;
+      if (!updRow[15] && eventos)  updRow[15] = eventos;
+
+      spSheet.getRange(entry.sheetRow, 1, 1, updRow.length).setValues([updRow]);
+
+      if (addedTemas.length) {
+        actualizados.push(nombre + ' (+ ' + addedTemas.join(', ') + ')');
+      } else {
+        actualizados.push(nombre + ' (sin temas nuevos)');
+      }
+
+    } else {
+      // ── Speaker nuevo → agregar fila ─────────────────────────────
+      const n = Math.max(1, temasArr.length);
+      const mkEst = (aplica) => aplica ? Array(n).fill('disponible').join(',') : Array(n).fill('').join(',');
+      const slEst  = mkEst(hasSL);
+      const sjEst  = mkEst(hasTUC);
+      const cbaEst = mkEst(hasCBA);
+
+      // Formato fila Speakers (16 cols):
+      // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
+      // sl_estado, sj_estado, cba_estado, movil, linkedin, bio, eventos_anteriores
+      spSheet.appendRow([nombre, tipo, mail, ciudades, temasCsv, notas,
+        xUser, ig, empresa, slEst, sjEst, cbaEst, movil, linkedin, bio, eventos]);
+      byMail[mailKey] = { sheetRow: spSheet.getLastRow(), row: [] }; // registrar para evitar dup en mismo lote
+      imported.push(nombre);
+    }
   });
 
   props.setProperty('form_last_imported_row', String(totalRows));
   props.setProperty('version_Speakers', Date.now().toString());
 
-  return {
-    ok: true,
-    imported: imported.length,
-    msg: imported.length > 0
-      ? '✅ ' + imported.length + ' speaker(s) importados: ' + imported.join(', ')
-      : 'No se importó nada (filas sin nombre).'
-  };
+  const total = imported.length + actualizados.length;
+  let msg = '';
+  if (total === 0) {
+    msg = 'No se procesó nada (filas sin nombre o sin mail).';
+  } else {
+    const partes = [];
+    if (imported.length)     partes.push('✅ Nuevos: ' + imported.join(', '));
+    if (actualizados.length) partes.push('🔄 Actualizados: ' + actualizados.join(', '));
+    msg = partes.join(' | ');
+  }
+
+  return { ok: true, imported: total, msg };
 }
 
 // ── BACKUP diario ───────────────────────────────────────────────────
