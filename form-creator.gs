@@ -188,79 +188,79 @@ function updateTemaQuestion() {
 function resetRespuestasSheet() {
   const RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
 
-  // 1. Abrir el form y DESVINCULAR el sheet
-  //    (mientras está vinculado, Google bloquea borrar/mover sus columnas)
+  // 1. Desvincular el form (libera el bloqueo sobre las columnas)
   const form = _abrirForm();
   if (form) {
-    try {
-      form.removeDestination();
-      Logger.log('✅ Form desvinculado del sheet.');
-    } catch(e) {
-      Logger.log('⚠️  No se pudo desvincular el form: ' + e.message);
-    }
+    try { form.removeDestination(); Logger.log('✅ Form desvinculado.'); }
+    catch(e) { Logger.log('⚠️  removeDestination: ' + e.message); }
   }
 
-  // 2. Abrir el sheet y limpiarlo
+  // 2. Abrir el spreadsheet
   let ss;
-  try {
-    ss = SpreadsheetApp.openById(RESP_SHEET_ID);
-  } catch(e) {
-    Logger.log('❌ No se pudo abrir el Sheet de respuestas: ' + e.message);
-    return;
-  }
-  const sheet = ss.getSheets()[0];
+  try { ss = SpreadsheetApp.openById(RESP_SHEET_ID); }
+  catch(e) { Logger.log('❌ No se pudo abrir el Sheet: ' + e.message); return; }
 
-  // 3. Borrar TODO el contenido (ya sin la protección del form)
-  sheet.clear();
+  // 3. Eliminar todas las hojas "Form Responses X" que creó el form
+  const allSheets = ss.getSheets();
+  const formSheets = allSheets.filter(s => {
+    const n = s.getName().toLowerCase();
+    return n.includes('form response') || n.includes('respuestas del formulario');
+  });
 
-  // 4. Eliminar columnas extra (más allá de las 14 que necesitamos)
-  const lastCol = sheet.getMaxColumns();
-  if (lastCol > 14) {
-    sheet.deleteColumns(15, lastCol - 14);
-    Logger.log('✅ Columnas extra eliminadas. Quedan ' + sheet.getMaxColumns() + ' columnas.');
+  // Si todas las hojas son de respuestas, crear una vacía primero
+  // (Google no permite dejar el spreadsheet sin ninguna hoja)
+  if (formSheets.length === allSheets.length) {
+    ss.insertSheet('Respuestas');
+    Logger.log('➕ Hoja "Respuestas" creada.');
   }
+
+  formSheets.forEach(s => {
+    try { ss.deleteSheet(s); Logger.log('🗑️  Eliminada: ' + s.getName()); }
+    catch(e) { Logger.log('⚠️  No se pudo eliminar ' + s.getName() + ': ' + e.message); }
+  });
+
+  // 4. Usar o crear la hoja "Respuestas" como destino limpio
+  let target = ss.getSheetByName('Respuestas');
+  if (!target) {
+    target = ss.getSheets()[0];
+    target.setName('Respuestas');
+  }
+  target.clear();
+
+  // Eliminar columnas extra si quedaron
+  const lastCol = target.getMaxColumns();
+  if (lastCol > 14) target.deleteColumns(15, lastCol - 14);
 
   // 5. Escribir encabezados en el orden correcto
   const encabezados = [
-    'Timestamp',
-    'Nombre completo',
-    'Tipo',
-    'Mail',
-    'Móvil (WhatsApp)',
-    'X (Twitter)',
-    'Instagram',
-    'LinkedIn',
-    'Empresa/Referencia',
-    'Ciudad(es) en las que podés participar',
-    'Tema(s) que vas a cubrir',
-    'Notas / Comentarios',
-    'Biografía',
-    'Eventos anteriores'
+    'Timestamp', 'Nombre completo', 'Tipo', 'Mail',
+    'Móvil (WhatsApp)', 'X (Twitter)', 'Instagram', 'LinkedIn',
+    'Empresa/Referencia', 'Ciudad(es) en las que podés participar',
+    'Tema(s) que vas a cubrir', 'Notas / Comentarios',
+    'Biografía', 'Eventos anteriores'
   ];
-  sheet.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
-  sheet.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
+  target.getRange(1, 1, 1, encabezados.length).setValues([encabezados]);
+  target.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
+  Logger.log('✅ Encabezados escritos en hoja "Respuestas".');
 
-  // 6. Re-vincular el form al sheet limpio
+  // 6. Re-vincular el form a este spreadsheet
+  //    Google creará una nueva pestaña "Form Responses 1" dentro del mismo spreadsheet
   if (form) {
     try {
       form.setDestination(FormApp.DestinationType.SPREADSHEET, RESP_SHEET_ID);
-      Logger.log('✅ Form re-vinculado al sheet limpio.');
+      Logger.log('✅ Form re-vinculado. Google generará "Form Responses 1" al primer envío.');
     } catch(e) {
-      Logger.log('⚠️  No se pudo re-vincular el form: ' + e.message);
-      Logger.log('   Hacelo manualmente: Respuestas → ícono Sheet → ID: ' + RESP_SHEET_ID);
+      Logger.log('⚠️  Re-vincular: ' + e.message);
     }
   }
 
-  // 7. Resetear el contador de importación
+  // 7. Resetear contador
   PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
 
   Logger.log('');
-  Logger.log('✅ Todo listo:');
-  Logger.log('   · Sheet limpio con 14 columnas correctas');
-  Logger.log('   · Form desvinculado y re-vinculado → próximos envíos van a col 1');
-  Logger.log('   · Contador de importación reseteado a 1');
-  Logger.log('');
-  Logger.log('👉 Verificá el sheet: https://docs.google.com/spreadsheets/d/' + RESP_SHEET_ID);
+  Logger.log('✅ Listo. Al próximo envío del form, Google crea "Form Responses 1"');
+  Logger.log('   con las columnas en el orden correcto (col 1 = Timestamp, col 2 = Nombre, etc.)');
+  Logger.log('👉 ' + 'https://docs.google.com/spreadsheets/d/' + RESP_SHEET_ID);
 }
 
 // ═══════════════════════════════════════════════════════════════════

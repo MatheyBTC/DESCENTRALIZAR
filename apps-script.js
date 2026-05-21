@@ -140,7 +140,16 @@ function importarFormSpeakers(dexSS) {
     return { ok: false, error: 'No puedo abrir el Sheet de respuestas: ' + e.message };
   }
 
-  const respSheet = respSS.getSheets()[0];
+  // Buscar la hoja de respuestas activa (la que tiene más datos entre las "Form Responses X")
+  const allSheets = respSS.getSheets();
+  const formSheets = allSheets.filter(s => {
+    const n = s.getName().toLowerCase();
+    return n.includes('form response') || n.includes('respuestas del formulario') || n === 'respuestas';
+  });
+  const respSheet = formSheets.length > 0
+    ? formSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0]
+    : allSheets[0];
+
   const allData   = respSheet.getDataRange().getValues();
   const totalRows = allData.length;
 
