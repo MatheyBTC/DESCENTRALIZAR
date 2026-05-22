@@ -203,8 +203,9 @@ function importarFormSpeakers(dexSS) {
     const ciudRaw  = String(c(9)  || '').trim();               // Ciudad(es)
     const temasRaw = String(c(10) || '').trim();               // Tema(s)
     const notas    = String(c(11) || '').trim();               // Notas
-    const bio      = String(c(12) || '').trim().slice(0, 100); // Biografía
+    const bio      = String(c(12) || '').trim().slice(0, 150); // Biografía (150 chars)
     const eventos  = String(c(13) || '').trim();               // Eventos anteriores
+    const signal   = '';                                        // Signal (campo separado — pendiente en form)
 
     const temasArr = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
     const temasCsv = temasArr.join(', ');
@@ -254,6 +255,7 @@ function importarFormSpeakers(dexSS) {
       if (!updRow[14] && linkedin) updRow[14] = linkedin;
       if (!updRow[15] && bio)      updRow[15] = bio;
       if (!updRow[16] && eventos)  updRow[16] = eventos;
+      // updRow[17] = signal (se preserva lo que ya había)
 
       spSheet.getRange(entry.sheetRow, 1, 1, updRow.length).setValues([updRow]);
 
@@ -271,11 +273,11 @@ function importarFormSpeakers(dexSS) {
       const sjEst  = mkEst(hasTUC);
       const cbaEst = mkEst(hasCBA);
 
-      // Formato fila Speakers (16 cols):
+      // Formato fila Speakers (18 cols):
       // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
-      // sl_estado, sj_estado, cba_estado, movil, linkedin, bio, eventos_anteriores
+      // sl_estado, sj_estado, cba_estado, movil, telegram, linkedin, bio, eventos_anteriores, signal
       spSheet.appendRow([nombre, tipo, mail, ciudades, temasCsv, notas,
-        xUser, ig, empresa, slEst, sjEst, cbaEst, movil, telegram, linkedin, bio, eventos]);
+        xUser, ig, empresa, slEst, sjEst, cbaEst, movil, telegram, linkedin, bio, eventos, signal]);
       byMail[mailKey] = { sheetRow: spSheet.getLastRow(), row: [] }; // registrar para evitar dup en mismo lote
       imported.push(nombre);
     }

@@ -279,13 +279,13 @@ tr.sp-topic-row td{background:rgba(247,147,26,.05);padding-top:3px!important;pad
 /* ── TIPO BADGES ── */
 .tipo-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin:1px;white-space:nowrap}
 .tipo-speaker  {background:rgba(247,147,26,.15);color:#F7931A;border:1px solid rgba(247,147,26,.3)}
-.tipo-panelista{background:rgba(6,182,212,.15);color:#06b6d4;border:1px solid rgba(6,182,212,.3)}
-.tipo-moderador{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.tipo-panelista{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.3)}
+.tipo-moderador{background:rgba(6,182,212,.15);color:#06b6d4;border:1px solid rgba(6,182,212,.3)}
 .tipo-sponsor  {background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
 /* filtros tipo coloreados */
 button[data-filter-tipo="speaker"].active{background:rgba(247,147,26,.15)!important;border-color:#F7931A!important;color:#F7931A!important}
-button[data-filter-tipo="panelista"].active{background:rgba(6,182,212,.15)!important;border-color:#06b6d4!important;color:#06b6d4!important}
-button[data-filter-tipo="moderador"].active{background:rgba(239,68,68,.15)!important;border-color:#ef4444!important;color:#ef4444!important}
+button[data-filter-tipo="panelista"].active{background:rgba(234,179,8,.15)!important;border-color:#eab308!important;color:#eab308!important}
+button[data-filter-tipo="moderador"].active{background:rgba(6,182,212,.15)!important;border-color:#06b6d4!important;color:#06b6d4!important}
 button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!important;border-color:#22c55e!important;color:#22c55e!important}
 /* ── CIUDAD-ESTADO en tabla ── */
 .city-est-wrap{display:flex;flex-direction:column;gap:2px}
@@ -454,18 +454,22 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
     <button class="btn save" id="saveBtnSpeakers" onclick="saveSpeakers()">💾 Guardar</button>
     <button class="btn" onclick="loadSpeakers()">🔄 Actualizar</button>
     <div class="toolbar-sep"></div>
-    <button class="btn" onclick="importarDelForm()" title="Importa las respuestas nuevas del Google Form directo a la lista de Speakers">📥 Importar del Form</button>
+    <button class="btn" onclick="importarDelForm()" title="Importa las respuestas nuevas del Google Form directo a la lista de Speakers">📥 Importar Formulario</button>
     <span id="importStamp" style="font-size:11px;color:var(--muted)"></span>
-    <div style="margin-left:auto;position:relative">
-      <input class="form-input" id="spCardSearch" placeholder="🔍 Ver perfil…" style="width:200px;padding:5px 12px;font-size:13px" oninput="searchMiniCard(this.value)" autocomplete="off">
-      <div id="spMiniCard" style="display:none;position:absolute;right:0;top:110%;width:300px;background:var(--bg2);border:1px solid var(--btc);border-radius:10px;padding:16px;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+      <span style="font-size:13px;color:var(--muted);font-weight:600">Ficha</span>
+      <div style="position:relative">
+        <input class="form-input" id="spCardSearch" placeholder="🔍 Ver perfil…" style="width:200px;padding:5px 12px;font-size:13px" oninput="searchMiniCard(this.value)" autocomplete="off">
+        <div id="spMiniCard" style="display:none;position:absolute;right:0;top:110%;width:300px;background:var(--bg2);border:1px solid var(--btc);border-radius:10px;padding:16px;z-index:500;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
+      </div>
     </div>
   </div>
 
   <div style="padding:20px">
     <div class="form-card">
-      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker</span> <span style="color:var(--muted)">|</span> <span style="color:#22c55e">Sponsor</span></h3>
-      <div class="form-grid">
+      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker</span></h3>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <!-- Fila 1: Nombre | Tipo | Mail | Móvil | Telegram | Signal -->
         <div class="form-field">
           <label class="form-label">Nombre</label>
           <input class="form-input" id="sp-nombre" placeholder="Nombre completo">
@@ -473,14 +477,29 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
         <div class="form-field">
           <label class="form-label">Tipo</label>
           <select class="form-select" id="sp-tipo">
-            <option value="speaker">Speaker</option>
-            <option value="sponsor">Sponsor</option>
+            <option value="speaker">🟠 Speaker</option>
+            <option value="sponsor">🟢 Sponsor</option>
+            <option value="moderador">🔵 Moderador</option>
+            <option value="panelista">🟡 Panelista</option>
           </select>
         </div>
         <div class="form-field">
-          <label class="form-label">Contacto: (mail/móvil)</label>
-          <input class="form-input" id="sp-contacto" placeholder="mail@ejemplo.com / +54 9 …">
+          <label class="form-label">Mail</label>
+          <input class="form-input" id="sp-mail" type="email" placeholder="mail@ejemplo.com">
         </div>
+        <div class="form-field">
+          <label class="form-label">Móvil (WhatsApp)</label>
+          <input class="form-input" id="sp-movil" placeholder="+54 9 …">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Telegram</label>
+          <input class="form-input" id="sp-telegram" placeholder="@usuario">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Signal</label>
+          <input class="form-input" id="sp-signal" placeholder="+54 9 …">
+        </div>
+        <!-- Fila 2: X | IG | LinkedIn | Empresa -->
         <div class="form-field">
           <label class="form-label">X (Twitter)</label>
           <input class="form-input" id="sp-x" placeholder="@usuario">
@@ -490,9 +509,20 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
           <input class="form-input" id="sp-ig" placeholder="@usuario">
         </div>
         <div class="form-field">
-          <label class="form-label">Empresa/Referencia</label>
-          <input class="form-input" id="sp-empresa" placeholder="ej. Empresa y/o Referencia">
+          <label class="form-label">LinkedIn</label>
+          <input class="form-input" id="sp-linkedin" placeholder="linkedin.com/in/…">
         </div>
+        <div class="form-field">
+          <label class="form-label">Empresa</label>
+          <input class="form-input" id="sp-empresa" placeholder="ej. Empresa">
+        </div>
+        <!-- Biografía: ancho completo, 1 fila -->
+        <div class="form-field" style="grid-column:1/-1">
+          <label class="form-label">Biografía <span style="color:var(--muted);font-size:12px">(máx. 150 caracteres)</span></label>
+          <textarea class="form-ta" id="sp-bio" maxlength="150" rows="1" style="min-height:38px" placeholder="Breve descripción profesional…" oninput="document.getElementById('sp-bio-cnt').textContent=(150-this.value.length)+' restantes'"></textarea>
+          <span id="sp-bio-cnt" style="font-size:11px;color:var(--dim)">150 restantes</span>
+        </div>
+        <!-- Ciudad(es) -->
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Ciudad(es)</label>
           <div class="cities-check" id="sp-ciudades-wrap">
@@ -501,22 +531,18 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
             <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟡 Tucumán</label>
           </div>
         </div>
-        <div class="form-field" style="grid-column:1/-1">
-          <label class="form-label">Tema(s) que puede cubrir</label>
-          <input class="form-input" id="sp-temas" placeholder="Bitcoin, DeFi, Autocustodia…">
+        <!-- Temas | Notas | Eventos anteriores (en la misma fila) -->
+        <div class="form-field">
+          <label class="form-label">Tema(s)</label>
+          <input class="form-input" id="sp-temas" placeholder="Bitcoin, DeFi…">
         </div>
-        <div class="form-field" style="grid-column:1/-1">
+        <div class="form-field">
           <label class="form-label">Notas</label>
-          <textarea class="form-ta" id="sp-notas" style="font-size:19px" placeholder="Info adicional, disponibilidad, restricciones…"></textarea>
+          <input class="form-input" id="sp-notas" placeholder="Info adicional…">
         </div>
-        <div class="form-field" style="grid-column:1/-1">
-          <label class="form-label">Biografía <span style="color:var(--muted);font-size:12px">(máx. 100 caracteres)</span></label>
-          <textarea class="form-ta" id="sp-bio" maxlength="100" rows="2" placeholder="Breve descripción profesional…" oninput="document.getElementById('sp-bio-cnt').textContent=(100-this.value.length)+' restantes'"></textarea>
-          <span id="sp-bio-cnt" style="font-size:11px;color:var(--dim)">100 restantes</span>
-        </div>
-        <div class="form-field" style="grid-column:1/-1">
+        <div class="form-field" style="grid-column:span 2">
           <label class="form-label">Eventos anteriores <span style="color:var(--muted);font-size:12px">(opcional)</span></label>
-          <input class="form-input" id="sp-eventos" placeholder="Ej: LABITCONF 2024, Bitcoin Day Córdoba…">
+          <input class="form-input" id="sp-eventos" placeholder="LABITCONF 2024…">
         </div>
       </div>
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
@@ -541,20 +567,24 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
     <div class="table-wrap">
       <table class="sp-table">
         <thead><tr>
-          <th style="width:90px">Tipo</th>
+          <th style="width:85px">Tipo</th>
           <th>Nombre</th>
-          <th style="width:28px;text-align:center" title="N.° de temas — clic para ver estados por ciudad">#</th>
-          <th>Tema(s)</th>
-          <th style="width:120px">Ubicación</th>
-          <th>Contacto</th>
-          <th style="width:110px">Telegram / LinkedIn</th>
-          <th>X</th>
-          <th>IG</th>
-          <th>Empresa/Ref</th>
+          <th style="width:26px;text-align:center" title="N.° de temas — clic para expandir">#</th>
+          <th style="min-width:110px">Tema(s)</th>
+          <th style="width:60px;text-align:center" title="Ciudades">Ubic.</th>
+          <th style="width:130px">Estados</th>
+          <th style="min-width:130px">Mail</th>
+          <th style="width:55px;text-align:center">Movil</th>
+          <th style="width:80px">Telegram</th>
+          <th style="width:80px">Signal</th>
+          <th style="width:55px;text-align:center">LinkedIn</th>
+          <th style="width:70px">X</th>
+          <th style="width:70px">IG</th>
+          <th style="width:90px">Empresa</th>
           <th style="width:36px"></th>
         </tr></thead>
         <tbody id="speakersTableBody">
-          <tr><td colspan="11" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
+          <tr><td colspan="15" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1095,6 +1125,7 @@ function openSpDrop(idx, city, e) {
       topicos.forEach((topic, ti) => {
         const topicEst = estados[ti]||'';
         if (topicEst === 'rechazado') return; // no ofrecer temas rechazados
+        if (topicEst === 'confirmado') return; // ya confirmado en otro slot
         const icon = ESTADO_ICON[topicEst] || '';
         const combo = `${s.nombre}|${topic}`;
         if (alreadySelected.includes(combo) || isComboUsedInCity(idx, city, combo)) return;
@@ -1273,12 +1304,14 @@ function renderTopicFilters() {
 // ti = índice del tema (0-based) dentro del array de estados del speaker
 function estadoSelectHtml(ri, field, val, ti) {
   const cls = val ? 'est-'+val : 'est-empty';
+  // Confirmado → sólo lectura (se setea desde Principal)
+  if (val === 'confirmado') {
+    return `<span class="sp-estado-sel est-confirmado" style="display:inline-block;text-align:center;padding:2px 6px">✅ Confirmado</span>`;
+  }
   return `<select class="sp-estado-sel ${cls}" onchange="updateTopicEstado(${ri},'${field}',${ti},this.value)">
     <option value="" ${val===''?'selected':''}>—</option>
     <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disponible</option>
-    <option value="invitado" ${val==='invitado'?'selected':''}>📩 Invitado</option>
-    <option value="revision" ${val==='revision'?'selected':''}>⏳ Revisión</option>
-    <option value="confirmado" ${val==='confirmado'?'selected':''}>✅ Confirmado</option>
+    <option value="revision" ${val==='revision'?'selected':''}>⏳ Revisar</option>
     <option value="rechazado" ${val==='rechazado'?'selected':''}>❌ Rechazado</option>
   </select>`;
 }
@@ -1313,18 +1346,15 @@ function cityAggEstado(s, field) {
   if (arr.every(e => e === 'rechazado')) return 'rechazado';
   if (arr.some(e => e === 'confirmado')) return 'confirmado';
   if (arr.some(e => e === 'revision'))   return 'revision';
-  if (arr.some(e => e === 'invitado'))   return 'invitado';
   return 'disponible';
 }
 function cityEstadoSelHtml(ri, icon, field) {
   const val = cityAggEstado(state.speakers[ri], field);
-  const readonly = val === 'confirmado';
-  if (readonly) return `<span class="city-est-sel est-confirmado" style="display:inline-block;text-align:center">${icon} ✅</span>`;
+  if (val === 'confirmado') return `<span class="city-est-sel est-confirmado" style="display:inline-block;text-align:center">${icon} ✅</span>`;
   return `<select class="city-est-sel est-${val}" onchange="setCityEstado(${ri},'${field}',this)">
-    <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disponible</option>
-    <option value="invitado"   ${val==='invitado'  ?'selected':''}>📩 Invitado</option>
+    <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disp.</option>
     <option value="revision"   ${val==='revision'  ?'selected':''}>⏳ Revisar</option>
-    <option value="rechazado"  ${val==='rechazado' ?'selected':''}>❌ Rechazado</option>
+    <option value="rechazado"  ${val==='rechazado' ?'selected':''}>❌ Rechaz.</option>
   </select>`;
 }
 function setCityEstado(ri, field, sel) {
@@ -1344,7 +1374,7 @@ function renderSpeakers() {
   if (spFilter.city !== 'all') list = list.filter(s => (s.ciudades||'').includes(spFilter.city));
   if (spFilter.topic !== 'all') list = list.filter(s => spTemas(s).includes(spFilter.topic));
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'||spFilter.topic!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers${spFilter.tipo!=='all'||spFilter.city!=='all'||spFilter.topic!=='all'?' con ese filtro':' cargados aún'}.</td></tr>`;
     renderTopicFilters();
     return;
   }
@@ -1354,27 +1384,35 @@ function renderSpeakers() {
     const n       = temas.length;
     const temasStr = esc(temas.join(', ') || '— sin temas —');
     const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
-    // Ciudad / Estado: una fila por ciudad activa
+    // Iconos de ciudad para columna Ubicación
+    const ciudIcons = ciudArr.map(c =>
+      c.includes('San Luis')?'🟣':c.includes('Córdoba')?'🔵':c.includes('Tucumán')?'🟡':'📍'
+    ).join(' ') || '—';
+    // Estados por ciudad
     const cityRows = ciudArr.map(c => {
-      if (c.includes('San Luis')) return cityEstadoSelHtml(ri,'🟣','sl_estado');
-      if (c.includes('Córdoba'))  return cityEstadoSelHtml(ri,'🔵','cba_estado');
-      if (c.includes('Tucumán')) return cityEstadoSelHtml(ri,'🟡','sj_estado');
+      if (c.includes('San Luis')) return `<div style="font-size:11px;margin-bottom:1px">🟣 ${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
+      if (c.includes('Córdoba'))  return `<div style="font-size:11px;margin-bottom:1px">🔵 ${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
+      if (c.includes('Tucumán')) return `<div style="font-size:11px;margin-bottom:1px">🟡 ${cityEstadoSelHtml(ri,'','sj_estado')}</div>`;
       return '';
     }).filter(Boolean).join('');
+    const movilLink = s.movil
+      ? `<a href="${esc(s.movil)}" target="_blank" style="color:#22c55e;text-decoration:none;font-size:13px">📱</a>`
+      : '';
+    const liLink = s.linkedin
+      ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;font-size:14px">💼</a>`
+      : '';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td>${tipoBadgesHtml(s.tipo)}</td>
-      <td style="font-weight:700;white-space:nowrap;cursor:pointer" onclick="openSpPanel(${ri})" title="Ver ficha">${esc(s.nombre||'')}</td>
+      <td style="font-weight:700;white-space:nowrap;cursor:pointer;color:var(--btc)" onclick="openSpPanel(${ri})" title="Ver ficha">${esc(s.nombre||'')}</td>
       <td style="text-align:center"><span class="tema-badge" onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad">${n||'?'}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeakerTemas(${ri},this.innerText.trim())">${temasStr}</span></td>
-      <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">Sin ciudad</span>'}</div></td>
-      <td style="font-size:12px">
-        ${s.movil ? `<div><a href="${esc(s.movil)}" target="_blank" style="color:#22c55e;text-decoration:none">📱 WhatsApp</a></div>` : ''}
-        ${s.contacto ? `<div style="color:var(--muted)">✉️ ${esc(s.contacto)}</div>` : ''}
-      </td>
-      <td style="font-size:12px">
-        ${s.telegram ? `<div style="color:var(--muted)">✈️ ${esc(s.telegram)}</div>` : ''}
-        ${s.linkedin ? `<div><a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none">💼 LinkedIn</a></div>` : ''}
-      </td>
+      <td style="text-align:center;font-size:15px">${ciudIcons}</td>
+      <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
+      <td style="font-size:12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contacto ? `<a href="mailto:${esc(s.contacto)}" style="color:var(--muted);text-decoration:none">✉️ ${esc(s.contacto)}</a>` : ''}</td>
+      <td style="text-align:center">${movilLink}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.telegram ? `✈️ ${esc(s.telegram)}` : ''}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.signal ? `🔒 ${esc(s.signal)}` : ''}</td>
+      <td style="text-align:center">${liLink}</td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')">${esc(s.empresa||'')}</span></td>
@@ -1435,12 +1473,13 @@ function toggleSpTopics(ri) {
       <td colspan="2"></td>
       <td></td>
       <td class="topic-label">↳ ${esc(t)}</td>
-      <td style="font-size:11px;color:var(--muted)">
-        <div title="🟣 San Luis">${estadoSelectHtml(ri,'sl_estado',slE,ti)}</div>
-        <div title="🔵 Córdoba">${estadoSelectHtml(ri,'cba_estado',cbaE,ti)}</div>
-        <div title="🟡 Tucumán">${estadoSelectHtml(ri,'sj_estado',sjE,ti)}</div>
+      <td></td>
+      <td style="font-size:11px">
+        <div style="margin-bottom:1px" title="🟣 San Luis">🟣 ${estadoSelectHtml(ri,'sl_estado',slE,ti)}</div>
+        <div style="margin-bottom:1px" title="🔵 Córdoba">🔵 ${estadoSelectHtml(ri,'cba_estado',cbaE,ti)}</div>
+        <div title="🟡 Tucumán">🟡 ${estadoSelectHtml(ri,'sj_estado',sjE,ti)}</div>
       </td>
-      <td colspan="6"></td>
+      <td colspan="9"></td>
     `;
     insertAfter.after(tr);
     insertAfter = tr;
@@ -1457,10 +1496,13 @@ function addSpeaker() {
   const temasArr = document.getElementById('sp-temas').value.trim().split(',').map(t=>t.trim()).filter(Boolean);
   const n = Math.max(1, temasArr.length);
   const mkEst = (city) => ciudadesList.includes(city) ? Array(n).fill('disponible') : Array(n).fill('');
+  // Móvil → wa.me URL
+  const movilRaw = document.getElementById('sp-movil').value.trim().replace(/\D/g,'');
+  const movilUrl = movilRaw ? 'https://wa.me/' + movilRaw : '';
   state.speakers.push({
     nombre,
     tipo:      document.getElementById('sp-tipo').value,
-    contacto:  document.getElementById('sp-contacto').value.trim(),
+    contacto:  document.getElementById('sp-mail').value.trim(),
     x:         document.getElementById('sp-x').value.trim(),
     ig:        document.getElementById('sp-ig').value.trim(),
     empresa:   document.getElementById('sp-empresa').value.trim(),
@@ -1470,12 +1512,15 @@ function addSpeaker() {
     sl_estado:  mkEst('San Luis'),
     sj_estado:  mkEst('Tucumán'),
     cba_estado: mkEst('Córdoba'),
-    bio: document.getElementById('sp-bio').value.trim().slice(0, 100),
+    bio: document.getElementById('sp-bio').value.trim().slice(0, 150),
     eventos_anteriores: document.getElementById('sp-eventos').value.trim(),
-    movil: '', telegram: '', linkedin: '',
+    movil:    movilUrl,
+    telegram: document.getElementById('sp-telegram').value.trim(),
+    signal:   document.getElementById('sp-signal').value.trim(),
+    linkedin: document.getElementById('sp-linkedin').value.trim(),
   });
-  ['sp-nombre','sp-contacto','sp-x','sp-ig','sp-empresa','sp-temas','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('sp-bio-cnt').textContent = '100 restantes';
+  ['sp-nombre','sp-mail','sp-movil','sp-telegram','sp-signal','sp-x','sp-ig','sp-linkedin','sp-empresa','sp-temas','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sp-bio-cnt').textContent = '150 restantes';
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
   markDirty('speakers');
   renderSpeakers();
@@ -1544,6 +1589,7 @@ function openSpPanel(ri) {
       <h4>Contacto</h4>
       ${s.movil ? `<div class="sp-panel-row"><span class="sp-panel-label">📱 WhatsApp</span><a href="${esc(s.movil)}" target="_blank">Abrir chat</a></div>` : ''}
       ${txt(s.telegram,'Telegram','✈️')}
+      ${txt(s.signal,'Signal','🔒')}
       ${txt(s.contacto,'Mail','✉️')}
       ${link(s.linkedin,'LinkedIn','💼')}
       ${txt(s.x,'X (Twitter)','𝕏')}
@@ -1612,7 +1658,8 @@ async function loadSpeakers() {
         sj_estado:  parseE(r[10]),
         cba_estado: parseE(r[11]),
         movil: r[12]||'', telegram: r[13]||'', linkedin: r[14]||'',
-        bio: r[15]||'', eventos_anteriores: r[16]||''
+        bio: r[15]||'', eventos_anteriores: r[16]||'',
+        signal: r[17]||''
       };
     });
     renderSpeakers();
@@ -1635,7 +1682,8 @@ async function saveSpeakers() {
         spEstados(s,'sl_estado').join(','),   // estados como CSV alineados con temas
         spEstados(s,'sj_estado').join(','),
         spEstados(s,'cba_estado').join(','),
-        s.movil||'', s.telegram||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||''
+        s.movil||'', s.telegram||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||'',
+        s.signal||''
       ]);
       await gasPost('Speakers','replace_all', data);
       toast('✅ Speakers guardados');
@@ -1689,13 +1737,13 @@ function buildTimeline() {
     const cn = (CITY_NAMES[c.key]||'').toLowerCase();
     const estadoField = c.key + '_estado';
     const spEnCiudad = state.speakers.filter(s => (s.ciudades||'').toLowerCase().includes(cn));
-    const disponibles = spEnCiudad.length;
+    const disponibles = spEnCiudad.filter(s => !hasEstadoAny(s,estadoField,'confirmado') && !hasEstadoAny(s,estadoField,'rechazado')).length;
     const confirmados = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'confirmado')).length;
-    const invitados   = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'invitado')).length;
+    const rechazados  = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'rechazado')).length;
     const enRevision  = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'revision')).length;
 
     const pct = totalDay > 0 ? Math.min(100, Math.round(horasOcupadas / totalDay * 100)) : 0;
-    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles, confirmados, invitados, enRevision };
+    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles, confirmados, rechazados, enRevision };
   });
 
   let html = `<div class="tl-section-title">📊 Resumen ejecutivo por ciudad</div>
@@ -1718,7 +1766,7 @@ function buildTimeline() {
         <span class="tl-stat-val">${s.totalBloques}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Speakers Posibles 📝</span>
+        <span class="tl-stat-label">⚪ Disponibles</span>
         <span class="tl-stat-val">${s.disponibles}</span>
       </div>
       <div class="tl-stat-row">
@@ -1726,12 +1774,12 @@ function buildTimeline() {
         <span class="tl-stat-val ok">${s.confirmados}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">📩 Invitados</span>
-        <span class="tl-stat-val" style="color:#3b82f6">${s.invitados}</span>
-      </div>
-      <div class="tl-stat-row">
         <span class="tl-stat-label">⏳ En Revisión</span>
         <span class="tl-stat-val ${s.enRevision > 0 ? 'warn' : ''}">${s.enRevision}</span>
+      </div>
+      <div class="tl-stat-row">
+        <span class="tl-stat-label">❌ Rechazados</span>
+        <span class="tl-stat-val ${s.rechazados > 0 ? '' : 'ok'}" style="${s.rechazados > 0 ? 'color:#ef4444' : ''}">${s.rechazados}</span>
       </div>
       <div class="tl-stat-row">
         <span class="tl-stat-label">Bloques Ocupados</span>
@@ -2183,12 +2231,12 @@ async function init() {
   ];
 
   state.speakers = [
-    {nombre:'Diego Gurpegui',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bitcoin','Dinero','Moderación'],   contacto:'', notas:'Maestro de ceremonias', sl_estado:['confirmado','confirmado','confirmado'], sj_estado:['confirmado','confirmado','confirmado'], cba_estado:['confirmado','confirmado','confirmado'], movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Fernando Secchi',  tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Taller Wallet','Autocustodia'],    contacto:'', notas:'',                      sl_estado:['confirmado','confirmado'],              sj_estado:['confirmado','confirmado'],              cba_estado:['confirmado','confirmado'],              movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Jimena Vallone',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bienvenida','Apertura'],           contacto:'', notas:'',                      sl_estado:['invitado','invitado'],                  sj_estado:['invitado','invitado'],                  cba_estado:['invitado','invitado'],                  movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Matias Mathey',    tipo:'speaker', ciudades:'Tucumán',                    temas:['Descentralizar','Panel'],          contacto:'@MatheyBTC', notas:'',            sl_estado:['',''],                                  sj_estado:['confirmado','confirmado'],              cba_estado:['',''],                                  movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Juani Podesta',    tipo:'speaker', ciudades:'San Luis, Tucumán',           temas:['DeFi','Rootstock','Panel'],        contacto:'', notas:'Founder Bexo',          sl_estado:['revision','revision','revision'],        sj_estado:['revision','revision','revision'],        cba_estado:['','',''],                               movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Rodolfo Andragnes',tipo:'speaker', ciudades:'Tucumán',                    temas:['Moderación','Kahoot'],             contacto:'', notas:'',                      sl_estado:['',''],                                  sj_estado:['invitado','invitado'],                  cba_estado:['',''],                                  movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Diego Gurpegui',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bitcoin','Dinero','Moderación'],   contacto:'', notas:'Maestro de ceremonias', sl_estado:['confirmado','confirmado','confirmado'], sj_estado:['confirmado','confirmado','confirmado'], cba_estado:['confirmado','confirmado','confirmado'], movil:'', telegram:'', signal:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Fernando Secchi',  tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Taller Wallet','Autocustodia'],    contacto:'', notas:'',                      sl_estado:['confirmado','confirmado'],              sj_estado:['confirmado','confirmado'],              cba_estado:['confirmado','confirmado'],              movil:'', telegram:'', signal:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Jimena Vallone',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bienvenida','Apertura'],           contacto:'', notas:'',                      sl_estado:['disponible','disponible'],              sj_estado:['disponible','disponible'],              cba_estado:['disponible','disponible'],              movil:'', telegram:'', signal:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Matias Mathey',    tipo:'speaker', ciudades:'Tucumán',                    temas:['Descentralizar','Panel'],          contacto:'@MatheyBTC', notas:'',            sl_estado:['',''],                                  sj_estado:['confirmado','confirmado'],              cba_estado:['',''],                                  movil:'', telegram:'', signal:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Juani Podesta',    tipo:'speaker', ciudades:'San Luis, Tucumán',           temas:['DeFi','Rootstock','Panel'],        contacto:'', notas:'Founder Bexo',          sl_estado:['revision','revision','revision'],        sj_estado:['revision','revision','revision'],        cba_estado:['','',''],                               movil:'', telegram:'', signal:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Rodolfo Andragnes',tipo:'speaker', ciudades:'Tucumán',                    temas:['Moderación','Kahoot'],             contacto:'', notas:'',                      sl_estado:['',''],                                  sj_estado:['disponible','disponible'],              cba_estado:['',''],                                  movil:'', telegram:'', signal:'', linkedin:'', bio:'', eventos_anteriores:''},
   ];
 
   state.ideas = [
