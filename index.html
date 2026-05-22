@@ -351,7 +351,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
   <div class="nav-right">
     <span class="status-txt" id="lastSaveTxt" style="font-size:12px;color:var(--dim);display:none"></span>
     <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
-    <button id="keyBtn" onclick="gestionarClave()" title="Clave de escritura — clic para ingresar o cambiar" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;padding:3px 10px;cursor:pointer;white-space:nowrap">🔑 Sin clave</button>
+    <button id="keyBtn" onclick="gestionarClave()" title="Clave de escritura — clic para ingresar o cambiar" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;padding:3px 10px;cursor:pointer;white-space:nowrap">Sin Clave</button>
     <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
     <div class="status-dot" id="statusDot"></div>
     <span class="status-txt" id="statusTxt">Conectando…</span>
@@ -764,12 +764,12 @@ function updateKeyBtn() {
   const btn = document.getElementById('keyBtn');
   if (!btn) return;
   if (writeKey) {
-    btn.textContent = '🔒';
+    btn.textContent = 'Clave Guardada';
     btn.title = 'Clave activa — clic para cambiarla';
     btn.style.color = '#22c55e';
     btn.style.borderColor = '#22c55e';
   } else {
-    btn.textContent = '🔑 Sin clave';
+    btn.textContent = 'Sin Clave';
     btn.title = 'Sin clave — clic para ingresar';
     btn.style.color = 'var(--muted)';
     btn.style.borderColor = 'var(--border)';
