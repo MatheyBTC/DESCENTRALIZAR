@@ -2026,22 +2026,32 @@ async function gasGetVersion(sheet) {
 
 async function gasPost(sheet, action, data) {
   if (USE_LOCAL) { saveLocalSheet(sheet, data); return; }
+
+  // Si no hay clave guardada, pedir antes de intentar
   if (!writeKey) {
-    const ok = pedirClave();
-    if (!ok) throw new Error('Se necesita la clave para guardar.');
+    await pedirClave('Ingresá la clave para guardar cambios.');
+    if (!writeKey) throw new Error('Se necesita la clave para guardar.');
   }
-  const res = await fetch(GAS_URL, {
-    method:'POST',
+
+  const doFetch = () => fetch(GAS_URL, {
+    method: 'POST',
     body: JSON.stringify({ sheet, action, data, key: writeKey }),
   });
-  const json = await res.json();
+
+  let res  = await doFetch();
+  let json = await res.json();
+
+  // Clave incorrecta → pedir de nuevo y reintentar una vez
   if (json.code === 401) {
     olvidarClave();
-    pedirClave('❌ Clave incorrecta.');
-    throw new Error('Clave incorrecta — intentá guardar de nuevo.');
+    await pedirClave('❌ Clave incorrecta. Ingresá la clave correcta.');
+    if (!writeKey) throw new Error('Clave incorrecta.');
+    res  = await doFetch();
+    json = await res.json();
+    if (json.code === 401) { olvidarClave(); throw new Error('Clave incorrecta.'); }
   }
+
   if (json.error) throw new Error(json.error);
-  // Actualizar versión local tras guardar exitosamente
   if (json.version) versions[sheet] = json.version;
 }
 
