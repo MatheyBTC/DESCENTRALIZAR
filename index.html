@@ -1288,17 +1288,27 @@ async function savePrincipal() {
 // SPEAKERS
 // ══════════════════════════════════════════════════════════════════
 // ── DESPLEGABLE DE TEMAS DESDE PRINCIPAL ──────────────────────────
+const SP_TEMAS_CLEAR = '— Limpiar —';
+
 function updateSpTemasDatalist() {
   const dl = document.getElementById('sp-temas-list');
   if (!dl) return;
   const topics = new Set();
   state.principal.forEach(r => { if ((r.tema||'').trim()) topics.add(r.tema.trim()); });
-  dl.innerHTML = [...topics].sort().map(t => `<option value="${esc(t)}">`).join('');
+  dl.innerHTML = `<option value="${SP_TEMAS_CLEAR}">` +
+    [...topics].sort().map(t => `<option value="${esc(t)}">`).join('');
 }
 
 // Cuando el usuario elige un tema del desplegable → auto-llena Notas con el detalle de esa fila
 function onSpTemaInput(val) {
   const tema = val.trim();
+  // Opción limpiar
+  if (tema === SP_TEMAS_CLEAR) {
+    document.getElementById('sp-temas').value = '';
+    const notasEl = document.getElementById('sp-notas');
+    if (notasEl) { notasEl.value = ''; autoExpand(notasEl); }
+    return;
+  }
   if (!tema) return;
   const row = state.principal.find(r => (r.tema||'').trim() === tema);
   if (!row) return;
