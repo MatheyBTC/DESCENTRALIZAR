@@ -531,18 +531,20 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
             <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟡 Tucumán</label>
           </div>
         </div>
-        <!-- Temas | Notas | Eventos anteriores (en la misma fila) -->
-        <div class="form-field">
-          <label class="form-label">Tema(s)</label>
-          <input class="form-input" id="sp-temas" placeholder="Bitcoin, DeFi…">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Notas</label>
-          <input class="form-input" id="sp-notas" placeholder="Info adicional…">
+        <!-- Temas (desplegable de Principal) + Eventos -->
+        <div class="form-field" style="grid-column:span 2">
+          <label class="form-label">Tema(s) <span style="color:var(--muted);font-size:12px">(de la agenda)</span></label>
+          <input class="form-input" id="sp-temas" list="sp-temas-list" placeholder="Seleccioná o escribí…" oninput="onSpTemaInput(this.value)" autocomplete="off">
+          <datalist id="sp-temas-list"></datalist>
         </div>
         <div class="form-field" style="grid-column:span 2">
           <label class="form-label">Eventos anteriores <span style="color:var(--muted);font-size:12px">(opcional)</span></label>
           <input class="form-input" id="sp-eventos" placeholder="LABITCONF 2024…">
+        </div>
+        <!-- Notas: ancho completo, auto-fill desde el tema de Principal -->
+        <div class="form-field" style="grid-column:1/-1">
+          <label class="form-label">Notas <span style="color:var(--muted);font-size:12px">(se auto-completa al elegir tema)</span></label>
+          <textarea class="form-ta" id="sp-notas" rows="2" style="min-height:52px;resize:vertical;width:100%" placeholder="Notas / detalle del tema desde la agenda…" oninput="autoExpand(this)"></textarea>
         </div>
       </div>
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
@@ -833,6 +835,7 @@ function renderPrincipal() {
   state.principal.forEach((row,i) => tbody.appendChild(makePrincipalRow(row,i)));
   updateProgress();
   autoExpandAll();
+  updateSpTemasDatalist();
 }
 
 function durColor(dur) {
@@ -1284,6 +1287,30 @@ async function savePrincipal() {
 // ══════════════════════════════════════════════════════════════════
 // SPEAKERS
 // ══════════════════════════════════════════════════════════════════
+// ── DESPLEGABLE DE TEMAS DESDE PRINCIPAL ──────────────────────────
+function updateSpTemasDatalist() {
+  const dl = document.getElementById('sp-temas-list');
+  if (!dl) return;
+  const topics = new Set();
+  state.principal.forEach(r => { if ((r.tema||'').trim()) topics.add(r.tema.trim()); });
+  dl.innerHTML = [...topics].sort().map(t => `<option value="${esc(t)}">`).join('');
+}
+
+// Cuando el usuario elige un tema del desplegable → auto-llena Notas con el detalle de esa fila
+function onSpTemaInput(val) {
+  const tema = val.trim();
+  if (!tema) return;
+  const row = state.principal.find(r => (r.tema||'').trim() === tema);
+  if (!row) return;
+  const notasEl = document.getElementById('sp-notas');
+  if (!notasEl) return;
+  const parts = [row.bajada, row.detalle].filter(Boolean);
+  if (parts.length) {
+    notasEl.value = parts.join(' — ');
+    autoExpand(notasEl);
+  }
+}
+
 function setSpFilter(key, val) {
   spFilter[key] = val;
   document.querySelectorAll(`[data-filter-${key}]`).forEach(b => {
