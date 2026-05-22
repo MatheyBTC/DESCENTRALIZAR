@@ -534,14 +534,22 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
         <!-- Temas (desplegable de Principal) + Eventos -->
         <div class="form-field" style="grid-column:span 2">
           <label class="form-label">Tema(s) <span style="color:var(--muted);font-size:12px;font-weight:400">(de la agenda)</span></label>
-          <input class="form-input" id="sp-temas" list="sp-temas-list" placeholder="Seleccioná tema..." oninput="onSpTemaInput(this.value)" autocomplete="off">
+          <input class="form-input" id="sp-temas" list="sp-temas-list" placeholder="Seleccioná tema..."
+            oninput="onSpTemaInput(this.value)" onfocus="this.value=''" autocomplete="off">
           <datalist id="sp-temas-list"></datalist>
         </div>
         <div class="form-field" style="grid-column:span 2">
           <label class="form-label">Eventos anteriores <span style="color:var(--muted);font-size:12px">(opcional)</span></label>
           <input class="form-input" id="sp-eventos" placeholder="LABITCONF 2024…">
         </div>
-        <!-- Notas: ancho completo, auto-fill desde el tema de Principal -->
+        <!-- Bajada: ancho completo, readonly, se auto-llena con row.bajada -->
+        <div class="form-field" style="grid-column:1/-1">
+          <label class="form-label" style="color:#eab308">Bajada <span style="color:var(--muted);font-size:12px;font-weight:400">(de la agenda)</span></label>
+          <textarea class="form-ta" id="sp-bajada" rows="1" readonly
+            style="min-height:36px;resize:none;width:100%;color:#eab308;background:rgba(234,179,8,.06);border-color:rgba(234,179,8,.25);cursor:default"
+            placeholder="Se completa al elegir el tema..."></textarea>
+        </div>
+        <!-- Notas: ancho completo, auto-fill con row.detalle -->
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Notas <span style="color:var(--muted);font-size:12px;font-weight:400">(se auto-completa al traer el tema)</span></label>
           <textarea class="form-ta" id="sp-notas" rows="2" style="min-height:52px;resize:vertical;width:100%" placeholder="Notas: detalle del tema que viene desde hoja Principal" oninput="autoExpand(this)"></textarea>
@@ -1335,26 +1343,26 @@ function updateSpTemasDatalist() {
     [...topics].sort().map(t => `<option value="${esc(t)}">`).join('');
 }
 
-// Cuando el usuario elige un tema del desplegable → auto-llena Notas con el detalle de esa fila
+// Cuando el usuario elige un tema del desplegable → auto-llena Bajada y Notas
 function onSpTemaInput(val) {
   const tema = val.trim();
-  // Opción limpiar
-  if (tema === SP_TEMAS_CLEAR) {
+  // Opción limpiar: vaciar tema + bajada + notas
+  if (tema === SP_TEMAS_CLEAR || tema === '') {
     document.getElementById('sp-temas').value = '';
-    const notasEl = document.getElementById('sp-notas');
-    if (notasEl) { notasEl.value = ''; autoExpand(notasEl); }
+    const bajadaEl = document.getElementById('sp-bajada');
+    const notasEl  = document.getElementById('sp-notas');
+    if (bajadaEl) { bajadaEl.value = ''; autoExpand(bajadaEl); }
+    if (notasEl)  { notasEl.value  = ''; autoExpand(notasEl); }
     return;
   }
-  if (!tema) return;
   const row = state.principal.find(r => (r.tema||'').trim() === tema);
   if (!row) return;
+  // Bajada → campo amarillo (readonly)
+  const bajadaEl = document.getElementById('sp-bajada');
+  if (bajadaEl) { bajadaEl.value = row.bajada || ''; autoExpand(bajadaEl); }
+  // Notas → detalle del row (editable)
   const notasEl = document.getElementById('sp-notas');
-  if (!notasEl) return;
-  const parts = [row.bajada, row.detalle].filter(Boolean);
-  if (parts.length) {
-    notasEl.value = parts.join(' — ');
-    autoExpand(notasEl);
-  }
+  if (notasEl) { notasEl.value = row.detalle || ''; autoExpand(notasEl); }
 }
 
 function setSpFilter(key, val) {
@@ -1610,7 +1618,7 @@ function addSpeaker() {
     signal:   document.getElementById('sp-signal').value.trim(),
     linkedin: document.getElementById('sp-linkedin').value.trim(),
   });
-  ['sp-nombre','sp-mail','sp-movil','sp-telegram','sp-signal','sp-x','sp-ig','sp-linkedin','sp-empresa','sp-temas','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
+  ['sp-nombre','sp-mail','sp-movil','sp-telegram','sp-signal','sp-x','sp-ig','sp-linkedin','sp-empresa','sp-temas','sp-bajada','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('sp-bio-cnt').textContent = '150 restantes';
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
   markDirty('speakers');
