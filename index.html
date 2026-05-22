@@ -545,15 +545,16 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
           <th>Nombre</th>
           <th style="width:28px;text-align:center" title="N.° de temas — clic para ver estados por ciudad">#</th>
           <th>Tema(s)</th>
-          <th style="width:130px">Ciudad / Estado</th>
+          <th style="width:120px">Ubicación</th>
           <th>Contacto</th>
+          <th style="width:110px">Telegram / LinkedIn</th>
           <th>X</th>
           <th>IG</th>
           <th>Empresa/Ref</th>
           <th style="width:36px"></th>
         </tr></thead>
         <tbody id="speakersTableBody">
-          <tr><td colspan="10" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
+          <tr><td colspan="11" style="text-align:center;padding:40px;color:var(--dim)">No hay speakers cargados aún.</td></tr>
         </tbody>
       </table>
     </div>
@@ -1366,7 +1367,14 @@ function renderSpeakers() {
       <td style="text-align:center"><span class="tema-badge" onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad">${n||'?'}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeakerTemas(${ri},this.innerText.trim())">${temasStr}</span></td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">Sin ciudad</span>'}</div></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span></td>
+      <td style="font-size:12px">
+        ${s.movil ? `<div><a href="${esc(s.movil)}" target="_blank" style="color:#22c55e;text-decoration:none">📱 WhatsApp</a></div>` : ''}
+        ${s.contacto ? `<div style="color:var(--muted)">✉️ ${esc(s.contacto)}</div>` : ''}
+      </td>
+      <td style="font-size:12px">
+        ${s.telegram ? `<div style="color:var(--muted)">✈️ ${esc(s.telegram)}</div>` : ''}
+        ${s.linkedin ? `<div><a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none">💼 LinkedIn</a></div>` : ''}
+      </td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')">${esc(s.empresa||'')}</span></td>
@@ -1432,7 +1440,7 @@ function toggleSpTopics(ri) {
         <div title="🔵 Córdoba">${estadoSelectHtml(ri,'cba_estado',cbaE,ti)}</div>
         <div title="🟡 Tucumán">${estadoSelectHtml(ri,'sj_estado',sjE,ti)}</div>
       </td>
-      <td colspan="5"></td>
+      <td colspan="6"></td>
     `;
     insertAfter.after(tr);
     insertAfter = tr;
