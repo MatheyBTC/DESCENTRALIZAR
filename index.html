@@ -1062,6 +1062,20 @@ function allRechazadoInField(s, field) {
   return arr.length > 0 && arr.every(e => e === 'rechazado');
 }
 
+// Cuántos temas disponibles le quedan al speaker para una ciudad
+// (no rechazados, no confirmados, no ya usados en alguna fila de Principal)
+function spRemainingForCity(s, cityKey) {
+  const estadoField = cityKey + '_estado';
+  const temas = spTemas(s);
+  const estados = spEstados(s, estadoField);
+  return temas.filter((t, ti) => {
+    const est = estados[ti] || '';
+    if (est === 'rechazado' || est === 'confirmado') return false;
+    const combo = `${s.nombre}|${t}`;
+    return !state.principal.some(row => parseSpeakerField(row[cityKey]).includes(combo));
+  }).length;
+}
+
 // Helper: parsea "Juan Pérez|Bitcoin" → { name, topic }
 function parseSpChip(val) {
   const str = String(val||'').trim();
@@ -1078,13 +1092,20 @@ function isComboUsedInCity(excludeIdx, city, combo) {
   });
 }
 
-// Devuelve speakers disponibles para un slot (filtra por ciudad; excluye solo si TODOS los temas están rechazados)
-function speakersForSlot(city, excludeIdx) {
+// Devuelve speakers disponibles para un slot
+// Filtra por ciudad + tema del row (si el row tiene tema definido)
+function speakersForSlot(city, idx) {
   const cn = (CITY_NAMES[city]||'').toLowerCase();
   const estadoField = city + '_estado';
+  const rowTema = (state.principal[idx]?.tema || '').trim().toLowerCase();
   return state.speakers.filter(s => {
     if (cn && !(s.ciudades||'').toLowerCase().includes(cn)) return false;
     if (allRechazadoInField(s, estadoField)) return false;
+    // Filtrar por tema del row (si existe), excepto bloques sin speaker
+    if (rowTema) {
+      const temas = spTemas(s);
+      if (!temas.some(t => t.trim().toLowerCase() === rowTema)) return false;
+    }
     return true;
   });
 }
@@ -1093,7 +1114,9 @@ function renderSpPicker(idx, city, selected) {
   const arr = parseSpeakerField(selected);
   const chips = arr.map(item => {
     const { name, topic } = parseSpChip(item);
-    const label = topic ? `${name} | ${topic}` : name;
+    const sp = state.speakers.find(s => s.nombre === name);
+    const N = sp ? spRemainingForCity(sp, city) : 0;
+    const label = topic ? `${name} (${N}) | ${topic}` : `${name} (${N})`;
     return `<span class="sp-chip"><span class="sp-chip-name">${esc(label)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(item).replace(/"/g,'&quot;')}">✕</button></span>`;
   }).join('');
   return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-chips-wrap">${chips}<span class="sp-add-btn" data-idx="${idx}" data-city="${city}">+</span></div></div>`;
@@ -1111,33 +1134,40 @@ function openSpDrop(idx, city, e) {
   const anchor = document.getElementById(`spp-${idx}-${city}`);
   const r = anchor.getBoundingClientRect();
   const alreadySelected = parseSpeakerField(state.principal[idx]?.[city]);
-  const spList = speakersForSlot(city, idx);
+  const spList = speakersForSlot(city, idx); // filtrado por ciudad + tema del row
   const estadoField = city + '_estado';
-  const items = [];
+  const items = [];      // combos disponibles
+  const fullItems = [];  // combos ya usados en otra fila (N=0 para este tema)
   spList.forEach(s => {
     const topicos = spTemas(s);
     const estados = spEstados(s, estadoField);
+    const N = spRemainingForCity(s, city);
+    const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
     if (topicos.length === 0) {
-      const speakerEst = estados[0]||'';
-      const icon = ESTADO_ICON[speakerEst] || '';
+      // Speaker sin temas (solo aparece si el row tampoco tiene tema)
       const combo = s.nombre;
       if (!alreadySelected.includes(combo) && !isComboUsedInCity(idx, city, combo)) {
-        items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${icon ? icon+' ' : ''}${esc(s.nombre)}</div><div class="sp-item-tema" style="color:var(--dim)">Sin tema registrado</div></div>`);
+        items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:var(--dim)">Sin tema registrado</div></div>`);
       }
     } else {
       topicos.forEach((topic, ti) => {
         const topicEst = estados[ti]||'';
-        if (topicEst === 'rechazado') return; // no ofrecer temas rechazados
-        if (topicEst === 'confirmado') return; // ya confirmado en otro slot
-        const icon = ESTADO_ICON[topicEst] || '';
+        if (topicEst === 'rechazado') return;
         const combo = `${s.nombre}|${topic}`;
-        if (alreadySelected.includes(combo) || isComboUsedInCity(idx, city, combo)) return;
-        items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${icon ? icon+' ' : ''}${esc(s.nombre)}</div><div class="sp-item-tema">${esc(topic)}</div></div>`);
+        if (alreadySelected.includes(combo)) return; // ya en este slot
+        if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
+          // Disponible pero ya asignado en otra fila
+          fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:var(--dim)">${esc(topic)} · ya asignado</div></div>`);
+          return;
+        }
+        items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema">${esc(topic)}</div></div>`);
       });
     }
   });
+  const sep = fullItems.length ? `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Ya asignados</div>` : '';
+  const allHtml = [...items, sep, ...fullItems].join('');
   dd.innerHTML = `<input class="sp-search" placeholder="Buscar speaker o tema…" oninput="filterSpDrop(this.value)">` +
-    (items.length ? items.join('') : `<div style="padding:10px 12px;color:var(--dim);font-size:12px">Sin speakers disponibles</div>`);
+    (allHtml.trim() ? allHtml : `<div style="padding:10px 12px;color:var(--dim);font-size:12px">Sin speakers disponibles para este tema</div>`);
   dd.style.top   = r.bottom + 'px';
   dd.style.left  = r.left   + 'px';
   dd.style.width = Math.max(r.width, 240) + 'px';
@@ -1349,13 +1379,13 @@ function estadoSelectHtml(ri, field, val, ti) {
   const cls = val ? 'est-'+val : 'est-empty';
   // Confirmado → sólo lectura (se setea desde Principal)
   if (val === 'confirmado') {
-    return `<span class="sp-estado-sel est-confirmado" style="display:inline-block;text-align:center;padding:2px 6px">✅ Confirmado</span>`;
+    return `<span class="sp-estado-sel est-confirmado" style="display:inline-block;text-align:center;padding:2px 6px">Confirmado</span>`;
   }
   return `<select class="sp-estado-sel ${cls}" onchange="updateTopicEstado(${ri},'${field}',${ti},this.value)">
     <option value="" ${val===''?'selected':''}>—</option>
-    <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disponible</option>
-    <option value="revision" ${val==='revision'?'selected':''}>⏳ Revisar</option>
-    <option value="rechazado" ${val==='rechazado'?'selected':''}>❌ Rechazado</option>
+    <option value="disponible" ${val==='disponible'?'selected':''}>Disponible</option>
+    <option value="revision" ${val==='revision'?'selected':''}>Revisar</option>
+    <option value="rechazado" ${val==='rechazado'?'selected':''}>Rechazado</option>
   </select>`;
 }
 
@@ -1393,11 +1423,11 @@ function cityAggEstado(s, field) {
 }
 function cityEstadoSelHtml(ri, icon, field) {
   const val = cityAggEstado(state.speakers[ri], field);
-  if (val === 'confirmado') return `<span class="city-est-sel est-confirmado" style="display:inline-block;text-align:center">${icon} ✅</span>`;
+  if (val === 'confirmado') return `<span class="city-est-sel est-confirmado" style="display:inline-block;text-align:center">${icon} Conf.</span>`;
   return `<select class="city-est-sel est-${val}" onchange="setCityEstado(${ri},'${field}',this)">
-    <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disp.</option>
-    <option value="revision"   ${val==='revision'  ?'selected':''}>⏳ Revisar</option>
-    <option value="rechazado"  ${val==='rechazado' ?'selected':''}>❌ Rechaz.</option>
+    <option value="disponible" ${val==='disponible'?'selected':''}>Disp.</option>
+    <option value="revision"   ${val==='revision'  ?'selected':''}>Revisar</option>
+    <option value="rechazado"  ${val==='rechazado' ?'selected':''}>Rechaz.</option>
   </select>`;
 }
 function setCityEstado(ri, field, sel) {
@@ -1470,6 +1500,21 @@ function updateSpeakerTemas(ri, raw) {
   const s = state.speakers[ri];
   if (!s) return;
   const newTemas = raw.split(',').map(t=>t.trim()).filter(Boolean);
+  const oldTemas = spTemas(s);
+
+  // Advertir si algún tema eliminado tiene estado Confirmado en alguna ciudad
+  const confirmadosEliminados = oldTemas.filter((t, ti) => {
+    if (newTemas.some(nt => nt.toLowerCase() === t.toLowerCase())) return false; // no se elimina
+    return ['sl_estado','sj_estado','cba_estado'].some(f => spEstados(s, f)[ti] === 'confirmado');
+  });
+  if (confirmadosEliminados.length) {
+    const nombres = confirmadosEliminados.join(', ');
+    if (!confirm(`⚠️ "${nombres}" tiene estado Confirmado en alguna ciudad.\nAl eliminarlo, se perderá esa asignación.\n¿Continuar?`)) {
+      renderSpeakers(); // revertir la celda
+      return;
+    }
+  }
+
   const n = Math.max(1, newTemas.length);
   // Ajustar arrays de estados al nuevo número de temas
   ['sl_estado','sj_estado','cba_estado'].forEach(field => {
@@ -1503,29 +1548,32 @@ function toggleSpTopics(ri) {
   const badge = mainRow.querySelector('.tema-badge');
   if (badge) badge.classList.add('open');
 
+  const ciudArr = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+  const citySlots = [];
+  if (ciudArr.some(c=>c.includes('San Luis')))  citySlots.push({ emoji:'🟥', field:'sl_estado',  label:'San Luis' });
+  if (ciudArr.some(c=>c.includes('Córdoba')))   citySlots.push({ emoji:'🟨', field:'cba_estado', label:'Córdoba' });
+  if (ciudArr.some(c=>c.includes('Tucumán'))) citySlots.push({ emoji:'🟩', field:'sj_estado',  label:'Tucumán' });
+
   let insertAfter = mainRow;
+  const tipoBadge = tipoBadgesHtml(s.tipo);
   temas.forEach((t, ti) => {
-    const slE  = spEstados(s, 'sl_estado')[ti]  || '';
-    const cbaE = spEstados(s, 'cba_estado')[ti] || '';
-    const sjE  = spEstados(s, 'sj_estado')[ti]  || '';
-    const tr = document.createElement('tr');
-    tr.className = 'sp-topic-row';
-    tr.dataset.spRi = String(ri);
-    // 10 cols: [tipo][nombre][#][tema label][SL · CBA · TUC en col Ciudad/Estado][contacto][x][ig][empresa][✕]
-    tr.innerHTML = `
-      <td colspan="2"></td>
-      <td></td>
-      <td class="topic-label">↳ ${esc(t)}</td>
-      <td></td>
-      <td style="font-size:11px">
-        <div style="margin-bottom:1px" title="🟥 San Luis">🟥 ${estadoSelectHtml(ri,'sl_estado',slE,ti)}</div>
-        <div style="margin-bottom:1px" title="🟨 Córdoba">🟨 ${estadoSelectHtml(ri,'cba_estado',cbaE,ti)}</div>
-        <div title="🟩 Tucumán">🟩 ${estadoSelectHtml(ri,'sj_estado',sjE,ti)}</div>
-      </td>
-      <td colspan="9"></td>
-    `;
-    insertAfter.after(tr);
-    insertAfter = tr;
+    citySlots.forEach(({ emoji, field, label }) => {
+      const est = spEstados(s, field)[ti] || '';
+      const tr = document.createElement('tr');
+      tr.className = 'sp-topic-row';
+      tr.dataset.spRi = String(ri);
+      // Cols: [tipo][nombre empty][# empty][↳ tema][ciudad emoji][estado select][mail…✕ empty × 9]
+      tr.innerHTML = `
+        <td style="padding:2px 6px">${tipoBadge}</td>
+        <td colspan="2"></td>
+        <td class="topic-label" style="padding-left:12px">↳ ${esc(t)}</td>
+        <td style="text-align:center;font-size:15px" title="${label}">${emoji}</td>
+        <td style="font-size:11px;padding:2px 4px">${estadoSelectHtml(ri, field, est, ti)}</td>
+        <td colspan="9"></td>
+      `;
+      insertAfter.after(tr);
+      insertAfter = tr;
+    });
   });
 }
 
