@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DEX-eventos (2026)</title>
+<title>DESCENTRALIZAR (2026)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
@@ -276,6 +276,39 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .tema-badge.open{background:#e2e8f0}
 tr.sp-topic-row td{background:rgba(247,147,26,.05);padding-top:3px!important;padding-bottom:3px!important;border-top:none!important}
 .topic-label{font-size:12px;color:var(--muted);padding-left:20px!important;white-space:nowrap}
+/* ── TIPO BADGES ── */
+.tipo-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin:1px;white-space:nowrap}
+.tipo-speaker  {background:rgba(247,147,26,.15);color:#F7931A;border:1px solid rgba(247,147,26,.3)}
+.tipo-panelista{background:rgba(6,182,212,.15);color:#06b6d4;border:1px solid rgba(6,182,212,.3)}
+.tipo-moderador{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.tipo-sponsor  {background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+/* filtros tipo coloreados */
+button[data-filter-tipo="speaker"].active{background:rgba(247,147,26,.15)!important;border-color:#F7931A!important;color:#F7931A!important}
+button[data-filter-tipo="panelista"].active{background:rgba(6,182,212,.15)!important;border-color:#06b6d4!important;color:#06b6d4!important}
+button[data-filter-tipo="moderador"].active{background:rgba(239,68,68,.15)!important;border-color:#ef4444!important;color:#ef4444!important}
+button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!important;border-color:#22c55e!important;color:#22c55e!important}
+/* ── CIUDAD-ESTADO en tabla ── */
+.city-est-wrap{display:flex;flex-direction:column;gap:2px}
+.city-est-sel{font-size:11px;padding:1px 4px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;width:100%}
+.city-est-sel.est-disponible{background:rgba(255,255,255,.08);color:var(--text)}
+.city-est-sel.est-revision  {background:rgba(234,179,8,.2);color:#eab308}
+.city-est-sel.est-rechazado {background:rgba(239,68,68,.2);color:#ef4444}
+.city-est-sel.est-confirmado{background:rgba(34,197,94,.2);color:#22c55e;pointer-events:none}
+.city-est-sel.est-invitado  {background:rgba(99,102,241,.2);color:#818cf8}
+/* ── SPEAKER PROFILE PANEL ── */
+.sp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:599}
+.sp-overlay.open{display:block}
+.sp-panel{position:fixed;right:-460px;top:0;width:440px;height:100vh;background:var(--bg2);border-left:2px solid var(--border);z-index:600;overflow-y:auto;transition:right .25s ease;box-shadow:-12px 0 40px rgba(0,0,0,.7)}
+.sp-panel.open{right:0}
+.sp-panel-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.sp-panel-avatar{width:48px;height:48px;border-radius:50%;background:var(--btc-dim);border:2px solid var(--btc);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--btc);flex-shrink:0}
+.sp-panel-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.sp-panel-section{background:var(--bg3);border-radius:8px;padding:12px 14px}
+.sp-panel-section h4{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.sp-panel-row{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:5px}
+.sp-panel-row a{color:var(--btc);text-decoration:none}
+.sp-panel-row a:hover{text-decoration:underline}
+.sp-panel-label{color:var(--dim);font-size:11px;min-width:70px}
 
 /* ── PUBLIC VIEW ── */
 .public-view{max-width:900px;margin:0 auto;padding:32px 20px;}
@@ -310,7 +343,7 @@ tr.sp-topic-row td{background:rgba(247,147,26,.05);padding-top:3px!important;pad
 
 <!-- ── NAV ── -->
 <div class="nav">
-  <div class="nav-brand">📌 DEX-eventos (2026)</div>
+  <div class="nav-brand">📌 DESCENTRALIZAR (2026)</div>
   <button class="tab-btn active" onclick="switchTab('principal')">📋 Principal</button>
   <button class="tab-btn" onclick="switchTab('speakers')">🎙️ Speakers</button>
   <button class="tab-btn" onclick="switchTab('timeline')">📊 Resumen</button>
@@ -397,6 +430,20 @@ tr.sp-topic-row td{background:rgba(247,147,26,.05);padding-top:3px!important;pad
     </table>
     <button class="add-row-btn" onclick="addPrincipalRow()">+ Agregar fila</button>
   </div>
+</div>
+
+<!-- ══ SPEAKER PROFILE PANEL ══ -->
+<div class="sp-overlay" id="spOverlay" onclick="closeSpPanel()"></div>
+<div class="sp-panel" id="spPanel">
+  <div class="sp-panel-header">
+    <div class="sp-panel-avatar" id="spPanelAvatar">?</div>
+    <div style="flex:1;min-width:0">
+      <div id="spPanelNombre" style="font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+      <div id="spPanelTipos" style="margin-top:3px"></div>
+    </div>
+    <button onclick="closeSpPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;padding:4px">✕</button>
+  </div>
+  <div class="sp-panel-body" id="spPanelBody"></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════
@@ -493,11 +540,11 @@ tr.sp-topic-row td{background:rgba(247,147,26,.05);padding-top:3px!important;pad
     <div class="table-wrap">
       <table class="sp-table">
         <thead><tr>
-          <th>Tipo</th>
+          <th style="width:90px">Tipo</th>
           <th>Nombre</th>
           <th style="width:28px;text-align:center" title="N.° de temas — clic para ver estados por ciudad">#</th>
           <th>Tema(s)</th>
-          <th>Notas</th>
+          <th style="width:130px">Ciudad / Estado</th>
           <th>Contacto</th>
           <th>X</th>
           <th>IG</th>
@@ -1246,6 +1293,47 @@ function updateTopicEstado(ri, field, ti, val) {
   if (sel) sel.className = `sp-estado-sel ${val ? 'est-'+val : 'est-empty'}`;
 }
 
+// ── Helpers de tipo y estado por ciudad ─────────────────────────────
+function tipoClass(t) {
+  const tl = (t||'').toLowerCase();
+  if (tl.includes('sponsor'))   return 'tipo-sponsor';
+  if (tl.includes('moderador')) return 'tipo-moderador';
+  if (tl.includes('panelista')) return 'tipo-panelista';
+  return 'tipo-speaker';
+}
+function tipoBadgesHtml(tipo) {
+  return (tipo||'speaker').split(',').map(t => t.trim()).filter(Boolean)
+    .map(t => `<span class="tipo-badge ${tipoClass(t)}">${esc(t)}</span>`).join('');
+}
+function cityAggEstado(s, field) {
+  const arr = spEstados(s, field).filter(e => e);
+  if (!arr.length) return 'disponible';
+  if (arr.every(e => e === 'rechazado')) return 'rechazado';
+  if (arr.some(e => e === 'confirmado')) return 'confirmado';
+  if (arr.some(e => e === 'revision'))   return 'revision';
+  if (arr.some(e => e === 'invitado'))   return 'invitado';
+  return 'disponible';
+}
+function cityEstadoSelHtml(ri, icon, field) {
+  const val = cityAggEstado(state.speakers[ri], field);
+  const readonly = val === 'confirmado';
+  if (readonly) return `<span class="city-est-sel est-confirmado" style="display:inline-block;text-align:center">${icon} ✅</span>`;
+  return `<select class="city-est-sel est-${val}" onchange="setCityEstado(${ri},'${field}',this)">
+    <option value="disponible" ${val==='disponible'?'selected':''}>⚪ Disponible</option>
+    <option value="invitado"   ${val==='invitado'  ?'selected':''}>📩 Invitado</option>
+    <option value="revision"   ${val==='revision'  ?'selected':''}>⏳ Revisar</option>
+    <option value="rechazado"  ${val==='rechazado' ?'selected':''}>❌ Rechazado</option>
+  </select>`;
+}
+function setCityEstado(ri, field, sel) {
+  const s = state.speakers[ri];
+  if (!s) return;
+  const val = sel.value;
+  s[field] = spEstados(s, field).map(() => val);
+  sel.className = `city-est-sel est-${val}`;
+  markDirty('speakers');
+}
+
 function renderSpeakers() {
   const tbody = document.getElementById('speakersTableBody');
   if (!tbody) return;
@@ -1258,26 +1346,25 @@ function renderSpeakers() {
     renderTopicFilters();
     return;
   }
-  const tipoColor = (t) => {
-    const tl = (t||'').toLowerCase();
-    if (tl.includes('sponsor'))   return '#06b6d4';
-    if (tl.includes('moderador')) return '#a78bfa';
-    if (tl.includes('panelista')) return '#fb923c';
-    return 'var(--btc)'; // speaker por defecto
-  };
   tbody.innerHTML = list.map(s => {
-    const ri = state.speakers.indexOf(s);
-    const tipo = s.tipo||'speaker';
-    const hasAny = !!(s.ciudades||'').trim();
-    const temas  = spTemas(s);
-    const n      = temas.length;
+    const ri      = state.speakers.indexOf(s);
+    const temas   = spTemas(s);
+    const n       = temas.length;
     const temasStr = esc(temas.join(', ') || '— sin temas —');
-    return `<tr data-sp-ri="${ri}" style="${hasAny?'':'opacity:.55'}">
-      <td><span class="sp-edit" style="color:${tipoColor(tipo)};font-size:12px;font-weight:600" contenteditable="true" onblur="updateSpeaker(${ri},'tipo',this.innerText.trim());markDirty('speakers')">${esc(tipo)}</span></td>
-      <td style="font-weight:700;white-space:nowrap"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')">${esc(s.nombre||'')}</span></td>
-      <td style="text-align:center"><span class="tema-badge" onclick="toggleSpTopics(${ri})" title="🟣 SL · 🔵 CBA · 🟡 TUC — clic para editar estados">${n||'?'}</span></td>
+    const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+    // Ciudad / Estado: una fila por ciudad activa
+    const cityRows = ciudArr.map(c => {
+      if (c.includes('San Luis')) return cityEstadoSelHtml(ri,'🟣','sl_estado');
+      if (c.includes('Córdoba'))  return cityEstadoSelHtml(ri,'🔵','cba_estado');
+      if (c.includes('Tucumán')) return cityEstadoSelHtml(ri,'🟡','sj_estado');
+      return '';
+    }).filter(Boolean).join('');
+    return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
+      <td>${tipoBadgesHtml(s.tipo)}</td>
+      <td style="font-weight:700;white-space:nowrap;cursor:pointer" onclick="openSpPanel(${ri})" title="Ver ficha">${esc(s.nombre||'')}</td>
+      <td style="text-align:center"><span class="tema-badge" onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad">${n||'?'}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeakerTemas(${ri},this.innerText.trim())">${temasStr}</span></td>
-      <td><span class="sp-edit" style="color:var(--muted);font-size:12px" contenteditable="true" onblur="updateSpeaker(${ri},'notas',this.innerText.trim());markDirty('speakers')">${esc(s.notas||'')}</span></td>
+      <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">Sin ciudad</span>'}</div></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
@@ -1334,15 +1421,17 @@ function toggleSpTopics(ri) {
     const tr = document.createElement('tr');
     tr.className = 'sp-topic-row';
     tr.dataset.spRi = String(ri);
-    // 10 cols: [2 vacío][badge col vacío][topic label][SL][CBA][TUC][3 vacío]
+    // 10 cols: [tipo][nombre][#][tema label][SL · CBA · TUC en col Ciudad/Estado][contacto][x][ig][empresa][✕]
     tr.innerHTML = `
       <td colspan="2"></td>
       <td></td>
       <td class="topic-label">↳ ${esc(t)}</td>
-      <td style="text-align:center" title="🟣 San Luis">${estadoSelectHtml(ri,'sl_estado',slE,ti)}</td>
-      <td style="text-align:center" title="🔵 Córdoba">${estadoSelectHtml(ri,'cba_estado',cbaE,ti)}</td>
-      <td style="text-align:center" title="🟡 Tucumán">${estadoSelectHtml(ri,'sj_estado',sjE,ti)}</td>
-      <td colspan="3"></td>
+      <td style="font-size:11px;color:var(--muted)">
+        <div title="🟣 San Luis">${estadoSelectHtml(ri,'sl_estado',slE,ti)}</div>
+        <div title="🔵 Córdoba">${estadoSelectHtml(ri,'cba_estado',cbaE,ti)}</div>
+        <div title="🟡 Tucumán">${estadoSelectHtml(ri,'sj_estado',sjE,ti)}</div>
+      </td>
+      <td colspan="5"></td>
     `;
     insertAfter.after(tr);
     insertAfter = tr;
@@ -1374,7 +1463,7 @@ function addSpeaker() {
     cba_estado: mkEst('Córdoba'),
     bio: document.getElementById('sp-bio').value.trim().slice(0, 100),
     eventos_anteriores: document.getElementById('sp-eventos').value.trim(),
-    movil: '', linkedin: '',
+    movil: '', telegram: '', linkedin: '',
   });
   ['sp-nombre','sp-contacto','sp-x','sp-ig','sp-empresa','sp-temas','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('sp-bio-cnt').textContent = '100 restantes';
@@ -1402,6 +1491,77 @@ function delSpeaker(i) {
   state.speakers.splice(i,1);
   markDirty('speakers');
   renderSpeakers();
+}
+
+// ── SPEAKER PROFILE PANEL ────────────────────────────────────────────
+function openSpPanel(ri) {
+  const s = state.speakers[ri];
+  if (!s) return;
+  document.getElementById('spPanelAvatar').textContent = (s.nombre||'?').charAt(0).toUpperCase();
+  document.getElementById('spPanelNombre').textContent = s.nombre||'';
+  document.getElementById('spPanelTipos').innerHTML = tipoBadgesHtml(s.tipo);
+
+  const ciudArr = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+  const temas   = spTemas(s);
+
+  const link = (href, label, icon) => href
+    ? `<div class="sp-panel-row"><span class="sp-panel-label">${icon} ${label}</span><a href="${esc(href)}" target="_blank">${esc(href)}</a></div>`
+    : '';
+  const txt = (val, label, icon) => val
+    ? `<div class="sp-panel-row"><span class="sp-panel-label">${icon} ${label}</span><span>${esc(val)}</span></div>`
+    : '';
+
+  // Temas × Ciudad × Estado
+  const matrizHtml = temas.length ? temas.map((t, ti) => {
+    const slE  = spEstados(s,'sl_estado')[ti]  || '';
+    const cbaE = spEstados(s,'cba_estado')[ti] || '';
+    const sjE  = spEstados(s,'sj_estado')[ti]  || '';
+    const estBadge = (e, icon) => e
+      ? `<span style="font-size:11px;padding:1px 6px;border-radius:6px;background:var(--bg2)">${icon} ${ESTADO_ICON[e]||'⚪'} ${e}</span>`
+      : '';
+    return `<div style="margin-bottom:6px;font-size:12px">
+      <div style="font-weight:600;margin-bottom:2px">↳ ${esc(t)}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${ciudArr.some(c=>c.includes('San Luis')) ? estBadge(slE,'🟣') : ''}
+        ${ciudArr.some(c=>c.includes('Córdoba'))  ? estBadge(cbaE,'🔵') : ''}
+        ${ciudArr.some(c=>c.includes('Tucumán')) ? estBadge(sjE,'🟡') : ''}
+      </div>
+    </div>`;
+  }).join('') : '<div style="color:var(--dim);font-size:12px">Sin temas cargados</div>';
+
+  document.getElementById('spPanelBody').innerHTML = `
+    ${s.bio ? `<div class="sp-panel-section"><h4>Biografía</h4><div style="font-size:13px;font-style:italic;color:var(--muted)">"${esc(s.bio)}"</div></div>` : ''}
+    <div class="sp-panel-section">
+      <h4>Contacto</h4>
+      ${s.movil ? `<div class="sp-panel-row"><span class="sp-panel-label">📱 WhatsApp</span><a href="${esc(s.movil)}" target="_blank">Abrir chat</a></div>` : ''}
+      ${txt(s.telegram,'Telegram','✈️')}
+      ${txt(s.contacto,'Mail','✉️')}
+      ${link(s.linkedin,'LinkedIn','💼')}
+      ${txt(s.x,'X (Twitter)','𝕏')}
+      ${txt(s.ig,'Instagram','📷')}
+      ${txt(s.empresa,'Empresa','🏢')}
+    </div>
+    <div class="sp-panel-section">
+      <h4>Ciudades</h4>
+      <div>${ciudArr.map(c => {
+        const icon = c.includes('San Luis')?'🟣':c.includes('Córdoba')?'🔵':'🟡';
+        return `<span style="margin-right:6px;font-size:13px">${icon} ${esc(c)}</span>`;
+      }).join('') || '<span style="color:var(--dim);font-size:12px">Sin ciudades</span>'}</div>
+    </div>
+    <div class="sp-panel-section">
+      <h4>Temas y estados</h4>
+      ${matrizHtml}
+    </div>
+    ${s.notas ? `<div class="sp-panel-section"><h4>Notas</h4><div style="font-size:13px;color:var(--muted)">${esc(s.notas)}</div></div>` : ''}
+    ${s.eventos_anteriores ? `<div class="sp-panel-section"><h4>Eventos anteriores</h4><div style="font-size:13px">${esc(s.eventos_anteriores)}</div></div>` : ''}
+  `;
+
+  document.getElementById('spPanel').classList.add('open');
+  document.getElementById('spOverlay').classList.add('open');
+}
+function closeSpPanel() {
+  document.getElementById('spPanel').classList.remove('open');
+  document.getElementById('spOverlay').classList.remove('open');
 }
 
 async function importarDelForm() {
@@ -1440,8 +1600,8 @@ async function loadSpeakers() {
         sl_estado:  parseE(r[9]),
         sj_estado:  parseE(r[10]),
         cba_estado: parseE(r[11]),
-        movil: r[12]||'', linkedin: r[13]||'',
-        bio: r[14]||'', eventos_anteriores: r[15]||''
+        movil: r[12]||'', telegram: r[13]||'', linkedin: r[14]||'',
+        bio: r[15]||'', eventos_anteriores: r[16]||''
       };
     });
     renderSpeakers();
@@ -1464,7 +1624,7 @@ async function saveSpeakers() {
         spEstados(s,'sl_estado').join(','),   // estados como CSV alineados con temas
         spEstados(s,'sj_estado').join(','),
         spEstados(s,'cba_estado').join(','),
-        s.movil||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||''
+        s.movil||'', s.telegram||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||''
       ]);
       await gasPost('Speakers','replace_all', data);
       toast('✅ Speakers guardados');
@@ -1867,7 +2027,8 @@ function searchMiniCard(q) {
     return;
   }
   const contactos = [];
-  if (found.movil)   contactos.push(`📱 ${esc(found.movil)}`);
+  if (found.movil)    contactos.push(`<a href="${esc(found.movil)}" target="_blank" style="color:var(--btc);text-decoration:none">📱 WhatsApp</a>`);
+  if (found.telegram) contactos.push(`✈️ ${esc(found.telegram)}`);
   if (found.contacto && found.contacto !== found.movil) contactos.push(`✉️ ${esc(found.contacto)}`);
   const ciudadesArr = (found.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
   const ciudadesBadges = ciudadesArr.map(c => {
@@ -2011,12 +2172,12 @@ async function init() {
   ];
 
   state.speakers = [
-    {nombre:'Diego Gurpegui',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bitcoin','Dinero','Moderación'],   contacto:'', notas:'Maestro de ceremonias', sl_estado:['confirmado','confirmado','confirmado'], sj_estado:['confirmado','confirmado','confirmado'], cba_estado:['confirmado','confirmado','confirmado'], movil:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Fernando Secchi',  tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Taller Wallet','Autocustodia'],    contacto:'', notas:'',                      sl_estado:['confirmado','confirmado'],              sj_estado:['confirmado','confirmado'],              cba_estado:['confirmado','confirmado'],              movil:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Jimena Vallone',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bienvenida','Apertura'],           contacto:'', notas:'',                      sl_estado:['invitado','invitado'],                  sj_estado:['invitado','invitado'],                  cba_estado:['invitado','invitado'],                  movil:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Matias Mathey',    tipo:'speaker', ciudades:'Tucumán',                    temas:['Descentralizar','Panel'],          contacto:'@MatheyBTC', notas:'',            sl_estado:['',''],                                  sj_estado:['confirmado','confirmado'],              cba_estado:['',''],                                  movil:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Juani Podesta',    tipo:'speaker', ciudades:'San Luis, Tucumán',           temas:['DeFi','Rootstock','Panel'],        contacto:'', notas:'Founder Bexo',          sl_estado:['revision','revision','revision'],        sj_estado:['revision','revision','revision'],        cba_estado:['','',''],                               movil:'', linkedin:'', bio:'', eventos_anteriores:''},
-    {nombre:'Rodolfo Andragnes',tipo:'speaker', ciudades:'Tucumán',                    temas:['Moderación','Kahoot'],             contacto:'', notas:'',                      sl_estado:['',''],                                  sj_estado:['invitado','invitado'],                  cba_estado:['',''],                                  movil:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Diego Gurpegui',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bitcoin','Dinero','Moderación'],   contacto:'', notas:'Maestro de ceremonias', sl_estado:['confirmado','confirmado','confirmado'], sj_estado:['confirmado','confirmado','confirmado'], cba_estado:['confirmado','confirmado','confirmado'], movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Fernando Secchi',  tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Taller Wallet','Autocustodia'],    contacto:'', notas:'',                      sl_estado:['confirmado','confirmado'],              sj_estado:['confirmado','confirmado'],              cba_estado:['confirmado','confirmado'],              movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Jimena Vallone',   tipo:'speaker', ciudades:'San Luis, Tucumán, Córdoba', temas:['Bienvenida','Apertura'],           contacto:'', notas:'',                      sl_estado:['invitado','invitado'],                  sj_estado:['invitado','invitado'],                  cba_estado:['invitado','invitado'],                  movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Matias Mathey',    tipo:'speaker', ciudades:'Tucumán',                    temas:['Descentralizar','Panel'],          contacto:'@MatheyBTC', notas:'',            sl_estado:['',''],                                  sj_estado:['confirmado','confirmado'],              cba_estado:['',''],                                  movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Juani Podesta',    tipo:'speaker', ciudades:'San Luis, Tucumán',           temas:['DeFi','Rootstock','Panel'],        contacto:'', notas:'Founder Bexo',          sl_estado:['revision','revision','revision'],        sj_estado:['revision','revision','revision'],        cba_estado:['','',''],                               movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
+    {nombre:'Rodolfo Andragnes',tipo:'speaker', ciudades:'Tucumán',                    temas:['Moderación','Kahoot'],             contacto:'', notas:'',                      sl_estado:['',''],                                  sj_estado:['invitado','invitado'],                  cba_estado:['',''],                                  movil:'', telegram:'', linkedin:'', bio:'', eventos_anteriores:''},
   ];
 
   state.ideas = [

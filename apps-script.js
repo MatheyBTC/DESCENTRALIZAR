@@ -148,9 +148,11 @@ function importarFormSpeakers(dexSS) {
     const n = s.getName().toLowerCase();
     return n.includes('form response') || n.includes('respuestas del formulario');
   });
+  // Usar la hoja con número más alto (= la más reciente, la activa del form)
+  const _numSheet = (s) => parseInt(s.getName().replace(/\D/g,'')) || 0;
   const respSheet = formSheets.length > 0
-    ? formSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0] // la de más datos
-    : allSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0]; // fallback: la de más filas
+    ? formSheets.sort((a, b) => _numSheet(b) - _numSheet(a))[0]
+    : allSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0];
 
   const allData   = respSheet.getDataRange().getValues();
   const totalRows = allData.length;
@@ -191,16 +193,18 @@ function importarFormSpeakers(dexSS) {
     const nombre   = String(c(0)  || '').trim();              // Nombre completo
     const tipo     = String(c(1)  || 'speaker').trim();        // Tipo
     const mail     = String(c(2)  || '').trim();               // Mail
-    const movil    = String(c(3)  || '').trim();               // Móvil (WhatsApp)
-    const xUser    = String(c(4)  || '').trim();               // X (Twitter)
-    const ig       = String(c(5)  || '').trim();               // Instagram
-    const linkedin = String(c(6)  || '').trim();               // LinkedIn
-    const empresa  = String(c(7)  || '').trim();               // Empresa/Referencia
-    const ciudRaw  = String(c(8)  || '').trim();               // Ciudad(es)
-    const temasRaw = String(c(9)  || '').trim();               // Tema(s)
-    const notas    = String(c(10) || '').trim();               // Notas
-    const bio      = String(c(11) || '').trim().slice(0, 100); // Biografía
-    const eventos  = String(c(12) || '').trim();               // Eventos anteriores
+    const movilRaw = String(c(3)  || '').trim().replace(/\D/g,''); // Móvil — solo dígitos
+    const movil    = movilRaw ? 'https://wa.me/' + movilRaw : '';  // → URL wa.me
+    const telegram = String(c(4)  || '').trim();               // Telegram/Signal
+    const xUser    = String(c(5)  || '').trim();               // X (Twitter)
+    const ig       = String(c(6)  || '').trim();               // Instagram
+    const linkedin = String(c(7)  || '').trim();               // LinkedIn
+    const empresa  = String(c(8)  || '').trim();               // Empresa/Referencia
+    const ciudRaw  = String(c(9)  || '').trim();               // Ciudad(es)
+    const temasRaw = String(c(10) || '').trim();               // Tema(s)
+    const notas    = String(c(11) || '').trim();               // Notas
+    const bio      = String(c(12) || '').trim().slice(0, 100); // Biografía
+    const eventos  = String(c(13) || '').trim();               // Eventos anteriores
 
     const temasArr = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
     const temasCsv = temasArr.join(', ');
@@ -246,9 +250,10 @@ function importarFormSpeakers(dexSS) {
       // Completar campos vacíos con los del form
       if (!updRow[5]  && notas)    updRow[5]  = notas;
       if (!updRow[12] && movil)    updRow[12] = movil;
-      if (!updRow[13] && linkedin) updRow[13] = linkedin;
-      if (!updRow[14] && bio)      updRow[14] = bio;
-      if (!updRow[15] && eventos)  updRow[15] = eventos;
+      if (!updRow[13] && telegram) updRow[13] = telegram;
+      if (!updRow[14] && linkedin) updRow[14] = linkedin;
+      if (!updRow[15] && bio)      updRow[15] = bio;
+      if (!updRow[16] && eventos)  updRow[16] = eventos;
 
       spSheet.getRange(entry.sheetRow, 1, 1, updRow.length).setValues([updRow]);
 
@@ -270,7 +275,7 @@ function importarFormSpeakers(dexSS) {
       // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
       // sl_estado, sj_estado, cba_estado, movil, linkedin, bio, eventos_anteriores
       spSheet.appendRow([nombre, tipo, mail, ciudades, temasCsv, notas,
-        xUser, ig, empresa, slEst, sjEst, cbaEst, movil, linkedin, bio, eventos]);
+        xUser, ig, empresa, slEst, sjEst, cbaEst, movil, telegram, linkedin, bio, eventos]);
       byMail[mailKey] = { sheetRow: spSheet.getLastRow(), row: [] }; // registrar para evitar dup en mismo lote
       imported.push(nombre);
     }
@@ -333,4 +338,12 @@ function respond(obj, code) {
   const out = ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
   return out;
+}
+
+// ── UTILIDADES DE MANTENIMIENTO ─────────────────────────────────────
+// Correr desde el editor cuando el contador de importación queda desfasado
+function resetContadorImport() {
+  PropertiesService.getScriptProperties()
+    .setProperty('form_last_imported_row', '1');
+  Logger.log('✅ Contador reseteado a 1');
 }

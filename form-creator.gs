@@ -82,29 +82,39 @@ function resetFormCampos() {
   // [4] Móvil (WhatsApp)
   form.addTextItem()
     .setTitle('Móvil (WhatsApp)')
-    .setHelpText('Ej: +54 9 11 1234-5678');
+    .setHelpText('Solo números sin el +. Ej: 5491112345678')
+    .setValidation(
+      FormApp.createTextValidation()
+        .requireTextMatchesPattern('[0-9]+')
+        .build()
+    );
 
-  // [5] X (Twitter)
+  // [5] Telegram/Signal
+  form.addTextItem()
+    .setTitle('Telegram/Signal')
+    .setHelpText('Ej: @usuario');
+
+  // [6] X (Twitter)
   form.addTextItem()
     .setTitle('X (Twitter)')
     .setHelpText('Ej: @usuario');
 
-  // [6] Instagram
+  // [7] Instagram
   form.addTextItem()
     .setTitle('Instagram')
     .setHelpText('Ej: @usuario');
 
-  // [7] LinkedIn
+  // [8] LinkedIn
   form.addTextItem()
     .setTitle('LinkedIn')
     .setHelpText('Ej: linkedin.com/in/usuario');
 
-  // [8] Empresa/Referencia
+  // [9] Empresa/Referencia
   form.addTextItem()
     .setTitle('Empresa/Referencia')
     .setHelpText('Proyecto, empresa o rol actual.');
 
-  // [9] Ciudad(es) — checkboxes
+  // [10] Ciudad(es) — checkboxes
   form.addCheckboxItem()
     .setTitle('Ciudad(es) en las que podés participar')
     .setRequired(true)
@@ -114,33 +124,33 @@ function resetFormCampos() {
       '🟡 Tucumán (11 sep 2026)'
     ]);
 
-  // [10] Tema(s) — checkboxes con bajada (cargados desde Sheet)
+  // [11] Tema(s) — checkboxes con bajada (cargados desde Sheet)
   form.addCheckboxItem()
     .setTitle('Tema(s) que vas a cubrir')
     .setHelpText('Seleccioná uno o más temas.')
     .setRequired(true)
     .setChoiceValues(opcionesTema);
 
-  // [11] Notas / Comentarios
+  // [12] Notas / Comentarios
   form.addParagraphTextItem()
     .setTitle('Notas / Comentarios')
     .setHelpText('Disponibilidad, restricciones horarias, necesidades técnicas.');
 
-  // [12] Biografía
+  // [13] Biografía
   form.addParagraphTextItem()
     .setTitle('Biografía')
     .setHelpText('Descripción breve de tu perfil profesional (máx. 100 caracteres).');
 
-  // [13] Eventos anteriores
+  // [14] Eventos anteriores
   form.addTextItem()
     .setTitle('Eventos anteriores')
     .setHelpText('Eventos en los que participaste como speaker (opcional).');
 
   Logger.log('');
   Logger.log('✅ Form reseteado. Orden final:');
-  Logger.log('   [1] Nombre · [2] Tipo · [3] Mail · [4] Móvil · [5] X · [6] IG');
-  Logger.log('   [7] LinkedIn · [8] Empresa · [9] Ciudad(es) · [10] Tema(s)');
-  Logger.log('   [11] Notas · [12] Biografía · [13] Eventos anteriores');
+  Logger.log('   [1] Nombre · [2] Tipo · [3] Mail · [4] Móvil · [5] Telegram/Signal');
+  Logger.log('   [6] X · [7] IG · [8] LinkedIn · [9] Empresa · [10] Ciudad(es) · [11] Tema(s)');
+  Logger.log('   [12] Notas · [13] Biografía · [14] Eventos anteriores');
   Logger.log('');
   Logger.log('⚠️  IMPORTANTE: el Sheet de respuestas ahora tiene columnas viejas.');
   Logger.log('   → Si querés empezar limpio, borrá las filas de respuestas pasadas,');
