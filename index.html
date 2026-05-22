@@ -351,6 +351,8 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
   <div class="nav-right">
     <span class="status-txt" id="lastSaveTxt" style="font-size:12px;color:var(--dim);display:none"></span>
     <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
+    <button id="keyBtn" onclick="gestionarClave()" title="Clave de escritura" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;padding:3px 10px;cursor:pointer;white-space:nowrap">🔑 Sin clave</button>
+    <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
     <div class="status-dot" id="statusDot"></div>
     <span class="status-txt" id="statusTxt">Conectando…</span>
   </div>
@@ -738,6 +740,7 @@ function pedirClave(motivo) {
       if (!k) { err.textContent = 'La clave no puede estar vacía.'; return; }
       writeKey = k;
       localStorage.setItem('dex_write_key', k);
+      updateKeyBtn();
       modal.classList.remove('show');
       btn.removeEventListener('click', confirmar);
       input.removeEventListener('keydown', onEnter);
@@ -754,6 +757,31 @@ function pedirClave(motivo) {
 function olvidarClave() {
   writeKey = '';
   localStorage.removeItem('dex_write_key');
+  updateKeyBtn();
+}
+
+function updateKeyBtn() {
+  const btn = document.getElementById('keyBtn');
+  if (!btn) return;
+  if (writeKey) {
+    btn.textContent = '🔑 Clave guardada';
+    btn.style.color = '#22c55e';
+    btn.style.borderColor = '#22c55e';
+  } else {
+    btn.textContent = '🔑 Sin clave';
+    btn.style.color = 'var(--muted)';
+    btn.style.borderColor = 'var(--border)';
+  }
+}
+
+async function gestionarClave() {
+  if (writeKey) {
+    const accion = confirm('¿Qué querés hacer con la clave guardada?\n\nAceptar → cambiar la clave\nCancelar → mantener la actual');
+    if (!accion) return;
+    olvidarClave();
+  }
+  await pedirClave('Ingresá la clave de escritura:');
+  updateKeyBtn();
 }
 
 // ── VERSIONES (concurrencia) ───────────────────────────────────────
@@ -2369,6 +2397,7 @@ async function init() {
   const tipoSelEl = document.getElementById('sp-tipo');
   if (tipoSelEl) paintTipoSel(tipoSelEl);
   if (PUBLIC_CITY) renderPublicView();
+  updateKeyBtn();
 }
 
 // ══════════════════════════════════════════════════════════════════
