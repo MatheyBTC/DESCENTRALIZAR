@@ -1761,16 +1761,18 @@ function buildTimeline() {
       if (!spArr.length) huecos++;
     });
 
-    const cn = (CITY_NAMES[c.key]||'').toLowerCase();
-    const estadoField = c.key + '_estado';
-    const spEnCiudad = state.speakers.filter(s => (s.ciudades||'').toLowerCase().includes(cn));
-    const disponibles = spEnCiudad.filter(s => !hasEstadoAny(s,estadoField,'confirmado') && !hasEstadoAny(s,estadoField,'rechazado')).length;
-    const confirmados = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'confirmado')).length;
-    const rechazados  = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'rechazado')).length;
-    const enRevision  = spEnCiudad.filter(s => hasEstadoAny(s, estadoField, 'revision')).length;
+    // Speakers únicos asignados en la agenda de esta ciudad
+    const spNombres = new Set();
+    rows.forEach(r => {
+      parseSpeakerField(r[c.key]).forEach(sel => {
+        const { name } = parseSpChip(sel);
+        if (name) spNombres.add(name);
+      });
+    });
+    const speakersUnicos = spNombres.size;
 
     const pct = totalDay > 0 ? Math.min(100, Math.round(horasOcupadas / totalDay * 100)) : 0;
-    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, huecos, pct, disponibles, confirmados, rechazados, enRevision };
+    return { ...c, totalBloques, horasOcupadas, asignados, sinAsignar, pct, speakersUnicos };
   });
 
   let html = `<div class="tl-section-title">📊 Resumen ejecutivo por ciudad</div>
@@ -1781,40 +1783,28 @@ function buildTimeline() {
     <div class="tl-city-card ${s.cls}">
       <div class="tl-city-name">${s.label}</div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Horas de la Jornada</span>
+        <span class="tl-stat-label">Duración total</span>
         <span class="tl-stat-val">${minToTime(totalDay)}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Horas Ocupadas</span>
-        <span class="tl-stat-val">${minToTime(s.horasOcupadas)} (${s.pct}%)</span>
+        <span class="tl-stat-label">Tiempo cargado</span>
+        <span class="tl-stat-val">${minToTime(s.horasOcupadas)}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">Bloques Totales</span>
+        <span class="tl-stat-label">Bloques en agenda</span>
         <span class="tl-stat-val">${s.totalBloques}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label" style="color:#e8eaf0">Disponibles</span>
-        <span class="tl-stat-val" style="color:#e8eaf0">${s.disponibles}</span>
+        <span class="tl-stat-label" style="color:#22c55e">Con speaker asignado</span>
+        <span class="tl-stat-val" style="color:#22c55e">${s.asignados}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label" style="color:#22c55e">Confirmados</span>
-        <span class="tl-stat-val" style="color:#22c55e">${s.confirmados}</span>
+        <span class="tl-stat-label" style="color:#ef4444">Sin speaker</span>
+        <span class="tl-stat-val" style="color:${s.sinAsignar > 0 ? '#ef4444' : '#22c55e'}">${s.sinAsignar}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label" style="color:#eab308">En Revisión</span>
-        <span class="tl-stat-val" style="color:#eab308">${s.enRevision}</span>
-      </div>
-      <div class="tl-stat-row">
-        <span class="tl-stat-label" style="color:#ef4444">Rechazados</span>
-        <span class="tl-stat-val" style="color:#ef4444">${s.rechazados}</span>
-      </div>
-      <div class="tl-stat-row">
-        <span class="tl-stat-label">Bloques Ocupados</span>
-        <span class="tl-stat-val ok">${s.asignados}</span>
-      </div>
-      <div class="tl-stat-row">
-        <span class="tl-stat-label">Bloques Libres (sin Speaker)</span>
-        <span class="tl-stat-val ${s.sinAsignar > 0 ? 'warn' : 'ok'}">${s.sinAsignar}</span>
+        <span class="tl-stat-label">Speakers distintos</span>
+        <span class="tl-stat-val" style="color:${s.speakersUnicos > 0 ? 'var(--btc)' : 'var(--muted)'}">${s.speakersUnicos}</span>
       </div>
       <div class="tl-prog-wrap">
         <div class="tl-prog-label">
