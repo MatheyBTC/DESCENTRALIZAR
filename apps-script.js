@@ -381,12 +381,73 @@ const FORM_ID = '1x5OzFZXkSv2dqt7933fCiB3zQO7pYeFhlKPfSm-BCI0';
 // Tipos de bloque sin speaker (se excluyen del Form)
 const TIPOS_SIN_SPEAKER = ['break','almuerzo','kahoot','apertura','cierre','sorteo','premios','concurso','ama'];
 
-// Util: listar todos los items del Form con su tipo y título (para debug)
+// Util: listar todos los items del Form con su tipo, título y opciones (para debug)
 function listarItemsForm() {
   const form = FormApp.openById(FORM_ID);
   form.getItems().forEach(item => {
     Logger.log('[' + item.getType() + '] id:' + item.getId() + ' → "' + item.getTitle() + '"');
+    try {
+      const type = item.getType();
+      let choices = [];
+      if (type === FormApp.ItemType.CHECKBOX)        choices = item.asCheckboxItem().getChoices();
+      else if (type === FormApp.ItemType.LIST)        choices = item.asListItem().getChoices();
+      else if (type === FormApp.ItemType.MULTIPLE_CHOICE) choices = item.asMultipleChoiceItem().getChoices();
+      choices.forEach(c => Logger.log('   · "' + c.getValue() + '"'));
+    } catch(e) {}
   });
+}
+
+// Actualiza los emojis de ciudad en TODAS las preguntas del Form
+// 🟣→🟥  🔵→🟨  🟡→🟩
+// Correr manualmente una vez para migrar el Form
+function actualizarCiudadesEnForm() {
+  const REEMPLAZOS = [
+    ['🟣', '🟥'],
+    ['🔵', '🟨'],
+    ['🟡', '🟩'],
+  ];
+  const form  = FormApp.openById(FORM_ID);
+  const items = form.getItems();
+  let cambios = 0;
+
+  items.forEach(item => {
+    const type = item.getType();
+    try {
+      if (type === FormApp.ItemType.CHECKBOX) {
+        const cb = item.asCheckboxItem();
+        const orig = cb.getChoices().map(c => c.getValue());
+        const nuevo = orig.map(v => REEMPLAZOS.reduce((s,[a,b]) => s.split(a).join(b), v));
+        if (orig.join('|') !== nuevo.join('|')) {
+          cb.setChoices(nuevo.map(v => cb.createChoice(v)));
+          Logger.log('✅ Checkbox "' + item.getTitle() + '" actualizado');
+          orig.forEach((v,i) => { if (v!==nuevo[i]) Logger.log('   "'+v+'" → "'+nuevo[i]+'"'); });
+          cambios++;
+        }
+      } else if (type === FormApp.ItemType.LIST) {
+        const li = item.asListItem();
+        const orig = li.getChoices().map(c => c.getValue());
+        const nuevo = orig.map(v => REEMPLAZOS.reduce((s,[a,b]) => s.split(a).join(b), v));
+        if (orig.join('|') !== nuevo.join('|')) {
+          li.setChoices(nuevo.map(v => li.createChoice(v)));
+          Logger.log('✅ Lista "' + item.getTitle() + '" actualizada');
+          cambios++;
+        }
+      } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
+        const mc = item.asMultipleChoiceItem();
+        const orig = mc.getChoices().map(c => c.getValue());
+        const nuevo = orig.map(v => REEMPLAZOS.reduce((s,[a,b]) => s.split(a).join(b), v));
+        if (orig.join('|') !== nuevo.join('|')) {
+          mc.setChoices(nuevo.map(v => mc.createChoice(v)));
+          Logger.log('✅ Opción múltiple "' + item.getTitle() + '" actualizada');
+          cambios++;
+        }
+      }
+    } catch(e) {
+      Logger.log('⚠️ Error en "' + item.getTitle() + '": ' + e.message);
+    }
+  });
+
+  Logger.log(cambios ? '✅ ' + cambios + ' pregunta(s) actualizada(s)' : 'ℹ️ Sin cambios — los emojis ya están actualizados');
 }
 
 // Actualiza las opciones del campo Tema(s) del Form con los temas actuales de Principal
