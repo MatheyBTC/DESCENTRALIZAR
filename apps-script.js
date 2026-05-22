@@ -369,3 +369,99 @@ function borrarWriteKey() {
   PropertiesService.getScriptProperties().deleteProperty('write_key');
   Logger.log('✅ Clave borrada');
 }
+
+// ── SINCRONIZACIÓN DE TEMAS → GOOGLE FORM ───────────────────────────
+// Form de registro de speakers:
+const FORM_ID = '1x5OzFZXkSv2dqt7933fCiB3zQO7pYeFhlKPfSm-BCI0';
+
+// Tipos de bloque sin speaker (se excluyen del Form)
+const TIPOS_SIN_SPEAKER = ['break','almuerzo','kahoot','apertura','cierre','sorteo','premios','concurso','ama'];
+
+// Util: listar todos los items del Form con su tipo y título (para debug)
+function listarItemsForm() {
+  const form = FormApp.openById(FORM_ID);
+  form.getItems().forEach(item => {
+    Logger.log('[' + item.getType() + '] id:' + item.getId() + ' → "' + item.getTitle() + '"');
+  });
+}
+
+// Actualiza las opciones del campo Tema(s) del Form con los temas actuales de Principal
+// Se puede correr manualmente o via trigger nocturno
+function actualizarTemasEnForm() {
+  // 1. Leer temas de Principal (hoja de cálculo)
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const ws = ss.getSheetByName('Principal');
+  if (!ws) { Logger.log('❌ Hoja Principal no encontrada'); return; }
+
+  const rows = ws.getDataRange().getValues().slice(1); // saltar header
+  // Columnas: tipo=0, dur=1, inicio=2, fin=3, tema=4, bajada=5
+  const TIPO_COL = 0, TEMA_COL = 4, BAJADA_COL = 5;
+
+  const temas = [];
+  const seen  = new Set();
+  rows.forEach(r => {
+    const tipo  = String(r[TIPO_COL]  || '').trim().toLowerCase();
+    const tema  = String(r[TEMA_COL]  || '').trim();
+    const bajada = String(r[BAJADA_COL] || '').trim();
+    if (!tema) return;
+    if (TIPOS_SIN_SPEAKER.some(t => tipo.includes(t))) return;
+    if (seen.has(tema)) return;
+    seen.add(tema);
+    // Formato de opción: "Tema — bajada" (el import ya sabe extraer solo el tema)
+    temas.push(bajada ? tema + ' — ' + bajada : tema);
+  });
+
+  if (!temas.length) { Logger.log('⚠️ Sin temas en Principal — Form no modificado'); return; }
+
+  // 2. Abrir el Form y buscar el item de temas
+  const form  = FormApp.openById(FORM_ID);
+  const items = form.getItems();
+
+  // Buscar por título que contenga "tema" (case-insensitive)
+  const temaItem = items.find(i => i.getTitle().toLowerCase().includes('tema'));
+  if (!temaItem) {
+    Logger.log('❌ No encontré item con "tema" en el título. Items disponibles:');
+    items.forEach(i => Logger.log('  [' + i.getType() + '] "' + i.getTitle() + '"'));
+    return;
+  }
+  Logger.log('📋 Item encontrado: "' + temaItem.getTitle() + '" (tipo: ' + temaItem.getType() + ')');
+
+  // 3. Actualizar opciones según el tipo de item
+  const type = temaItem.getType();
+  try {
+    if (type === FormApp.ItemType.CHECKBOX) {
+      const cb = temaItem.asCheckboxItem();
+      cb.setChoices(temas.map(t => cb.createChoice(t)));
+    } else if (type === FormApp.ItemType.LIST) {
+      const li = temaItem.asListItem();
+      li.setChoices(temas.map(t => li.createChoice(t)));
+    } else if (type === FormApp.ItemType.MULTIPLE_CHOICE) {
+      const mc = temaItem.asMultipleChoiceItem();
+      mc.setChoices(temas.map(t => mc.createChoice(t)));
+    } else {
+      Logger.log('❌ Tipo de item no soportado: ' + type + ' — usá Checkbox, Lista o Opción múltiple');
+      return;
+    }
+    Logger.log('✅ Form actualizado con ' + temas.length + ' temas:');
+    temas.forEach(t => Logger.log('   · ' + t));
+  } catch(e) {
+    Logger.log('❌ Error al actualizar opciones: ' + e.message);
+  }
+}
+
+// Instalar trigger nocturno (correr UNA vez desde el editor)
+// Después de instalarlo, actualizarTemasEnForm() corre solo todos los días a las 3am
+function installFormUpdateTrigger() {
+  // Eliminar triggers anteriores del mismo tipo para no duplicar
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'actualizarTemasEnForm')
+    .forEach(t => ScriptApp.deleteTrigger(t));
+
+  ScriptApp.newTrigger('actualizarTemasEnForm')
+    .timeBased()
+    .atHour(3)       // 3am (hora del servidor de Google, UTC−3 aprox. para ARG)
+    .everyDays(1)
+    .create();
+
+  Logger.log('✅ Trigger nocturno instalado — actualizarTemasEnForm() correrá diariamente a las 3am');
+}
