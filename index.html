@@ -1766,20 +1766,20 @@ function buildTimeline() {
         <span class="tl-stat-val">${s.totalBloques}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">⚪ Disponibles</span>
-        <span class="tl-stat-val">${s.disponibles}</span>
+        <span class="tl-stat-label" style="color:#e8eaf0">Disponibles</span>
+        <span class="tl-stat-val" style="color:#e8eaf0">${s.disponibles}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">✅ Confirmados</span>
-        <span class="tl-stat-val ok">${s.confirmados}</span>
+        <span class="tl-stat-label" style="color:#22c55e">Confirmados</span>
+        <span class="tl-stat-val" style="color:#22c55e">${s.confirmados}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">⏳ En Revisión</span>
-        <span class="tl-stat-val ${s.enRevision > 0 ? 'warn' : ''}">${s.enRevision}</span>
+        <span class="tl-stat-label" style="color:#eab308">En Revisión</span>
+        <span class="tl-stat-val" style="color:#eab308">${s.enRevision}</span>
       </div>
       <div class="tl-stat-row">
-        <span class="tl-stat-label">❌ Rechazados</span>
-        <span class="tl-stat-val ${s.rechazados > 0 ? '' : 'ok'}" style="${s.rechazados > 0 ? 'color:#ef4444' : ''}">${s.rechazados}</span>
+        <span class="tl-stat-label" style="color:#ef4444">Rechazados</span>
+        <span class="tl-stat-val" style="color:#ef4444">${s.rechazados}</span>
       </div>
       <div class="tl-stat-row">
         <span class="tl-stat-label">Bloques Ocupados</span>
