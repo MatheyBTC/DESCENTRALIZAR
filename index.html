@@ -476,11 +476,11 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
         </div>
         <div class="form-field">
           <label class="form-label">Tipo</label>
-          <select class="form-select" id="sp-tipo">
-            <option value="speaker">🟠 Speaker</option>
-            <option value="sponsor">🟢 Sponsor</option>
-            <option value="moderador">🔵 Moderador</option>
-            <option value="panelista">🟡 Panelista</option>
+          <select class="form-select" id="sp-tipo" onchange="paintTipoSel(this)">
+            <option value="speaker"   style="color:#F7931A">Speaker</option>
+            <option value="sponsor"   style="color:#22c55e">Sponsor</option>
+            <option value="moderador" style="color:#06b6d4">Moderador</option>
+            <option value="panelista" style="color:#eab308">Panelista</option>
           </select>
         </div>
         <div class="form-field">
@@ -489,32 +489,34 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
         </div>
         <div class="form-field">
           <label class="form-label">Móvil (WhatsApp)</label>
-          <input class="form-input" id="sp-movil" placeholder="+54 9 …">
+          <input class="form-input" id="sp-movil" placeholder="54911...">
         </div>
         <div class="form-field">
           <label class="form-label">Telegram</label>
-          <input class="form-input" id="sp-telegram" placeholder="@usuario">
+          <input class="form-input" id="sp-telegram" placeholder="alias (ej. @nombre)">
         </div>
         <div class="form-field">
           <label class="form-label">Signal</label>
           <input class="form-input" id="sp-signal" placeholder="+54 9 …">
         </div>
-        <!-- Fila 2: X | IG | LinkedIn | Empresa -->
-        <div class="form-field">
-          <label class="form-label">X (Twitter)</label>
-          <input class="form-input" id="sp-x" placeholder="@usuario">
-        </div>
-        <div class="form-field">
-          <label class="form-label">IG</label>
-          <input class="form-input" id="sp-ig" placeholder="@usuario">
-        </div>
-        <div class="form-field">
-          <label class="form-label">LinkedIn</label>
-          <input class="form-input" id="sp-linkedin" placeholder="linkedin.com/in/…">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Empresa</label>
-          <input class="form-input" id="sp-empresa" placeholder="ej. Empresa">
+        <!-- Fila 2: X | IG | LinkedIn (25% más ancho) | Empresa -->
+        <div style="grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="form-field" style="flex:1;min-width:100px">
+            <label class="form-label">X (Twitter)</label>
+            <input class="form-input" id="sp-x" placeholder="@usuario">
+          </div>
+          <div class="form-field" style="flex:1;min-width:100px">
+            <label class="form-label">IG</label>
+            <input class="form-input" id="sp-ig" placeholder="@usuario">
+          </div>
+          <div class="form-field" style="flex:1.25;min-width:130px">
+            <label class="form-label">LinkedIn</label>
+            <input class="form-input" id="sp-linkedin" placeholder="linkedin.com/in/…">
+          </div>
+          <div class="form-field" style="flex:1;min-width:100px">
+            <label class="form-label">Empresa</label>
+            <input class="form-input" id="sp-empresa" placeholder="ej. Empresa">
+          </div>
         </div>
         <!-- Biografía: ancho completo, 1 fila -->
         <div class="form-field" style="grid-column:1/-1">
@@ -544,7 +546,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
         <!-- Notas: ancho completo, auto-fill desde el tema de Principal -->
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Notas <span style="color:var(--muted);font-size:12px">(se auto-completa al elegir tema)</span></label>
-          <textarea class="form-ta" id="sp-notas" rows="2" style="min-height:52px;resize:vertical;width:100%" placeholder="Notas / detalle del tema desde la agenda…" oninput="autoExpand(this)"></textarea>
+          <textarea class="form-ta" id="sp-notas" rows="2" style="min-height:52px;resize:vertical;width:100%" placeholder="Notas: detalle del tema que viene desde hoja Principal" oninput="autoExpand(this)"></textarea>
         </div>
       </div>
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
@@ -1288,6 +1290,12 @@ async function savePrincipal() {
 // SPEAKERS
 // ══════════════════════════════════════════════════════════════════
 // ── DESPLEGABLE DE TEMAS DESDE PRINCIPAL ──────────────────────────
+// Colorea el select de Tipo según la opción elegida
+const TIPO_SEL_COLORS = { speaker:'#F7931A', sponsor:'#22c55e', moderador:'#06b6d4', panelista:'#eab308' };
+function paintTipoSel(sel) {
+  sel.style.color = TIPO_SEL_COLORS[sel.value] || 'var(--text)';
+}
+
 const SP_TEMAS_CLEAR = '— Limpiar —';
 
 function updateSpTemasDatalist() {
@@ -2304,6 +2312,8 @@ async function init() {
   renderPrincipal();
   renderSpeakers();
   renderIdeas();
+  const tipoSelEl = document.getElementById('sp-tipo');
+  if (tipoSelEl) paintTipoSel(tipoSelEl);
   if (PUBLIC_CITY) renderPublicView();
 }
 
