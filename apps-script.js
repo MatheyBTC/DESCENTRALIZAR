@@ -100,6 +100,10 @@ const FORM_RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
 // Normaliza ciudades del form → nombres simples
 function _parseCiudadesForm(raw) {
   return String(raw||'')
+    .replace(/🟥 San Luis \([^)]+\)/g, 'San Luis')
+    .replace(/🟨 Córdoba \([^)]+\)/g, 'Córdoba')
+    .replace(/🟩 Tucumán \([^)]+\)/g, 'Tucumán')
+    // compatibilidad con emojis anteriores
     .replace(/🟣 San Luis \([^)]+\)/g, 'San Luis')
     .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
     .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
