@@ -349,3 +349,23 @@ function resetContadorImport() {
     .setProperty('form_last_imported_row', '1');
   Logger.log('✅ Contador reseteado a 1');
 }
+
+// ── CLAVE DE ESCRITURA ───────────────────────────────────────────────
+// Correr UNA vez desde el editor para setear o cambiar la clave
+function setWriteKey() {
+  const CLAVE = 'DEX/2026';
+  PropertiesService.getScriptProperties().setProperty('write_key', CLAVE);
+  Logger.log('✅ Clave seteada: ' + CLAVE);
+}
+
+// Correr para ver cuál es la clave actual guardada
+function verWriteKey() {
+  const k = PropertiesService.getScriptProperties().getProperty('write_key');
+  Logger.log('Clave actual: ' + (k || '(no seteada — cualquier clave pasa)'));
+}
+
+// Correr para borrar la clave (cualquier usuario podrá guardar sin clave)
+function borrarWriteKey() {
+  PropertiesService.getScriptProperties().deleteProperty('write_key');
+  Logger.log('✅ Clave borrada');
+}
