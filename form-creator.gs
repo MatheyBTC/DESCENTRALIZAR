@@ -89,12 +89,17 @@ function resetFormCampos() {
         .build()
     );
 
-  // [5] Telegram/Signal
+  // [5] Telegram
   form.addTextItem()
-    .setTitle('Telegram/Signal')
-    .setHelpText('Ej: @usuario');
+    .setTitle('Telegram')
+    .setHelpText('@alias');
 
-  // [6] X (Twitter)
+  // [6] Signal
+  form.addTextItem()
+    .setTitle('Signal')
+    .setHelpText('@alias');
+
+  // [7] X (Twitter)
   form.addTextItem()
     .setTitle('X (Twitter)')
     .setHelpText('Ej: @usuario');
@@ -148,9 +153,9 @@ function resetFormCampos() {
 
   Logger.log('');
   Logger.log('✅ Form reseteado. Orden final:');
-  Logger.log('   [1] Nombre · [2] Tipo · [3] Mail · [4] Móvil · [5] Telegram/Signal');
-  Logger.log('   [6] X · [7] IG · [8] LinkedIn · [9] Empresa · [10] Ciudad(es) · [11] Tema(s)');
-  Logger.log('   [12] Notas · [13] Biografía · [14] Eventos anteriores');
+  Logger.log('   [1] Nombre · [2] Tipo · [3] Mail · [4] Móvil · [5] Telegram · [6] Signal');
+  Logger.log('   [7] X · [8] IG · [9] LinkedIn · [10] Empresa · [11] Ciudad(es) · [12] Tema(s)');
+  Logger.log('   [13] Notas · [14] Biografía · [15] Eventos anteriores');
   Logger.log('');
   Logger.log('⚠️  IMPORTANTE: el Sheet de respuestas ahora tiene columnas viejas.');
   Logger.log('   → Si querés empezar limpio, borrá las filas de respuestas pasadas,');

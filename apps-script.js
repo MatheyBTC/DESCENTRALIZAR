@@ -199,17 +199,17 @@ function importarFormSpeakers(dexSS) {
     const mail     = String(c(2)  || '').trim();               // Mail
     const movilRaw = String(c(3)  || '').trim().replace(/\D/g,''); // Móvil — solo dígitos
     const movil    = movilRaw ? 'https://wa.me/' + movilRaw : '';  // → URL wa.me
-    const telegram = String(c(4)  || '').trim();               // Telegram/Signal
-    const xUser    = String(c(5)  || '').trim();               // X (Twitter)
-    const ig       = String(c(6)  || '').trim();               // Instagram
-    const linkedin = String(c(7)  || '').trim();               // LinkedIn
-    const empresa  = String(c(8)  || '').trim();               // Empresa/Referencia
-    const ciudRaw  = String(c(9)  || '').trim();               // Ciudad(es)
-    const temasRaw = String(c(10) || '').trim();               // Tema(s)
-    const notas    = String(c(11) || '').trim();               // Notas
-    const bio      = String(c(12) || '').trim().slice(0, 150); // Biografía (150 chars)
-    const eventos  = String(c(13) || '').trim();               // Eventos anteriores
-    const signal   = '';                                        // Signal (campo separado — pendiente en form)
+    const telegram = String(c(4)  || '').trim();               // Telegram
+    const signal   = String(c(5)  || '').trim();               // Signal
+    const xUser    = String(c(6)  || '').trim();               // X (Twitter)
+    const ig       = String(c(7)  || '').trim();               // Instagram
+    const linkedin = String(c(8)  || '').trim();               // LinkedIn
+    const empresa  = String(c(9)  || '').trim();               // Empresa/Referencia
+    const ciudRaw  = String(c(10) || '').trim();               // Ciudad(es)
+    const temasRaw = String(c(11) || '').trim();               // Tema(s)
+    const notas    = String(c(12) || '').trim();               // Notas
+    const bio      = String(c(13) || '').trim().slice(0, 150); // Biografía (150 chars)
+    const eventos  = String(c(14) || '').trim();               // Eventos anteriores
 
     const temasArr = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
     const temasCsv = temasArr.join(', ');
@@ -259,7 +259,7 @@ function importarFormSpeakers(dexSS) {
       if (!updRow[14] && linkedin) updRow[14] = linkedin;
       if (!updRow[15] && bio)      updRow[15] = bio;
       if (!updRow[16] && eventos)  updRow[16] = eventos;
-      // updRow[17] = signal (se preserva lo que ya había)
+      if (!updRow[17] && signal) updRow[17] = signal;
 
       spSheet.getRange(entry.sheetRow, 1, 1, updRow.length).setValues([updRow]);
 
