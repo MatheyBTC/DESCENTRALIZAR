@@ -1422,7 +1422,8 @@ function setSpFilter(key, val) {
 
 function renderTopicFilters() {
   const topics = new Set();
-  state.speakers.forEach(s => spTemas(s).forEach(t => topics.add(t)));
+  // Temas desde Principal (agenda)
+  state.principal.forEach(r => { if ((r.tema||'').trim()) topics.add(r.tema.trim()); });
   const sel = document.getElementById('spTopicSelect');
   if (!sel) return;
   const current = spFilter.topic || 'all';
