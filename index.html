@@ -573,8 +573,10 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
       <button class="btn sp-flt" onclick="setSpFilter('city','Tucumán')" data-filter-city="Tucumán">🟩 Tucumán</button>
       <div class="toolbar-sep" style="width:100%;height:1px;margin:4px 0"></div>
       <span style="font-size:12px;color:var(--muted);font-weight:700">Tema:</span>
-      <button class="btn sp-flt active" onclick="setSpFilter('topic','all')" data-filter-topic="all">Todos</button>
-      <span id="spTopicFilters"></span>
+      <select id="spTopicSelect" onchange="setSpFilter('topic',this.value)"
+        style="background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:13px;font-family:inherit;cursor:pointer;outline:none">
+        <option value="all">Todos</option>
+      </select>
     </div>
     <div class="table-wrap">
       <table class="sp-table">
@@ -684,7 +686,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
 // ═══════════════════════════════════════════════════════════════════
 // CONFIG — reemplazar GAS_URL con tu URL de Apps Script desplegado
 // ═══════════════════════════════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxhqHKSwe70BXaFnqtDBhptDz-C6Ov7sZoBXpYz3hJ1PayNBZlsAX8Omkt2QPLvB-GJ/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyPwXXmJeASVQTO5y1rjcaZn3BjKdJoSTOYRfiQWW7VBxTfXbDdpATpDMV91aGRQkRU/exec';
 const USE_LOCAL = !GAS_URL.startsWith('https://script.google');
 
 // ── ESTADO ────────────────────────────────────────────────────────
@@ -1421,9 +1423,11 @@ function setSpFilter(key, val) {
 function renderTopicFilters() {
   const topics = new Set();
   state.speakers.forEach(s => spTemas(s).forEach(t => topics.add(t)));
-  const btn = t => `<button class="btn sp-flt${spFilter.topic===t?' active':''}" onclick="setSpFilter('topic','${esc(t).replace(/'/g,"\\'")}'" data-filter-topic="${esc(t)}">${esc(t)}</button>`;
-  const el = document.getElementById('spTopicFilters');
-  if (el) el.innerHTML = [...topics].sort().map(btn).join('');
+  const sel = document.getElementById('spTopicSelect');
+  if (!sel) return;
+  const current = spFilter.topic || 'all';
+  sel.innerHTML = `<option value="all"${current==='all'?' selected':''}>Todos</option>` +
+    [...topics].sort().map(t => `<option value="${esc(t)}"${current===t?' selected':''}>${esc(t)}</option>`).join('');
 }
 
 // ti = índice del tema (0-based) dentro del array de estados del speaker
@@ -1785,24 +1789,32 @@ async function loadSpeakers() {
     if (raw._version) versions.Speakers = raw._version;
     const [, ...rows] = raw;
     state.speakers = rows.map(r => {
-      const temasArr = (r[4]||'').split(',').map(t=>t.trim()).filter(Boolean);
+      // A(0)=Timestamp B(1)=Nombre C(2)=Tipo D(3)=Mail E(4)=Móvil
+      // F(5)=Telegram G(6)=Signal H(7)=X I(8)=Instagram J(9)=LinkedIn
+      // K(10)=Empresa L(11)=Ciudad(es) M(12)=Tema(s) N(13)=Notas
+      // O(14)=Biografía P(15)=Eventos Q(16)=#temas R(17)=sl S(18)=sj T(19)=cba
+      const temasRaw = String(r[12]||'');
+      const temasArr = temasRaw
+        .split(/\.,\s*(?=[¿¡A-ZÁÉÍÓÚÜA-z])/)
+        .map(t => t.split(' — ')[0].trim())
+        .filter(t => t.length > 3);
       const n = Math.max(1, temasArr.length);
-      // Parsear estados como arrays (col 9,10,11 pueden ser "val" o "val1,val2,val3")
       const parseE = (v) => {
         const a = (v||'').split(',').map(s=>s.trim());
-        while (a.length < n) a.push(a[0]||''); // migración: replicar valor único
+        while (a.length < n) a.push(a[0]||'');
         return a.slice(0, n);
       };
       return {
-        nombre: r[0]||'', tipo: r[1]||'speaker', contacto: r[2]||'',
-        ciudades: r[3]||'', temas: temasArr, notas: r[5]||'',
-        x: r[6]||'', ig: r[7]||'', empresa: r[8]||'',
-        sl_estado:  parseE(r[9]),
-        sj_estado:  parseE(r[10]),
-        cba_estado: parseE(r[11]),
-        movil: r[12]||'', telegram: r[13]||'', linkedin: r[14]||'',
-        bio: r[15]||'', eventos_anteriores: r[16]||'',
-        signal: r[17]||''
+        nombre: r[1]||'', tipo: r[2]||'speaker', contacto: r[3]||'',
+        movil: r[4]||'', telegram: r[5]||'', signal: r[6]||'',
+        x: r[7]||'', ig: r[8]||'', linkedin: r[9]||'',
+        empresa: r[10]||'', ciudades: r[11]||'',
+        temas: temasArr, notas: r[13]||'',
+        bio: r[14]||'', eventos_anteriores: r[15]||'',
+        sl_estado:  parseE(r[17]),
+        sj_estado:  parseE(r[18]),
+        cba_estado: parseE(r[19]),
+        _row: [...r]
       };
     });
     renderSpeakers();
@@ -1817,17 +1829,16 @@ async function saveSpeakers() {
   }
   try {
     await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
-      const data = state.speakers.map(s=>[
-        s.nombre, s.tipo, s.contacto, s.ciudades,
-        spTemas(s).join(', '),  // temas como CSV
-        s.notas,
-        s.x||'', s.ig||'', s.empresa||'',
-        spEstados(s,'sl_estado').join(','),   // estados como CSV alineados con temas
-        spEstados(s,'sj_estado').join(','),
-        spEstados(s,'cba_estado').join(','),
-        s.movil||'', s.telegram||'', s.linkedin||'', s.bio||'', s.eventos_anteriores||'',
-        s.signal||''
-      ]);
+      const data = state.speakers.map(s => {
+        const row = s._row ? [...s._row] : new Array(20).fill('');
+        // Preservar A-P del form (índices 0-15) intactos
+        // Actualizar solo columnas variables Q-T (índices 16-19)
+        row[16] = spTemas(s).length;
+        row[17] = spEstados(s,'sl_estado').join(',');
+        row[18] = spEstados(s,'sj_estado').join(',');
+        row[19] = spEstados(s,'cba_estado').join(',');
+        return row;
+      });
       await gasPost('Speakers','replace_all', data);
       toast('✅ Speakers guardados');
       markClean('speakers');

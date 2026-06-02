@@ -11,25 +11,23 @@ function doGet(e) {
   try {
     const sheet = (e.parameter.sheet || 'Principal').trim();
 
-    // Acción especial: devolver versión actual de una hoja
     if (e.parameter.action === 'get_version') {
       const props = PropertiesService.getScriptProperties();
       const version = props.getProperty('version_' + sheet) || '0';
       return respond({ ok: true, sheet, version });
     }
 
-    const ss  = SpreadsheetApp.openById(SHEET_ID);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
 
-    // Acción especial: importar respuestas del Form → Speakers
     if (e.parameter.action === 'import_form_speakers') {
       const result = importarFormSpeakers(ss);
       return respond(result);
     }
-    const ws  = ss.getSheetByName(sheet);
+
+    const ws = ss.getSheetByName(sheet);
     if (!ws) return respond({ error: 'Hoja no encontrada: ' + sheet }, 404);
     const data = ws.getDataRange().getValues();
 
-    // Devolver versión junto con los datos
     const props = PropertiesService.getScriptProperties();
     const version = props.getProperty('version_' + sheet) || '0';
 
@@ -45,7 +43,6 @@ function doPost(e) {
     const payload = JSON.parse(e.postData.contents);
     const { sheet, action, row, data, rowIndex, key } = payload;
 
-    // Verificar clave de escritura
     const props = PropertiesService.getScriptProperties();
     const writeKey = props.getProperty('write_key');
     if (writeKey && key !== writeKey) {
@@ -62,7 +59,6 @@ function doPost(e) {
     }
 
     if (action === 'update') {
-      // rowIndex es 1-based (fila 1 = headers, datos desde fila 2)
       const r = ws.getRange(rowIndex, 1, 1, data.length);
       r.setValues([data]);
       return respond({ ok: true, action });
@@ -74,12 +70,10 @@ function doPost(e) {
     }
 
     if (action === 'replace_all') {
-      // Reemplaza todos los datos (excepto headers) con el nuevo array
       const lastRow = ws.getLastRow();
       if (lastRow > 1) ws.deleteRows(2, lastRow - 1);
       if (data.length > 0) ws.getRange(2, 1, data.length, data[0].length).setValues(data);
 
-      // Actualizar versión (timestamp) para detección de concurrencia
       const newVersion = Date.now().toString();
       PropertiesService.getScriptProperties().setProperty('version_' + sheet, newVersion);
 
@@ -96,44 +90,21 @@ function doPost(e) {
 // ── IMPORTAR RESPUESTAS DEL FORM → SPEAKERS ────────────────────────
 const FORM_RESP_SHEET_ID = '1nChz2Vjur-ChW3fwnIj7aXXsGn--064Hu8Xf8DBvuDY';
 
-// ── HELPERS internos ────────────────────────────────────────────────
-// Normaliza ciudades del form → nombres simples
 function _parseCiudadesForm(raw) {
   return String(raw||'')
     .replace(/🟥 San Luis \([^)]+\)/g, 'San Luis')
     .replace(/🟨 Córdoba \([^)]+\)/g, 'Córdoba')
     .replace(/🟩 Tucumán \([^)]+\)/g, 'Tucumán')
-    // compatibilidad con emojis anteriores
     .replace(/🟣 San Luis \([^)]+\)/g, 'San Luis')
     .replace(/🔵 Córdoba \([^)]+\)/g, 'Córdoba')
     .replace(/🟡 Tucumán \([^)]+\)/g, 'Tucumán');
 }
 
-// Extiende un string CSV de estados para que tenga `n` elementos
-// (los nuevos llevan el valor `fill` si la ciudad aplica, '' si no)
 function _extenderEstados(existingCsv, nViejo, nNuevo, fill) {
   const arr = String(existingCsv||'').split(',').map(s=>s.trim());
-  while (arr.length < nViejo) arr.push('');      // completar hasta el viejo largo
-  for (let i = nViejo; i < nNuevo; i++) arr.push(fill); // nuevos temas
+  while (arr.length < nViejo) arr.push('');
+  for (let i = nViejo; i < nNuevo; i++) arr.push(fill);
   return arr.slice(0, nNuevo).join(',');
-}
-
-// ── Detectar offset de columnas en el Sheet de respuestas ───────────
-// El form puede haber generado columnas duplicadas si se reinició.
-// Esta función lee la fila de encabezados y detecta en qué columna
-// empieza el bloque que tiene datos reales en la fila `dataRow`.
-// Devuelve el índice (0-based) de la columna "Nombre completo" activa.
-function _detectarOffsetNombre(headers, dataRow) {
-  const nombreIndices = [];
-  headers.forEach((h, i) => {
-    if (String(h).trim() === 'Nombre completo') nombreIndices.push(i);
-  });
-  // Encontrar cuál de los bloques tiene datos
-  for (const idx of nombreIndices) {
-    if (dataRow[idx] && String(dataRow[idx]).trim()) return idx;
-  }
-  // Fallback: primer "Nombre completo" encontrado
-  return nombreIndices[0] !== undefined ? nombreIndices[0] : 1;
 }
 
 function importarFormSpeakers(dexSS) {
@@ -144,17 +115,13 @@ function importarFormSpeakers(dexSS) {
     return { ok: false, error: 'No puedo abrir el Sheet de respuestas: ' + e.message };
   }
 
-  // Buscar la hoja de respuestas activa (la que tiene más datos entre las "Form Responses X")
-  const allSheets = respSS.getSheets();
-  // Buscar la pestaña de respuestas activa: preferir "Form Responses X"
-  // (la que Google crea al vincular); si no hay, usar la de más filas
+  const allSheets  = respSS.getSheets();
   const formSheets = allSheets.filter(s => {
     const n = s.getName().toLowerCase();
     return n.includes('form response') || n.includes('respuestas del formulario');
   });
-  // Usar la hoja con número más alto (= la más reciente, la activa del form)
-  const _numSheet = (s) => parseInt(s.getName().replace(/\D/g,'')) || 0;
-  const respSheet = formSheets.length > 0
+  const _numSheet  = (s) => parseInt(s.getName().replace(/\D/g,'')) || 0;
+  const respSheet  = formSheets.length > 0
     ? formSheets.sort((a, b) => _numSheet(b) - _numSheet(a))[0]
     : allSheets.sort((a, b) => b.getLastRow() - a.getLastRow())[0];
 
@@ -171,118 +138,92 @@ function importarFormSpeakers(dexSS) {
   const spSheet = dexSS.getSheetByName('Speakers');
   if (!spSheet) return { ok: false, error: 'No existe la pestaña "Speakers".' };
 
-  // ── Cargar speakers existentes indexados por mail ────────────────
+  // Indexar speakers existentes por mail (col D = índice 3)
   const existingData = spSheet.getDataRange().getValues();
   const byMail = {};
   existingData.slice(1).forEach((row, i) => {
-    const m = String(row[2]||'').trim().toLowerCase();
+    const m = String(row[3]||'').trim().toLowerCase(); // col D = Mail
     if (m) byMail[m] = { sheetRow: i + 2, row: [...row] };
   });
-
-  // ── Encabezados del sheet de respuestas (para detectar offset) ───
-  const headers = allData[0] || [];
 
   const newRows      = allData.slice(lastImported);
   const imported     = [];
   const actualizados = [];
 
+  // Estructura del form (cols 0-15):
+  // A(0)=Timestamp  B(1)=Nombre completo  C(2)=Tipo  D(3)=Mail
+  // E(4)=Móvil      F(5)=Telegram         G(6)=Signal H(7)=X
+  // I(8)=Instagram  J(9)=LinkedIn         K(10)=Empresa
+  // L(11)=Ciudad(es) M(12)=Tema(s)        N(13)=Notas
+  // O(14)=Biografía  P(15)=Eventos anteriores
+  //
+  // Speakers sheet = copia exacta A→A ... P→P
+  // + Q(16)=# temas  R(17)=sl_estado  S(18)=sj_estado  T(19)=cba_estado
+
   newRows.forEach(r => {
-    // Detectar en qué bloque de columnas cayeron los datos de esta fila
-    // (el form puede generar columnas duplicadas si fue reseteado)
-    const nombreCol = _detectarOffsetNombre(headers, r);
-    // nombreCol = índice de "Nombre completo" → los demás campos van +1, +2, etc.
-    // Timestamp siempre está en col 0 (independiente del bloque)
-    const c = (offset) => r[nombreCol + offset] || '';
-
-    const nombre   = String(c(0)  || '').trim();              // Nombre completo
-    const tipo     = String(c(1)  || 'speaker').trim();        // Tipo
-    const mail     = String(c(2)  || '').trim();               // Mail
-    const movilRaw = String(c(3)  || '').trim().replace(/\D/g,''); // Móvil — solo dígitos
-    const movil    = movilRaw ? 'https://wa.me/' + movilRaw : '';  // → URL wa.me
-    const telegram = String(c(4)  || '').trim();               // Telegram
-    const signal   = String(c(5)  || '').trim();               // Signal
-    const xUser    = String(c(6)  || '').trim();               // X (Twitter)
-    const ig       = String(c(7)  || '').trim();               // Instagram
-    const linkedin = String(c(8)  || '').trim();               // LinkedIn
-    const empresa  = String(c(9)  || '').trim();               // Empresa/Referencia
-    const ciudRaw  = String(c(10) || '').trim();               // Ciudad(es)
-    const temasRaw = String(c(11) || '').trim();               // Tema(s)
-    const notas    = String(c(12) || '').trim();               // Notas
-    const bio      = String(c(13) || '').trim().slice(0, 150); // Biografía (150 chars)
-    const eventos  = String(c(14) || '').trim();               // Eventos anteriores
-
-    const temasArr = temasRaw.split(',').map(t => t.split(' — ')[0].trim()).filter(Boolean);
-    const temasCsv = temasArr.join(', ');
-
+    const nombre = String(r[1]  || '').trim();  // B
+    const mail   = String(r[3]  || '').trim();  // D
     if (!nombre) return;
 
+    // Contar temas (col M=12): separados por "., " antes de mayúscula/¿
+    const temasRaw = String(r[12] || '').trim();
+    const temasArr = temasRaw
+      .split(/\.,\s*(?=[¿¡A-ZÁÉÍÓÚÜA-z])/)
+      .map(t => t.trim())
+      .filter(t => t.length > 3);
+    const nTemas = Math.max(1, temasArr.length);
+
+    // Estados iniciales según ciudades (col L=11)
+    const ciudRaw = String(r[11] || '').trim();
     const ciudades = _parseCiudadesForm(ciudRaw);
-    const hasSL  = ciudades.includes('San Luis');
-    const hasCBA = ciudades.includes('Córdoba');
-    const hasTUC = ciudades.includes('Tucumán');
+    const slEst  = ciudades.includes('San Luis') ? Array(nTemas).fill('disponible').join(',') : '';
+    const sjEst  = ciudades.includes('Tucumán')  ? Array(nTemas).fill('disponible').join(',') : '';
+    const cbaEst = ciudades.includes('Córdoba')  ? Array(nTemas).fill('disponible').join(',') : '';
 
     const mailKey = mail.toLowerCase();
 
     if (mailKey && byMail[mailKey]) {
-      // ── Speaker ya existe → fusionar temas / ciudades ────────────
-      const entry = byMail[mailKey];
-      const exRow = entry.row;
+      // Speaker ya existe → actualizar solo si hay temas/ciudades nuevas
+      const entry  = byMail[mailKey];
+      const updRow = [...entry.row];
 
-      const existTemasArr = String(exRow[4]||'').split(',').map(t=>t.trim()).filter(Boolean);
-      const addedTemas = temasArr.filter(t => t && !existTemasArr.includes(t));
-      const mergedTemas = [...existTemasArr, ...addedTemas];
-      const nViejo = existTemasArr.length;
-      const nNuevo = mergedTemas.length;
-
-      // Ciudades: agregar las nuevas
-      const existCiuds = String(exRow[3]||'');
-      const ciudNuevas = ['San Luis','Córdoba','Tucumán'].filter(c => ciudades.includes(c) && !existCiuds.includes(c));
-      const mergedCiuds = ciudNuevas.length
-        ? (existCiuds ? existCiuds + ', ' + ciudNuevas.join(', ') : ciudNuevas.join(', '))
-        : existCiuds;
-
-      // Extender arrays de estado para los temas nuevos
-      const mergedSL  = _extenderEstados(exRow[9],  nViejo, nNuevo, hasSL  ? 'disponible' : '');
-      const mergedSJ  = _extenderEstados(exRow[10], nViejo, nNuevo, hasTUC ? 'disponible' : '');
-      const mergedCBA = _extenderEstados(exRow[11], nViejo, nNuevo, hasCBA ? 'disponible' : '');
-
-      const updRow = [...exRow];
-      updRow[3]  = mergedCiuds;
-      updRow[4]  = mergedTemas.join(', ');
-      updRow[9]  = mergedSL;
-      updRow[10] = mergedSJ;
-      updRow[11] = mergedCBA;
-      // Completar campos vacíos con los del form
-      if (!updRow[5]  && notas)    updRow[5]  = notas;
-      if (!updRow[12] && movil)    updRow[12] = movil;
-      if (!updRow[13] && telegram) updRow[13] = telegram;
-      if (!updRow[14] && linkedin) updRow[14] = linkedin;
-      if (!updRow[15] && bio)      updRow[15] = bio;
-      if (!updRow[16] && eventos)  updRow[16] = eventos;
-      if (!updRow[17] && signal) updRow[17] = signal;
+      // Preservar cols A-P del form (sobreescribir con datos nuevos)
+      for (let i = 0; i < 16; i++) updRow[i] = r[i];
+      updRow[16] = nTemas;
+      // Estados: solo actualizar si estaban vacíos
+      if (!updRow[17]) updRow[17] = slEst;
+      if (!updRow[18]) updRow[18] = sjEst;
+      if (!updRow[19]) updRow[19] = cbaEst;
 
       spSheet.getRange(entry.sheetRow, 1, 1, updRow.length).setValues([updRow]);
-
-      if (addedTemas.length) {
-        actualizados.push(nombre + ' (+ ' + addedTemas.join(', ') + ')');
-      } else {
-        actualizados.push(nombre + ' (sin temas nuevos)');
-      }
+      actualizados.push(nombre);
 
     } else {
-      // ── Speaker nuevo → agregar fila ─────────────────────────────
-      const n = Math.max(1, temasArr.length);
-      const mkEst = (aplica) => aplica ? Array(n).fill('disponible').join(',') : Array(n).fill('').join(',');
-      const slEst  = mkEst(hasSL);
-      const sjEst  = mkEst(hasTUC);
-      const cbaEst = mkEst(hasCBA);
-
-      // Formato fila Speakers (18 cols):
-      // nombre, tipo, mail, ciudades, temas, notas, x, ig, empresa,
-      // sl_estado, sj_estado, cba_estado, movil, telegram, linkedin, bio, eventos_anteriores, signal
-      spSheet.appendRow([nombre, tipo, mail, ciudades, temasCsv, notas,
-        xUser, ig, empresa, slEst, sjEst, cbaEst, movil, telegram, linkedin, bio, eventos, signal]);
-      byMail[mailKey] = { sheetRow: spSheet.getLastRow(), row: [] }; // registrar para evitar dup en mismo lote
+      // Speaker nuevo → copia exacta A-P + columnas calculadas
+      const newRow = [
+        r[0],  // A Timestamp
+        r[1],  // B Nombre completo
+        r[2],  // C Tipo
+        r[3],  // D Mail
+        r[4],  // E Móvil
+        r[5],  // F Telegram
+        r[6],  // G Signal
+        r[7],  // H X
+        r[8],  // I Instagram
+        r[9],  // J LinkedIn
+        r[10], // K Empresa
+        r[11], // L Ciudad(es)
+        r[12], // M Tema(s)
+        r[13], // N Notas
+        r[14], // O Biografía
+        r[15], // P Eventos anteriores
+        nTemas, // Q # temas
+        slEst,  // R sl_estado
+        sjEst,  // S sj_estado
+        cbaEst  // T cba_estado
+      ];
+      spSheet.appendRow(newRow);
+      byMail[mailKey] = { sheetRow: spSheet.getLastRow(), row: newRow };
       imported.push(nombre);
     }
   });
@@ -293,7 +234,7 @@ function importarFormSpeakers(dexSS) {
   const total = imported.length + actualizados.length;
   let msg = '';
   if (total === 0) {
-    msg = 'No se procesó nada (filas sin nombre o sin mail).';
+    msg = 'No se procesó nada (filas sin nombre).';
   } else {
     const partes = [];
     if (imported.length)     partes.push('✅ Nuevos: ' + imported.join(', '));
@@ -313,7 +254,6 @@ function backupPrincipal() {
   const fecha = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HH-mm');
   const nombre = 'Backup_' + fecha;
 
-  // Borrar backups de más de 7 días para no acumular hojas
   ss.getSheets().forEach(sh => {
     if (sh.getName().startsWith('Backup_')) {
       const partes = sh.getName().replace('Backup_', '').split('_');
@@ -326,9 +266,7 @@ function backupPrincipal() {
   src.copyTo(ss).setName(nombre);
 }
 
-// Correr UNA vez desde el editor para instalar el trigger diario
 function installBackupTrigger() {
-  // Eliminar triggers anteriores del mismo tipo para no duplicar
   ScriptApp.getProjectTriggers()
     .filter(t => t.getHandlerFunction() === 'backupPrincipal')
     .forEach(t => ScriptApp.deleteTrigger(t));
@@ -347,7 +285,6 @@ function respond(obj, code) {
 }
 
 // ── UTILIDADES DE MANTENIMIENTO ─────────────────────────────────────
-// Correr desde el editor cuando el contador de importación queda desfasado
 function resetContadorImport() {
   PropertiesService.getScriptProperties()
     .setProperty('form_last_imported_row', '1');
@@ -355,33 +292,27 @@ function resetContadorImport() {
 }
 
 // ── CLAVE DE ESCRITURA ───────────────────────────────────────────────
-// Correr UNA vez desde el editor para setear o cambiar la clave
 function setWriteKey() {
   const CLAVE = 'DEX/2026';
   PropertiesService.getScriptProperties().setProperty('write_key', CLAVE);
   Logger.log('✅ Clave seteada: ' + CLAVE);
 }
 
-// Correr para ver cuál es la clave actual guardada
 function verWriteKey() {
   const k = PropertiesService.getScriptProperties().getProperty('write_key');
   Logger.log('Clave actual: ' + (k || '(no seteada — cualquier clave pasa)'));
 }
 
-// Correr para borrar la clave (cualquier usuario podrá guardar sin clave)
 function borrarWriteKey() {
   PropertiesService.getScriptProperties().deleteProperty('write_key');
   Logger.log('✅ Clave borrada');
 }
 
 // ── SINCRONIZACIÓN DE TEMAS → GOOGLE FORM ───────────────────────────
-// Form de registro de speakers:
 const FORM_ID = '1x5OzFZXkSv2dqt7933fCiB3zQO7pYeFhlKPfSm-BCI0';
 
-// Tipos de bloque sin speaker (se excluyen del Form)
 const TIPOS_SIN_SPEAKER = ['break','almuerzo','kahoot','apertura','cierre','sorteo','premios','concurso','ama'];
 
-// Util: listar todos los items del Form con su tipo, título y opciones (para debug)
 function listarItemsForm() {
   const form = FormApp.openById(FORM_ID);
   form.getItems().forEach(item => {
@@ -389,17 +320,14 @@ function listarItemsForm() {
     try {
       const type = item.getType();
       let choices = [];
-      if (type === FormApp.ItemType.CHECKBOX)        choices = item.asCheckboxItem().getChoices();
-      else if (type === FormApp.ItemType.LIST)        choices = item.asListItem().getChoices();
-      else if (type === FormApp.ItemType.MULTIPLE_CHOICE) choices = item.asMultipleChoiceItem().getChoices();
+      if (type === FormApp.ItemType.CHECKBOX)             choices = item.asCheckboxItem().getChoices();
+      else if (type === FormApp.ItemType.LIST)             choices = item.asListItem().getChoices();
+      else if (type === FormApp.ItemType.MULTIPLE_CHOICE)  choices = item.asMultipleChoiceItem().getChoices();
       choices.forEach(c => Logger.log('   · "' + c.getValue() + '"'));
     } catch(e) {}
   });
 }
 
-// Actualiza los emojis de ciudad en TODAS las preguntas del Form
-// 🟣→🟥  🔵→🟨  🟡→🟩
-// Correr manualmente una vez para migrar el Form
 function actualizarCiudadesEnForm() {
   const REEMPLAZOS = [
     ['🟣', '🟥'],
@@ -420,7 +348,6 @@ function actualizarCiudadesEnForm() {
         if (orig.join('|') !== nuevo.join('|')) {
           cb.setChoices(nuevo.map(v => cb.createChoice(v)));
           Logger.log('✅ Checkbox "' + item.getTitle() + '" actualizado');
-          orig.forEach((v,i) => { if (v!==nuevo[i]) Logger.log('   "'+v+'" → "'+nuevo[i]+'"'); });
           cambios++;
         }
       } else if (type === FormApp.ItemType.LIST) {
@@ -447,51 +374,43 @@ function actualizarCiudadesEnForm() {
     }
   });
 
-  Logger.log(cambios ? '✅ ' + cambios + ' pregunta(s) actualizada(s)' : 'ℹ️ Sin cambios — los emojis ya están actualizados');
+  Logger.log(cambios ? '✅ ' + cambios + ' pregunta(s) actualizada(s)' : 'ℹ️ Sin cambios');
 }
 
-// Actualiza las opciones del campo Tema(s) del Form con los temas actuales de Principal
-// Se puede correr manualmente o via trigger nocturno
 function actualizarTemasEnForm() {
-  // 1. Leer temas de Principal (hoja de cálculo)
   const ss = SpreadsheetApp.openById(SHEET_ID);
   const ws = ss.getSheetByName('Principal');
   if (!ws) { Logger.log('❌ Hoja Principal no encontrada'); return; }
 
-  const rows = ws.getDataRange().getValues().slice(1); // saltar header
-  // Columnas: tipo=0, dur=1, inicio=2, fin=3, tema=4, bajada=5
+  const rows = ws.getDataRange().getValues().slice(1);
   const TIPO_COL = 0, TEMA_COL = 4, BAJADA_COL = 5;
 
   const temas = [];
   const seen  = new Set();
   rows.forEach(r => {
-    const tipo  = String(r[TIPO_COL]  || '').trim().toLowerCase();
-    const tema  = String(r[TEMA_COL]  || '').trim();
+    const tipo   = String(r[TIPO_COL]   || '').trim().toLowerCase();
+    const tema   = String(r[TEMA_COL]   || '').trim();
     const bajada = String(r[BAJADA_COL] || '').trim();
     if (!tema) return;
     if (TIPOS_SIN_SPEAKER.some(t => tipo.includes(t))) return;
     if (seen.has(tema)) return;
     seen.add(tema);
-    // Formato de opción: "Tema — bajada" (el import ya sabe extraer solo el tema)
     temas.push(bajada ? tema + ' — ' + bajada : tema);
   });
 
   if (!temas.length) { Logger.log('⚠️ Sin temas en Principal — Form no modificado'); return; }
 
-  // 2. Abrir el Form y buscar el item de temas
   const form  = FormApp.openById(FORM_ID);
   const items = form.getItems();
 
-  // Buscar por título que contenga "tema" (case-insensitive)
   const temaItem = items.find(i => i.getTitle().toLowerCase().includes('tema'));
   if (!temaItem) {
-    Logger.log('❌ No encontré item con "tema" en el título. Items disponibles:');
+    Logger.log('❌ No encontré item con "tema" en el título.');
     items.forEach(i => Logger.log('  [' + i.getType() + '] "' + i.getTitle() + '"'));
     return;
   }
   Logger.log('📋 Item encontrado: "' + temaItem.getTitle() + '" (tipo: ' + temaItem.getType() + ')');
 
-  // 3. Actualizar opciones según el tipo de item
   const type = temaItem.getType();
   try {
     if (type === FormApp.ItemType.CHECKBOX) {
@@ -504,27 +423,24 @@ function actualizarTemasEnForm() {
       const mc = temaItem.asMultipleChoiceItem();
       mc.setChoices(temas.map(t => mc.createChoice(t)));
     } else {
-      Logger.log('❌ Tipo de item no soportado: ' + type + ' — usá Checkbox, Lista o Opción múltiple');
+      Logger.log('❌ Tipo no soportado: ' + type);
       return;
     }
     Logger.log('✅ Form actualizado con ' + temas.length + ' temas:');
     temas.forEach(t => Logger.log('   · ' + t));
   } catch(e) {
-    Logger.log('❌ Error al actualizar opciones: ' + e.message);
+    Logger.log('❌ Error: ' + e.message);
   }
 }
 
-// Instalar trigger nocturno (correr UNA vez desde el editor)
-// Después de instalarlo, actualizarTemasEnForm() corre solo todos los días a las 3am
 function installFormUpdateTrigger() {
-  // Eliminar triggers anteriores del mismo tipo para no duplicar
   ScriptApp.getProjectTriggers()
     .filter(t => t.getHandlerFunction() === 'actualizarTemasEnForm')
     .forEach(t => ScriptApp.deleteTrigger(t));
 
   ScriptApp.newTrigger('actualizarTemasEnForm')
     .timeBased()
-    .atHour(3)       // 3am (hora del servidor de Google, UTC−3 aprox. para ARG)
+    .atHour(3)
     .everyDays(1)
     .create();
 
