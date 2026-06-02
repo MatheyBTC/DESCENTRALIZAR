@@ -1633,24 +1633,23 @@ function toggleSpTopics(ri) {
 
   const ciudArr = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
   const citySlots = [];
-  if (ciudArr.some(c=>c.includes('San Luis')))  citySlots.push({ emoji:'🟥', field:'sl_estado',  label:'San Luis' });
-  if (ciudArr.some(c=>c.includes('Córdoba')))   citySlots.push({ emoji:'🟨', field:'cba_estado', label:'Córdoba' });
-  if (ciudArr.some(c=>c.includes('Tucumán'))) citySlots.push({ emoji:'🟩', field:'sj_estado',  label:'Tucumán' });
+  if (ciudArr.some(c=>c.includes('San Luis')))  citySlots.push({ tag:'SL',  color:'#ef4444', bg:'rgba(239,68,68,.15)',  field:'sl_estado',  label:'San Luis' });
+  if (ciudArr.some(c=>c.includes('Córdoba')))   citySlots.push({ tag:'CBA', color:'#eab308', bg:'rgba(234,179,8,.15)',  field:'cba_estado', label:'Córdoba' });
+  if (ciudArr.some(c=>c.includes('Tucumán')))   citySlots.push({ tag:'TUC', color:'#22c55e', bg:'rgba(34,197,94,.15)', field:'sj_estado',  label:'Tucumán' });
 
   let insertAfter = mainRow;
   const tipoBadge = tipoBadgesHtml(s.tipo);
   temas.forEach((t, ti) => {
-    citySlots.forEach(({ emoji, field, label }) => {
+    citySlots.forEach(({ tag, color, bg, field, label }) => {
       const est = spEstados(s, field)[ti] || '';
       const tr = document.createElement('tr');
       tr.className = 'sp-topic-row';
       tr.dataset.spRi = String(ri);
-      // Cols: [tipo][nombre empty][# empty][↳ tema][ciudad emoji][estado select][mail…✕ empty × 9]
       tr.innerHTML = `
         <td style="padding:2px 6px">${tipoBadge}</td>
         <td colspan="2"></td>
         <td class="topic-label" style="padding-left:12px">↳ ${esc(t)}</td>
-        <td style="text-align:center;font-size:15px" title="${label}">${emoji}</td>
+        <td style="text-align:center"><span style="background:${bg};color:${color};font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px">${tag}</span></td>
         <td style="font-size:11px;padding:2px 4px">${estadoSelectHtml(ri, field, est, ti)}</td>
         <td colspan="9"></td>
       `;
