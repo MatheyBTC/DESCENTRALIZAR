@@ -1799,18 +1799,19 @@ async function loadSpeakers() {
         .map(t => t.split(' — ')[0].trim())
         .filter(t => t.length > 3);
       const n = Math.max(1, temasArr.length);
+      const s = (v) => String(v == null ? '' : v);
       const parseE = (v) => {
-        const a = (v||'').split(',').map(s=>s.trim());
+        const a = s(v).split(',').map(x=>x.trim());
         while (a.length < n) a.push(a[0]||'');
         return a.slice(0, n);
       };
       return {
-        nombre: r[1]||'', tipo: r[2]||'speaker', contacto: r[3]||'',
-        movil: r[4]||'', telegram: r[5]||'', signal: r[6]||'',
-        x: r[7]||'', ig: r[8]||'', linkedin: r[9]||'',
-        empresa: r[10]||'', ciudades: r[11]||'',
-        temas: temasArr, notas: r[13]||'',
-        bio: r[14]||'', eventos_anteriores: r[15]||'',
+        nombre: s(r[1]), tipo: s(r[2])||'speaker', contacto: s(r[3]),
+        movil: s(r[4]), telegram: s(r[5]), signal: s(r[6]),
+        x: s(r[7]), ig: s(r[8]), linkedin: s(r[9]),
+        empresa: s(r[10]), ciudades: s(r[11]),
+        temas: temasArr, notas: s(r[13]),
+        bio: s(r[14]), eventos_anteriores: s(r[15]),
         sl_estado:  parseE(r[17]),
         sj_estado:  parseE(r[18]),
         cba_estado: parseE(r[19]),
