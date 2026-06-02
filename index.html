@@ -1542,10 +1542,10 @@ function renderSpeakers() {
     const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
     // Iconos de ciudad para columna Ubicación
     const ciudTags = ciudArr.map(c =>
-      c.includes('San Luis') ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:700">SL</span>' :
-      c.includes('Córdoba')  ? '<span style="background:rgba(234,179,8,.15);color:#eab308;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:700">CBA</span>' :
-      c.includes('Tucumán')  ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:700">TUC</span>' : ''
-    ).filter(Boolean).join(' ') || '—';
+      c.includes('San Luis') ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">SL</span>' :
+      c.includes('Córdoba')  ? '<span style="background:rgba(234,179,8,.15);color:#eab308;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">CBA</span>' :
+      c.includes('Tucumán')  ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">TUC</span>' : ''
+    ).filter(Boolean).join('') || '—';
     const cityRows = ciudArr.map(c => {
       if (c.includes('San Luis')) return `<div style="margin-bottom:3px;display:flex;align-items:center;gap:5px"><span style="background:rgba(239,68,68,.15);color:#ef4444;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;min-width:30px;text-align:center">SL</span>${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
       if (c.includes('Córdoba'))  return `<div style="margin-bottom:3px;display:flex;align-items:center;gap:5px"><span style="background:rgba(234,179,8,.15);color:#eab308;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;min-width:30px;text-align:center">CBA</span>${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
