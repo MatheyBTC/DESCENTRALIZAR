@@ -1555,8 +1555,8 @@ function renderSpeakers() {
     // Móvil → link wa.me (el número puede venir como número o como URL)
     const movilNum = String(s.movil||'').replace(/\D/g,'');
     const movilUrl = s.movil ? (String(s.movil).startsWith('http') ? s.movil : `https://wa.me/${movilNum}`) : '';
-    const movilLink = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:2px">WA <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/></svg></a>` : '';
-    const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:2px">LI <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.5" stroke-linecap="round"/></svg></a>` : '';
+    const movilLink = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
+    const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td>${tipoBadgesHtml(s.tipo)}</td>
       <td style="font-weight:700;white-space:nowrap;cursor:pointer;color:var(--btc)" onclick="openSpPanel(${ri})" title="Ver ficha">${esc(s.nombre||'')}</td>
