@@ -1188,40 +1188,65 @@ function openSpDrop(idx, city, e) {
   const anchor = document.getElementById(`spp-${idx}-${city}`);
   const r = anchor.getBoundingClientRect();
   const alreadySelected = parseSpeakerField(state.principal[idx]?.[city]);
-  const spList = speakersForSlot(city, idx); // filtrado por ciudad + tema del row
+  const rowTema = (state.principal[idx]?.tema || '').trim();
+  const rowTemaLow = rowTema.toLowerCase();
   const estadoField = city + '_estado';
-  const items = [];      // combos disponibles
-  const fullItems = [];  // combos ya usados en otra fila (N=0 para este tema)
-  spList.forEach(s => {
+  const cn = (CITY_NAMES[city]||'').toLowerCase();
+
+  // Todos los speakers de esta ciudad no rechazados
+  const citySpList = state.speakers.filter(s => {
+    if (!(s.ciudades||'').toLowerCase().includes(cn)) return false;
+    if (allRechazadoInField(s, estadoField)) return false;
+    return true;
+  });
+
+  // Separar: tienen el tema / no tienen el tema
+  const withTema    = citySpList.filter(s => !rowTemaLow || spTemas(s).some(t => t.replace(/^★\s*/,'').trim().toLowerCase() === rowTemaLow));
+  const withoutTema = rowTemaLow ? citySpList.filter(s => !spTemas(s).some(t => t.replace(/^★\s*/,'').trim().toLowerCase() === rowTemaLow)) : [];
+
+  const items = [], fullItems = [];
+
+  withTema.forEach(s => {
     const topicos = spTemas(s);
     const estados = spEstados(s, estadoField);
     const N = spRemainingForCity(s, city);
     const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
-    if (topicos.length === 0) {
-      // Speaker sin temas (solo aparece si el row tampoco tiene tema)
-      const combo = s.nombre;
-      if (!alreadySelected.includes(combo) && !isComboUsedInCity(idx, city, combo)) {
-        items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:var(--dim)">Sin tema registrado</div></div>`);
+    topicos.forEach((topic, ti) => {
+      if ((topic.replace(/^★\s*/,'')).trim().toLowerCase() !== rowTemaLow && rowTemaLow) return;
+      const topicEst = estados[ti]||'';
+      if (topicEst === 'rechazado') return;
+      const combo = `${s.nombre}|${topic}`;
+      if (alreadySelected.includes(combo)) return;
+      const isManual = topic.startsWith('★');
+      const label = `<div class="sp-item-tema" style="color:${isManual?'#eab308':'var(--text)'}">${isManual?'★ ':''}${esc(topic.replace(/^★\s*/,''))}</div>`;
+      if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
+        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag}</div>${label.replace('>','> ya asignado · ')}</div>`);
+        return;
       }
-    } else {
-      topicos.forEach((topic, ti) => {
-        const topicEst = estados[ti]||'';
-        if (topicEst === 'rechazado') return;
-        const combo = `${s.nombre}|${topic}`;
-        if (alreadySelected.includes(combo)) return; // ya en este slot
-        if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
-          // Disponible pero ya asignado en otra fila
-          fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:var(--dim)">${esc(topic)} · ya asignado</div></div>`);
-          return;
-        }
-        items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema">${esc(topic)}</div></div>`);
-      });
-    }
+      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div>${label}</div>`);
+    });
   });
-  const sep = fullItems.length ? `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Ya asignados</div>` : '';
-  const allHtml = [...items, sep, ...fullItems].join('');
-  dd.innerHTML = `<input class="sp-search" placeholder="Buscar speaker o tema…" oninput="filterSpDrop(this.value)">` +
-    (allHtml.trim() ? allHtml : `<div style="padding:10px 12px;color:var(--dim);font-size:12px">Sin speakers disponibles para este tema</div>`);
+
+  let html = [...items, ...(fullItems.length ? [`<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Ya asignados</div>`] : []), ...fullItems].join('');
+
+  // Sección emergencia — solo si no hay disponibles con ese tema
+  if (items.length === 0 && withoutTema.length > 0 && rowTema) {
+    const emergItems = [];
+    withoutTema.forEach(s => {
+      const combo = `${s.nombre}|${rowTema}`;
+      if (alreadySelected.includes(combo)) return;
+      const N = spRemainingForCity(s, city);
+      const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:#eab308">★ ${esc(rowTema)} <span style="color:var(--dim);font-size:10px">(asignación manual)</span></div></div>`);
+    });
+    if (emergItems.length) {
+      html += `<div style="font-size:10px;color:#eab308;padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid rgba(234,179,8,.3);margin-top:4px">Sin disponibles — asignación manual</div>`;
+      html += emergItems.join('');
+    }
+  }
+
+  dd.innerHTML = `<input class="sp-search" placeholder="Buscar speaker…" oninput="filterSpDrop(this.value)">` +
+    (html.trim() ? html : `<div style="padding:10px 12px;color:var(--dim);font-size:12px">Sin speakers disponibles</div>`);
   dd.style.top   = r.bottom + 'px';
   dd.style.left  = r.left   + 'px';
   dd.style.width = Math.max(r.width, 240) + 'px';
@@ -2563,26 +2588,37 @@ document.addEventListener('click', e => {
   const item = e.target.closest('.sp-item');
   if (item && item.dataset.idx !== undefined) {
     const idx = +item.dataset.idx, city = item.dataset.city, combo = item.dataset.name;
+    const isManual = item.dataset.manual === '1';
     const row = state.principal[idx];
     if (row && combo) {
       const arr = parseSpeakerField(row[city]);
       if (!arr.includes(combo)) arr.push(combo);
       row[city] = arr;
       markDirty('principal');
-      // Auto-confirmar estado del tema específico en esa ciudad
       const estadoField = city + '_estado';
       const { name, topic } = parseSpChip(combo);
       const sp = state.speakers.find(s => s.nombre === name);
       if (sp) {
-        const temas = spTemas(sp);
-        const ti = topic ? temas.indexOf(topic) : -1;
-        const arr = spEstados(sp, estadoField);
-        if (ti >= 0) {
-          arr[ti] = 'confirmado';
+        if (isManual && topic) {
+          // Asignación manual: agregar tema con ★ si no existe
+          const manualTopic = '★ ' + topic;
+          const currentTemas = spTemas(sp);
+          if (!currentTemas.some(t => t.replace(/^★\s*/,'').trim() === topic.trim())) {
+            currentTemas.push(manualTopic);
+            sp.temas = currentTemas;
+            ['sl_estado','sj_estado','cba_estado'].forEach(field => {
+              const a = spEstados(sp, field);
+              a.push(field === estadoField ? 'confirmado' : '');
+              sp[field] = a;
+            });
+          }
         } else {
-          arr.fill('confirmado'); // sin tema específico → confirmar todos
+          const temas = spTemas(sp);
+          const ti = topic ? temas.findIndex(t => t.replace(/^★\s*/,'').trim() === topic.trim()) : -1;
+          const a = spEstados(sp, estadoField);
+          if (ti >= 0) { a[ti] = 'confirmado'; } else { a.fill('confirmado'); }
+          sp[estadoField] = a;
         }
-        sp[estadoField] = arr;
         markDirty('speakers');
       }
     }
