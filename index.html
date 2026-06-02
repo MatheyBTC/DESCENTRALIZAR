@@ -173,11 +173,12 @@ textarea.cell-ta:focus{background:rgba(247,147,26,.06);box-shadow:inset 0 0 0 2p
 .sp-cell-empty{font-size:14px;color:var(--dim);}
 .sp-drop{display:none;position:fixed;min-width:190px;background:var(--bg3);border:1px solid var(--btc);z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.5);max-height:280px;overflow-y:auto;}
 .sp-drop.open{display:block;}
-.sp-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);}
+.sp-item{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--bg3);}
 .sp-item:last-child{border-bottom:none;}
 .sp-item:hover{background:var(--btc-dim);}
 .sp-item-name{font-size:13px;font-weight:700;color:var(--btc);}
 .sp-item-tema{font-size:11px;color:var(--text);margin-top:1px;}
+.sp-search{background:var(--bg2);color:var(--text);}
 
 /* ── FORM ── */
 .form-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;}
@@ -585,13 +586,13 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
           <th>Nombre</th>
           <th style="width:26px;text-align:center" title="N.° de temas — clic para expandir">#</th>
           <th style="min-width:110px">Tema(s)</th>
-          <th style="width:60px;text-align:center" title="Ciudades">Ubic.</th>
-          <th style="width:130px">Estados</th>
+          <th style="width:90px;text-align:center" title="Ciudades">Ubic.</th>
+          <th style="width:170px">Estados</th>
           <th style="min-width:130px">Mail</th>
-          <th style="width:55px;text-align:center">Movil</th>
-          <th style="width:80px">Telegram</th>
-          <th style="width:80px">Signal</th>
-          <th style="width:55px;text-align:center">LinkedIn</th>
+          <th style="width:70px;text-align:center">Movil</th>
+          <th style="width:90px">Telegram</th>
+          <th style="width:90px">Signal</th>
+          <th style="width:70px;text-align:center">LinkedIn</th>
           <th style="width:70px">X</th>
           <th style="width:70px">IG</th>
           <th style="width:90px">Empresa</th>
@@ -1540,33 +1541,33 @@ function renderSpeakers() {
     const temasStr = esc(temas.join(', ') || '— sin temas —');
     const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
     // Iconos de ciudad para columna Ubicación
-    const ciudIcons = ciudArr.map(c =>
-      c.includes('San Luis')?'🟥':c.includes('Córdoba')?'🟨':c.includes('Tucumán')?'🟩':'📍'
-    ).join(' ') || '—';
-    // Estados por ciudad
+    const ciudTags = ciudArr.map(c =>
+      c.includes('San Luis') ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:700">SL</span>' :
+      c.includes('Córdoba')  ? '<span style="background:rgba(234,179,8,.15);color:#eab308;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:700">CBA</span>' :
+      c.includes('Tucumán')  ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;padding:1px 5px;border-radius:4px;font-size:10px;font-weight:700">TUC</span>' : ''
+    ).filter(Boolean).join(' ') || '—';
     const cityRows = ciudArr.map(c => {
-      if (c.includes('San Luis')) return `<div style="font-size:11px;margin-bottom:1px">🟥 ${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
-      if (c.includes('Córdoba'))  return `<div style="font-size:11px;margin-bottom:1px">🟨 ${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
-      if (c.includes('Tucumán')) return `<div style="font-size:11px;margin-bottom:1px">🟩 ${cityEstadoSelHtml(ri,'','sj_estado')}</div>`;
+      if (c.includes('San Luis')) return `<div style="font-size:11px;margin-bottom:2px;display:flex;align-items:center;gap:4px"><span style="color:#ef4444;font-size:10px;font-weight:700;min-width:28px">SL</span>${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
+      if (c.includes('Córdoba'))  return `<div style="font-size:11px;margin-bottom:2px;display:flex;align-items:center;gap:4px"><span style="color:#eab308;font-size:10px;font-weight:700;min-width:28px">CBA</span>${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
+      if (c.includes('Tucumán'))  return `<div style="font-size:11px;margin-bottom:2px;display:flex;align-items:center;gap:4px"><span style="color:#22c55e;font-size:10px;font-weight:700;min-width:28px">TUC</span>${cityEstadoSelHtml(ri,'','sj_estado')}</div>`;
       return '';
     }).filter(Boolean).join('');
-    const movilLink = s.movil
-      ? `<a href="${esc(s.movil)}" target="_blank" style="color:#22c55e;text-decoration:none;font-size:13px">📱</a>`
-      : '';
-    const liLink = s.linkedin
-      ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;font-size:14px">💼</a>`
-      : '';
+    // Móvil → link wa.me (el número puede venir como número o como URL)
+    const movilNum = String(s.movil||'').replace(/\D/g,'');
+    const movilUrl = s.movil ? (String(s.movil).startsWith('http') ? s.movil : `https://wa.me/${movilNum}`) : '';
+    const movilLink = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;font-size:12px;font-weight:600">WA</a>` : '';
+    const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;font-size:12px;font-weight:600">LI</a>` : '';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td>${tipoBadgesHtml(s.tipo)}</td>
       <td style="font-weight:700;white-space:nowrap;cursor:pointer;color:var(--btc)" onclick="openSpPanel(${ri})" title="Ver ficha">${esc(s.nombre||'')}</td>
       <td style="text-align:center"><span class="tema-badge" onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad">${n||'?'}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeakerTemas(${ri},this.innerText.trim())">${temasStr}</span></td>
-      <td style="text-align:center;font-size:15px">${ciudIcons}</td>
+      <td style="text-align:center">${ciudTags}</td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
-      <td style="font-size:12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contacto ? `<a href="mailto:${esc(s.contacto)}" style="color:var(--muted);text-decoration:none">✉️ ${esc(s.contacto)}</a>` : ''}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contacto ? `<a href="mailto:${esc(s.contacto)}" style="color:var(--muted);text-decoration:none">${esc(s.contacto)}</a>` : ''}</td>
       <td style="text-align:center">${movilLink}</td>
-      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.telegram ? `✈️ ${esc(s.telegram)}` : ''}</td>
-      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.signal ? `🔒 ${esc(s.signal)}` : ''}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.telegram ? esc(s.telegram) : ''}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.signal ? esc(s.signal) : ''}</td>
       <td style="text-align:center">${liLink}</td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
