@@ -519,7 +519,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
           <th style="min-width:130px">Mail</th>
           <th style="width:70px;text-align:center">Movil</th>
           <th style="width:90px">Telegram</th>
-          <th style="width:90px">Signal</th>
+          <th style="width:90px;display:none">Signal</th>
           <th style="width:70px;text-align:center">LinkedIn</th>
           <th style="width:70px">X</th>
           <th style="width:70px">IG</th>
@@ -1542,9 +1542,7 @@ function renderSpeakers() {
       </td>
       <td style="text-align:center">${movilLink}</td>
       <td style="text-align:center">${tgLink || (s.telegram ? `<span style="font-size:11px;color:var(--dim)">${esc(s.telegram)}</span>` : '')}</td>
-      <td style="max-width:90px;overflow:hidden">
-        <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span>
-      </td>
+      <td style="display:none"><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span></td>
       <td style="text-align:center">${liLink}</td>
       <td style="text-align:center">${xLink}</td>
       <td style="text-align:center">${igLink}</td>
