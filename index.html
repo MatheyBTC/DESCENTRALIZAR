@@ -1873,8 +1873,19 @@ async function saveSpeakers() {
     await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
       const data = state.speakers.map(s => {
         const row = s._row ? [...s._row] : new Array(20).fill('');
-        // Preservar A-P del form (índices 0-15) intactos
-        // Actualizar solo columnas variables Q-T (índices 16-19)
+        // Sincronizar campos editados inline → A-P
+        row[1]  = s.nombre    || row[1]  || '';
+        row[2]  = s.tipo      || row[2]  || '';
+        row[3]  = s.contacto  !== undefined ? s.contacto  : row[3]  || '';
+        row[4]  = s.movil     !== undefined ? s.movil     : row[4]  || '';
+        row[5]  = s.telegram  !== undefined ? s.telegram  : row[5]  || '';
+        row[6]  = s.signal    !== undefined ? s.signal    : row[6]  || '';
+        row[7]  = s.x         !== undefined ? s.x         : row[7]  || '';
+        row[8]  = s.ig        !== undefined ? s.ig        : row[8]  || '';
+        row[9]  = s.linkedin  !== undefined ? s.linkedin  : row[9]  || '';
+        row[10] = s.empresa   !== undefined ? s.empresa   : row[10] || '';
+        row[11] = s.ciudades  !== undefined ? s.ciudades  : row[11] || '';
+        // Q-T
         row[16] = spTemas(s).length;
         row[17] = spEstados(s,'sl_estado').join(',');
         row[18] = spEstados(s,'sj_estado').join(',');
