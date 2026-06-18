@@ -1548,7 +1548,11 @@ function renderSpeakers() {
     renderTopicFilters();
     return;
   }
-  tbody.innerHTML = list.map(s => {
+  // Separar: form-importados primero, manuales al final con índice M1/M2/M3
+  const listForm   = list.filter(s => !s._manual);
+  const listManual = list.filter(s =>  s._manual);
+  let mCount = 0;
+  const renderRow = (s, mIdx) => {
     const ri      = state.speakers.indexOf(s);
     const temas   = spTemas(s);
     const n       = temas.length;
@@ -1587,6 +1591,7 @@ function renderSpeakers() {
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td><select class="sp-tipo-sel" style="color:${tipoColor};font-weight:700;width:100%;font-size:12px" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');this.style.color=({'speaker':'#F7931A',panelista:'#eab308',moderador:'#06b6d4',sponsor:'#22c55e'}[this.value]||'var(--text)')">${tipoOp}</select></td>
       <td style="font-weight:700;white-space:nowrap">
+        ${mIdx ? `<span style="background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);font-size:10px;font-weight:800;padding:1px 5px;border-radius:4px;margin-right:4px">M${mIdx}</span>` : ''}
         <span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
         <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
       </td>
@@ -1619,7 +1624,17 @@ function renderSpeakers() {
       <td style="max-width:120px;overflow:hidden"><span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')" title="${esc(s.empresa||'')}">${esc(s.empresa||'')}</span></td>
       <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
     </tr>`;
-  }).join('');
+  };
+
+  const sepManual = listManual.length
+    ? `<tr><td colspan="15" style="padding:6px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);font-size:11px;font-weight:700;color:#a855f7;letter-spacing:.05em">MANUALES</td></tr>`
+    : '';
+
+  tbody.innerHTML =
+    listForm.map(s => renderRow(s, null)).join('') +
+    sepManual +
+    listManual.map((s, i) => renderRow(s, i + 1)).join('');
+
   renderTopicFilters();
 }
 
@@ -1736,6 +1751,7 @@ function addSpeaker() {
     telegram: document.getElementById('sp-telegram').value.trim(),
     signal:   document.getElementById('sp-signal').value.trim(),
     linkedin: document.getElementById('sp-linkedin').value.trim(),
+    _manual: true,
   });
   ['sp-nombre','sp-mail','sp-movil','sp-telegram','sp-signal','sp-x','sp-ig','sp-linkedin','sp-empresa','sp-temas','sp-bajada','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('sp-bio-cnt').textContent = '150 restantes';
@@ -1911,7 +1927,8 @@ async function loadSpeakers() {
         sl_estado:  parseE(r[17]),
         sj_estado:  parseE(r[18]),
         cba_estado: parseE(r[19]),
-        _row: [...r]
+        _row: [...r],
+        _manual: String(r[0]||'').toUpperCase() === 'MANUAL',
       };
     });
     renderSpeakers();
@@ -1928,8 +1945,41 @@ async function saveSpeakers() {
     await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
       const data = state.speakers.map(s => {
         const row = s._row ? [...s._row] : new Array(20).fill('');
-        // Preservar A-P del form (índices 0-15) intactos
-        // Actualizar solo columnas variables Q-T (índices 16-19)
+        // Para speakers manuales (_manual=true o _row vacío), escribir todos los campos
+        const isManual = s._manual || !s._row || !s._row[1];
+        if (isManual) {
+          row[0]  = row[0] || 'MANUAL';   // Timestamp / marcador
+          row[1]  = s.nombre || '';
+          row[2]  = s.tipo   || 'speaker';
+          row[3]  = s.contacto || '';
+          row[4]  = s.movil  || '';
+          row[5]  = s.telegram || '';
+          row[6]  = s.signal || '';
+          row[7]  = s.x      || '';
+          row[8]  = s.ig     || '';
+          row[9]  = s.linkedin || '';
+          row[10] = s.empresa || '';
+          row[11] = s.ciudades || '';
+          row[12] = spTemas(s).join(', ');
+          row[13] = s.notas || '';
+          row[14] = s.bio   || '';
+          row[15] = s.eventos_anteriores || '';
+        } else {
+          // Speaker del form: actualizar campos editables inline también
+          if (s.nombre)   row[1]  = s.nombre;
+          if (s.tipo)     row[2]  = s.tipo;
+          if (s.contacto !== undefined) row[3]  = s.contacto;
+          if (s.movil   !== undefined)  row[4]  = s.movil;
+          if (s.telegram !== undefined) row[5]  = s.telegram;
+          if (s.signal  !== undefined)  row[6]  = s.signal;
+          if (s.x       !== undefined)  row[7]  = s.x;
+          if (s.ig      !== undefined)  row[8]  = s.ig;
+          if (s.linkedin !== undefined) row[9]  = s.linkedin;
+          if (s.empresa !== undefined)  row[10] = s.empresa;
+          if (s.ciudades !== undefined) row[11] = s.ciudades;
+          row[12] = spTemas(s).join(', ');
+        }
+        // Columnas Q-T siempre
         row[16] = spTemas(s).length;
         row[17] = spEstados(s,'sl_estado').join(',');
         row[18] = spEstados(s,'sj_estado').join(',');
