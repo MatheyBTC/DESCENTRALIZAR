@@ -1168,12 +1168,15 @@ function speakersForSlot(city, idx) {
 
 function renderSpPicker(idx, city, selected) {
   const arr = parseSpeakerField(selected);
+  const rowTema = (state.principal[idx]?.tema || '').trim().toLowerCase();
   const chips = arr.map(item => {
     const { name, topic } = parseSpChip(item);
     const sp = state.speakers.find(s => s.nombre === name);
-    const N = sp ? spRemainingForCity(sp, city) : 0;
-    const label = name;
-    return `<span class="sp-chip"><span class="sp-chip-name">${esc(label)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(item).replace(/"/g,'&quot;')}">✕</button></span>`;
+    const applied = sp && rowTema && spTemas(sp).some(t => !t.startsWith('★') && t.trim().toLowerCase() === rowTema);
+    const chipStyle = applied ? '' : 'background:var(--bg3);border-color:var(--border);';
+    const nameStyle = applied ? '' : 'color:var(--text);';
+    const label = applied ? `★ ${name}` : name;
+    return `<span class="sp-chip" style="${chipStyle}"><span class="sp-chip-name" style="${nameStyle}">${esc(label)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(item).replace(/"/g,'&quot;')}">✕</button></span>`;
   }).join('');
   return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-chips-wrap">${chips}<span class="sp-add-btn" data-idx="${idx}" data-city="${city}">+</span></div></div>`;
 }
@@ -1212,37 +1215,34 @@ function openSpDrop(idx, city, e) {
     const topicos = spTemas(s);
     const estados = spEstados(s, estadoField);
     const N = spRemainingForCity(s, city);
-    const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
+    const nameTag = `<span style="color:var(--btc);font-weight:700">★ ${esc(s.nombre)}</span> <span style="color:var(--dim);font-weight:400">(${N})</span>`;
     topicos.forEach((topic, ti) => {
       if ((topic.replace(/^★\s*/,'')).trim().toLowerCase() !== rowTemaLow && rowTemaLow) return;
       const topicEst = estados[ti]||'';
       if (topicEst === 'rechazado') return;
       const combo = `${s.nombre}|${topic}`;
       if (alreadySelected.includes(combo)) return;
-      const isManual = topic.startsWith('★');
-      const label = `<div class="sp-item-tema" style="color:${isManual?'#eab308':'var(--text)'}">${isManual?'★ ':''}${esc(topic.replace(/^★\s*/,''))}</div>`;
       if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
-        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag}</div>${label.replace('>','> ya asignado · ')}</div>`);
+        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag} <span style="color:var(--dim);font-size:10px">ya asignado</span></div></div>`);
         return;
       }
-      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div>${label}</div>`);
+      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div></div>`);
     });
   });
 
   let html = [...items, ...(fullItems.length ? [`<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Ya asignados</div>`] : []), ...fullItems].join('');
 
-  // Sección emergencia — solo si no hay disponibles con ese tema
-  if (items.length === 0 && withoutTema.length > 0 && rowTema) {
+  // Sección disponibles sin este tema — siempre visible
+  if (withoutTema.length > 0 && rowTema) {
     const emergItems = [];
     withoutTema.forEach(s => {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
-      const N = spRemainingForCity(s, city);
-      const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
-      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:#eab308">★ ${esc(rowTema)} <span style="color:var(--dim);font-size:10px">(asignación manual)</span></div></div>`);
+      if (isComboUsedInCity(idx, city, combo)) return;
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name" style="color:var(--dim)">${esc(s.nombre)}</div></div>`);
     });
     if (emergItems.length) {
-      html += `<div style="font-size:10px;color:#eab308;padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid rgba(234,179,8,.3);margin-top:4px">Sin disponibles — asignación manual</div>`;
+      html += `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Disponibles — sin aplicación a este tema</div>`;
       html += emergItems.join('');
     }
   }
