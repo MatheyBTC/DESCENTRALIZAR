@@ -1556,49 +1556,66 @@ function renderSpeakers() {
     const n       = temas.length;
     const temasStr = esc(temas.join(', ') || '— sin temas —');
     const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
-    // Iconos de ciudad para columna Ubicación
-    const ciudTags = ciudArr.map(c =>
-      c.includes('San Luis') ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">SL</span>' :
-      c.includes('Córdoba')  ? '<span style="background:rgba(234,179,8,.15);color:#eab308;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">CBA</span>' :
-      c.includes('Tucumán')  ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">TUC</span>' : ''
-    ).filter(Boolean).join('') || '—';
-    const cityRows = ciudArr.map(c => {
-      if (c.includes('San Luis')) return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
-      if (c.includes('Córdoba'))  return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
-      if (c.includes('Tucumán'))  return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','sj_estado')}</div>`;
-      return '';
+    // Ubic.: badges clicables para toggle de ciudad
+    const CITY_DEFS = [
+      { name:'San Luis', tag:'SL',  color:'#ef4444', bg:'rgba(239,68,68,.15)'  },
+      { name:'Córdoba',  tag:'CBA', color:'#eab308', bg:'rgba(234,179,8,.15)'  },
+      { name:'Tucumán',  tag:'TUC', color:'#22c55e', bg:'rgba(34,197,94,.15)'  },
+    ];
+    const ciudTags = CITY_DEFS.map(cd => {
+      const on = ciudArr.some(c => c.includes(cd.name));
+      const style = on
+        ? `background:${cd.bg};color:${cd.color};border:1px solid ${cd.color}`
+        : `background:transparent;color:var(--dim);border:1px solid var(--border)`;
+      return `<span onclick="toggleSpCity(${ri},'${cd.name}',this)" title="${cd.name}" style="${style};padding:2px 5px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px;cursor:pointer">${cd.tag}</span>`;
+    }).join('');
+    const cityRows = CITY_DEFS.map(cd => {
+      if (!ciudArr.some(c => c.includes(cd.name))) return '';
+      const field = cd.name==='San Luis'?'sl_estado':cd.name==='Córdoba'?'cba_estado':'sj_estado';
+      return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'',field)}</div>`;
     }).filter(Boolean).join('');
-    // Móvil → link wa.me (el número puede venir como número o como URL)
+    // Móvil: número editable + link WA
     const movilNum = String(s.movil||'').replace(/\D/g,'');
-    const movilUrl = s.movil ? (String(s.movil).startsWith('http') ? s.movil : `https://wa.me/${movilNum}`) : '';
-    const movilLink = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
-    const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
+    const movilUrl = movilNum ? `https://wa.me/${movilNum}` : '';
+    const movilArrow = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
+    // LinkedIn: URL editable + link
+    const liArrow = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
+    // Tipo: select
+    const tipoOp = ['speaker','panelista','moderador','sponsor'].map(t =>
+      `<option value="${t}" ${(s.tipo||'speaker')===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`
+    ).join('');
+    const TIPO_COL = { speaker:'#F7931A', panelista:'#eab308', moderador:'#06b6d4', sponsor:'#22c55e' };
+    const tipoColor = TIPO_COL[s.tipo||'speaker'] || 'var(--text)';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
-      <td>${tipoBadgesHtml(s.tipo)}</td>
+      <td><select class="sp-tipo-sel" style="color:${tipoColor};font-weight:700;width:100%;font-size:12px" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');this.style.color=({'speaker':'#F7931A',panelista:'#eab308',moderador:'#06b6d4',sponsor:'#22c55e'}[this.value]||'var(--text)')">${tipoOp}</select></td>
       <td style="font-weight:700;white-space:nowrap">
         <span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
         <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
       </td>
-      <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
-      <td style="max-width:160px;overflow:hidden" title="Clic para ver estados | doble clic para editar">
+      <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
+      <td style="max-width:160px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px"
           onclick="event.stopPropagation()"
           onblur="updateSpeakerTemas(${ri},this.innerText.trim());markDirty('speakers')"
           title="${temasStr}">${temasStr}</span>
       </td>
-      <td style="text-align:center">${ciudTags}</td>
+      <td style="text-align:center;white-space:nowrap">${ciudTags}</td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
       <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
         <span class="sp-edit" contenteditable="true" style="color:var(--muted)" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span>
       </td>
-      <td style="text-align:center">${movilLink}</td>
+      <td style="text-align:center;white-space:nowrap">
+        <span class="sp-edit" contenteditable="true" style="font-size:11px;color:var(--muted);min-width:20px;display:inline-block" onblur="updateSpeakerMovil(${ri},this.innerText.trim())" title="Número (solo dígitos)">${esc(movilNum)}</span>${movilArrow}
+      </td>
       <td style="max-width:90px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'telegram',this.innerText.trim());markDirty('speakers')">${esc(s.telegram||'')}</span>
       </td>
       <td style="max-width:90px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span>
       </td>
-      <td style="text-align:center">${liLink}</td>
+      <td style="text-align:center;white-space:nowrap">
+        <span class="sp-edit" contenteditable="true" style="font-size:11px;color:var(--muted);min-width:20px;display:inline-block;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onblur="updateSpeaker(${ri},'linkedin',this.innerText.trim());markDirty('speakers')" title="${esc(s.linkedin||'')}">${esc(s.linkedin||'')}</span>${liArrow}
+      </td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
       <td style="max-width:120px;overflow:hidden"><span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')" title="${esc(s.empresa||'')}">${esc(s.empresa||'')}</span></td>
@@ -1741,6 +1758,30 @@ function updateSpeakerCity(ri, cityName, checked) {
   if (checked && !cities.includes(cityName)) cities.push(cityName);
   if (!checked) cities = cities.filter(c => c !== cityName);
   s.ciudades = cities.join(', ');
+}
+
+function toggleSpCity(ri, cityName, el) {
+  const s = state.speakers[ri];
+  if (!s) return;
+  let cities = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+  const on = cities.some(c => c.includes(cityName));
+  if (on) {
+    cities = cities.filter(c => !c.includes(cityName));
+  } else {
+    cities.push(cityName);
+  }
+  s.ciudades = cities.join(', ');
+  markDirty('speakers');
+  // Actualizar toda la fila para reflejar cambio en Estados también
+  renderSpeakers();
+}
+
+function updateSpeakerMovil(ri, raw) {
+  const s = state.speakers[ri];
+  if (!s) return;
+  const digits = raw.replace(/\D/g, '');
+  s.movil = digits ? `https://wa.me/${digits}` : '';
+  markDirty('speakers');
 }
 
 function delSpeaker(i) {
