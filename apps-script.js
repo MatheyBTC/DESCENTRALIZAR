@@ -19,6 +19,16 @@ function doGet(e) {
 
     const ss = SpreadsheetApp.openById(SHEET_ID);
 
+    if (e.parameter.action === 'get_meta') {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      let ws = ss.getSheetByName('Meta');
+      if (!ws) return respond({ ok: true, meta: {} });
+      const rows = ws.getDataRange().getValues();
+      const meta = {};
+      rows.forEach(r => { if (r[0]) meta[String(r[0])] = String(r[1]||''); });
+      return respond({ ok: true, meta });
+    }
+
     if (e.parameter.action === 'import_form_speakers') {
       const force = e.parameter.force === '1';
       if (force) PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
@@ -68,6 +78,27 @@ function doPost(e) {
 
     if (action === 'delete') {
       ws.deleteRow(rowIndex);
+      return respond({ ok: true, action });
+    }
+
+    if (action === 'save_meta') {
+      const ss = SpreadsheetApp.openById(SHEET_ID);
+      let ws = ss.getSheetByName('Meta');
+      if (!ws) {
+        ws = ss.insertSheet('Meta');
+        ws.getRange(1,1,1,2).setValues([['clave','valor']]);
+      }
+      const metaData = payload.meta || {};
+      const existing = ws.getDataRange().getValues();
+      const keyIndex = {};
+      existing.forEach((r,i) => { if (i>0 && r[0]) keyIndex[String(r[0])] = i+1; });
+      Object.entries(metaData).forEach(([k,v]) => {
+        if (keyIndex[k]) {
+          ws.getRange(keyIndex[k], 2).setValue(v);
+        } else {
+          ws.appendRow([k, v]);
+        }
+      });
       return respond({ ok: true, action });
     }
 

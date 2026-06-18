@@ -1239,7 +1239,7 @@ function openSpDrop(idx, city, e) {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
       if (isComboUsedInCity(idx, city, combo)) return;
-      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name" style="color:var(--dim)">${esc(s.nombre)}</div></div>`);
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name" style="color:var(--text);opacity:.6">${esc(s.nombre)}</div></div>`);
     });
     if (emergItems.length) {
       html += `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Disponibles — sin aplicación a este tema</div>`;
@@ -1270,13 +1270,42 @@ function parseSpeakerField(val) {
   return [s];
 }
 
+let _mcSaveTimer = null;
 function saveMcLocal() {
   const mc = {
-    sl:  (document.getElementById('mc-sl')  || {}).value || '',
-    cba: (document.getElementById('mc-cba') || {}).value || '',
-    sj:  (document.getElementById('mc-sj')  || {}).value || '',
+    mc_sl:  (document.getElementById('mc-sl')  || {}).value || '',
+    mc_cba: (document.getElementById('mc-cba') || {}).value || '',
+    mc_sj:  (document.getElementById('mc-sj')  || {}).value || '',
   };
   localStorage.setItem('dex_mc', JSON.stringify(mc));
+  clearTimeout(_mcSaveTimer);
+  _mcSaveTimer = setTimeout(() => {
+    fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'save_meta', meta: mc }) })
+      .catch(() => {});
+  }, 800);
+}
+
+async function loadMcGlobal() {
+  try {
+    const r = await fetch(GAS_URL + '?action=get_meta');
+    const j = await r.json();
+    if (j.ok && j.meta) {
+      ['sl','cba','sj'].forEach(k => {
+        const el = document.getElementById('mc-'+k);
+        if (el && j.meta['mc_'+k] !== undefined) el.value = j.meta['mc_'+k];
+      });
+      localStorage.setItem('dex_mc', JSON.stringify(j.meta));
+      return;
+    }
+  } catch(e) {}
+  // fallback localStorage
+  try {
+    const mc = JSON.parse(localStorage.getItem('dex_mc') || '{}');
+    ['sl','cba','sj'].forEach(k => {
+      const el = document.getElementById('mc-'+k);
+      if (el && (mc['mc_'+k] !== undefined || mc[k] !== undefined)) el.value = mc['mc_'+k] || mc[k] || '';
+    });
+  } catch(e) {}
 }
 
 function loadMcLocal() {
@@ -2495,7 +2524,7 @@ async function init() {
     } catch(e) { setStatus(false); }
   }
 
-  loadMcLocal();
+  loadMcGlobal();
   renderPrincipal();
   renderSpeakers();
   renderIdeas();
