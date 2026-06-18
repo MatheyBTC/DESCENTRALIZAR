@@ -1516,8 +1516,15 @@ function renderSpeakers() {
     // Móvil → link wa.me (el número puede venir como número o como URL)
     const movilNum = String(s.movil||'').replace(/\D/g,'');
     const movilUrl = s.movil ? (String(s.movil).startsWith('http') ? s.movil : `https://wa.me/${movilNum}`) : '';
-    const movilLink = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
-    const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
+    const arrowSvg = (color) => `<svg width="13" height="13" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+    const movilLink  = movilUrl   ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;display:inline-flex;align-items:center">${arrowSvg('#22c55e')}</a>` : '';
+    const liLink     = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;display:inline-flex;align-items:center">${arrowSvg('#0a66c2')}</a>` : '';
+    const tgHandle   = (s.telegram||'').replace(/^@/,'');
+    const tgLink     = tgHandle   ? `<a href="https://t.me/${esc(tgHandle)}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:3px">${arrowSvg('#0088CC')}</a>` : '';
+    const xHandle    = (s.x||'').replace(/^@/,'');
+    const xLink      = xHandle    ? `<a href="https://x.com/${esc(xHandle)}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:3px">${arrowSvg('#ffffff')}</a>` : '';
+    const igHandle   = (s.ig||'').replace(/^@/,'');
+    const igLink     = igHandle   ? `<a href="https://instagram.com/${esc(igHandle)}" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;margin-left:3px">${arrowSvg('#DD2A7B')}</a>` : '';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td>${tipoBadgesHtml(s.tipo)}</td>
       <td style="font-weight:700;white-space:nowrap">
@@ -1534,15 +1541,15 @@ function renderSpeakers() {
         <span class="sp-edit" contenteditable="true" style="color:var(--muted)" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span>
       </td>
       <td style="text-align:center">${movilLink}</td>
-      <td style="max-width:90px;overflow:hidden">
-        <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'telegram',this.innerText.trim());markDirty('speakers')">${esc(s.telegram||'')}</span>
+      <td style="max-width:90px;overflow:hidden;white-space:nowrap">
+        <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;vertical-align:middle" onblur="updateSpeaker(${ri},'telegram',this.innerText.trim());markDirty('speakers')">${esc(s.telegram||'')}</span>${tgLink}
       </td>
       <td style="max-width:90px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span>
       </td>
       <td style="text-align:center">${liLink}</td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
-      <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
+      <td style="white-space:nowrap"><span class="sp-edit" contenteditable="true" style="max-width:70px;display:inline-block;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span>${xLink}</td>
+      <td style="white-space:nowrap"><span class="sp-edit" contenteditable="true" style="max-width:70px;display:inline-block;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span>${igLink}</td>
       <td style="max-width:120px;overflow:hidden"><span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')" title="${esc(s.empresa||'')}">${esc(s.empresa||'')}</span></td>
       <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
     </tr>`;
