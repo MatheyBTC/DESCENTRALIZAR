@@ -185,14 +185,17 @@ function importarFormSpeakers(dexSS) {
     const mailKey = mail.toLowerCase();
 
     if (mailKey && byMail[mailKey]) {
-      // Speaker ya existe → actualizar solo si hay temas/ciudades nuevas
+      // Speaker ya existe → solo rellena campos vacíos, respeta ediciones manuales
       const entry  = byMail[mailKey];
       const updRow = [...entry.row];
 
-      // Preservar cols A-P del form (sobreescribir con datos nuevos)
-      for (let i = 0; i < 16; i++) updRow[i] = r[i];
+      for (let i = 0; i < 16; i++) {
+        const sheetVal = String(updRow[i] || '').trim();
+        const formVal  = String(r[i]      || '').trim();
+        // Solo sobreescribir si el campo en el sheet está vacío
+        if (!sheetVal && formVal) updRow[i] = r[i];
+      }
       updRow[16] = nTemas;
-      // Estados: solo actualizar si estaban vacíos
       if (!updRow[17]) updRow[17] = slEst;
       if (!updRow[18]) updRow[18] = sjEst;
       if (!updRow[19]) updRow[19] = cbaEst;
