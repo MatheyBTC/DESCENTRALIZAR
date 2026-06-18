@@ -1541,12 +1541,16 @@ function renderSpeakers() {
     const n       = temas.length;
     const temasStr = esc(temas.join(', ') || '— sin temas —');
     const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
-    // Iconos de ciudad para columna Ubicación
-    const ciudTags = ciudArr.map(c =>
-      c.includes('San Luis') ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">SL</span>' :
-      c.includes('Córdoba')  ? '<span style="background:rgba(234,179,8,.15);color:#eab308;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">CBA</span>' :
-      c.includes('Tucumán')  ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">TUC</span>' : ''
-    ).filter(Boolean).join('') || '—';
+    // Iconos de ciudad clicables para toggle
+    const CITY_DEFS = [
+      { name:'San Luis', tag:'SL',  on:'background:rgba(239,68,68,.15);color:#ef4444;border:1px solid #ef4444', off:'background:transparent;color:var(--dim);border:1px solid var(--border)' },
+      { name:'Córdoba',  tag:'CBA', on:'background:rgba(234,179,8,.15);color:#eab308;border:1px solid #eab308', off:'background:transparent;color:var(--dim);border:1px solid var(--border)' },
+      { name:'Tucumán',  tag:'TUC', on:'background:rgba(34,197,94,.15);color:#22c55e;border:1px solid #22c55e', off:'background:transparent;color:var(--dim);border:1px solid var(--border)' },
+    ];
+    const ciudTags = CITY_DEFS.map(cd => {
+      const active = ciudArr.some(c => c.includes(cd.name));
+      return `<span onclick="toggleSpCity(${ri},'${cd.name}')" title="${cd.name}" style="${active?cd.on:cd.off};padding:2px 5px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px;cursor:pointer">${cd.tag}</span>`;
+    }).join('');
     const cityRows = ciudArr.map(c => {
       if (c.includes('San Luis')) return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
       if (c.includes('Córdoba'))  return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
@@ -1723,6 +1727,18 @@ function updateSpeakerCity(ri, cityName, checked) {
   if (checked && !cities.includes(cityName)) cities.push(cityName);
   if (!checked) cities = cities.filter(c => c !== cityName);
   s.ciudades = cities.join(', ');
+}
+
+function toggleSpCity(ri, cityName) {
+  const s = state.speakers[ri];
+  if (!s) return;
+  let cities = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+  const on = cities.some(c => c.includes(cityName));
+  if (on) cities = cities.filter(c => !c.includes(cityName));
+  else cities.push(cityName);
+  s.ciudades = cities.join(', ');
+  markDirty('speakers');
+  renderSpeakers();
 }
 
 function delSpeaker(i) {
