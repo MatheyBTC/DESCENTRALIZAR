@@ -1210,8 +1210,6 @@ function openSpDrop(idx, city, e) {
   withTema.forEach(s => {
     const topicos = spTemas(s);
     const estados = spEstados(s, estadoField);
-    const N = spRemainingForCity(s, city);
-    const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
     topicos.forEach((topic, ti) => {
       if ((topic.replace(/^★\s*/,'')).trim().toLowerCase() !== rowTemaLow && rowTemaLow) return;
       const topicEst = estados[ti]||'';
@@ -1219,12 +1217,14 @@ function openSpDrop(idx, city, e) {
       const combo = `${s.nombre}|${topic}`;
       if (alreadySelected.includes(combo)) return;
       const isManual = topic.startsWith('★');
-      const label = `<div class="sp-item-tema" style="color:${isManual?'#eab308':'var(--text)'}">${isManual?'★ ':''}${esc(topic.replace(/^★\s*/,''))}</div>`;
+      const nameTag = isManual
+        ? `${esc(s.nombre)} <span style="color:#eab308;font-weight:700">★</span>`
+        : esc(s.nombre);
       if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
-        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag}</div>${label.replace('>','> ya asignado · ')}</div>`);
+        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag} <span style="color:var(--dim);font-size:10px;font-weight:400">ya asignado</span></div></div>`);
         return;
       }
-      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div>${label}</div>`);
+      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div></div>`);
     });
   });
 
@@ -1236,12 +1236,10 @@ function openSpDrop(idx, city, e) {
     withoutTema.forEach(s => {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
-      const N = spRemainingForCity(s, city);
-      const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
-      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:#eab308">★ ${esc(rowTema)} <span style="color:var(--dim);font-size:10px">(asignación manual)</span></div></div>`);
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${esc(s.nombre)} <span style="color:#eab308;font-weight:700">★</span></div></div>`);
     });
     if (emergItems.length) {
-      html += `<div style="font-size:10px;color:#eab308;padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid rgba(234,179,8,.3);margin-top:4px">Sin disponibles — asignación manual</div>`;
+      html += `<div style="font-size:10px;color:#eab308;padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid rgba(234,179,8,.3);margin-top:4px">Sin disponibles — asignación manual ★</div>`;
       html += emergItems.join('');
     }
   }
