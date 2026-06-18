@@ -1541,15 +1541,13 @@ function renderSpeakers() {
         <span class="sp-edit" contenteditable="true" style="color:var(--muted)" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span>
       </td>
       <td style="text-align:center">${movilLink}</td>
-      <td style="max-width:90px;overflow:hidden;white-space:nowrap">
-        <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;display:inline-block;vertical-align:middle" onblur="updateSpeaker(${ri},'telegram',this.innerText.trim());markDirty('speakers')">${esc(s.telegram||'')}</span>${tgLink}
-      </td>
+      <td style="text-align:center">${tgLink || (s.telegram ? `<span style="font-size:11px;color:var(--dim)">${esc(s.telegram)}</span>` : '')}</td>
       <td style="max-width:90px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span>
       </td>
       <td style="text-align:center">${liLink}</td>
-      <td style="white-space:nowrap"><span class="sp-edit" contenteditable="true" style="max-width:70px;display:inline-block;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span>${xLink}</td>
-      <td style="white-space:nowrap"><span class="sp-edit" contenteditable="true" style="max-width:70px;display:inline-block;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span>${igLink}</td>
+      <td style="text-align:center">${xLink}</td>
+      <td style="text-align:center">${igLink}</td>
       <td style="max-width:120px;overflow:hidden"><span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')" title="${esc(s.empresa||'')}">${esc(s.empresa||'')}</span></td>
       <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
     </tr>`;
