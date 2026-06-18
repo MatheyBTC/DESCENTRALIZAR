@@ -1836,7 +1836,7 @@ async function loadSpeakers() {
       // O(14)=Biografía P(15)=Eventos Q(16)=#temas R(17)=sl S(18)=sj T(19)=cba
       const temasRaw = String(r[12]||'');
       const temasArr = temasRaw
-        .split(/\.,\s*(?=[¿¡A-ZÁÉÍÓÚÜA-z])/)
+        .split(/\.?,\s*(?=[¿¡A-ZÁÉÍÓÚÜA-z★])/)
         .map(t => t.split(' — ')[0].trim())
         .filter(t => t.length > 3);
       const n = Math.max(1, temasArr.length);
