@@ -1589,8 +1589,7 @@ function renderSpeakers() {
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td><select class="sp-tipo-sel" style="color:${tipoColor};font-weight:700;width:100%;font-size:12px" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');this.style.color=({'speaker':'#F7931A',panelista:'#eab308',moderador:'#06b6d4',sponsor:'#22c55e'}[this.value]||'var(--text)')">${tipoOp}</select></td>
       <td style="font-weight:700;white-space:nowrap">
-        ${mIdx ? `<span style="background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);font-size:10px;font-weight:800;padding:1px 5px;border-radius:4px;margin-right:4px">M${mIdx}</span>` : ''}
-        <span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
+<span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
         <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
       </td>
       <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
