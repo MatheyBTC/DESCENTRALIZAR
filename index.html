@@ -1172,7 +1172,7 @@ function renderSpPicker(idx, city, selected) {
     const { name, topic } = parseSpChip(item);
     const sp = state.speakers.find(s => s.nombre === name);
     const N = sp ? spRemainingForCity(sp, city) : 0;
-    const label = topic ? `${name} (${N}) | ${topic}` : `${name} (${N})`;
+    const label = name;
     return `<span class="sp-chip"><span class="sp-chip-name">${esc(label)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(item).replace(/"/g,'&quot;')}">✕</button></span>`;
   }).join('');
   return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-chips-wrap">${chips}<span class="sp-add-btn" data-idx="${idx}" data-city="${city}">+</span></div></div>`;
