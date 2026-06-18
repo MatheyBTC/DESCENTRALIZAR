@@ -1239,7 +1239,7 @@ function openSpDrop(idx, city, e) {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
       if (isComboUsedInCity(idx, city, combo)) return;
-      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name" style="color:var(--text);opacity:.6">${esc(s.nombre)}</div></div>`);
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${esc(s.nombre)}</div></div>`);
     });
     if (emergItems.length) {
       html += `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Disponibles — sin aplicación a este tema</div>`;
