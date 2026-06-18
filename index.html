@@ -1565,11 +1565,8 @@ function renderSpeakers() {
         <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
       </td>
       <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
-      <td style="max-width:160px;overflow:hidden" title="Clic para ver estados | doble clic para editar">
-        <span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px"
-          onclick="event.stopPropagation()"
-          onblur="updateSpeakerTemas(${ri},this.innerText.trim());markDirty('speakers')"
-          title="${temasStr}">${temasStr}</span>
+      <td style="max-width:160px;overflow:hidden;cursor:pointer" onclick="toggleSpTopics(${ri})" title="${temasStr}">
+        <span style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px;color:var(--text)">${temasStr}</span>
       </td>
       <td style="text-align:center">${ciudTags}</td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
