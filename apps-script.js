@@ -17,6 +17,15 @@ function doGet(e) {
       return respond({ ok: true, sheet, version });
     }
 
+    if (e.parameter.action === 'get_meta') {
+      const props = PropertiesService.getScriptProperties();
+      return respond({ ok: true, meta: {
+        mc_sl:  props.getProperty('mc_sl')  || '',
+        mc_cba: props.getProperty('mc_cba') || '',
+        mc_sj:  props.getProperty('mc_sj')  || '',
+      }});
+    }
+
     const ss = SpreadsheetApp.openById(SHEET_ID);
 
     if (e.parameter.action === 'import_form_speakers') {
@@ -78,6 +87,14 @@ function doPost(e) {
       PropertiesService.getScriptProperties().setProperty('version_' + sheet, newVersion);
 
       return respond({ ok: true, action, version: newVersion });
+    }
+
+    if (action === 'save_meta') {
+      const props = PropertiesService.getScriptProperties();
+      if (data.mc_sl  !== undefined) props.setProperty('mc_sl',  data.mc_sl);
+      if (data.mc_cba !== undefined) props.setProperty('mc_cba', data.mc_cba);
+      if (data.mc_sj  !== undefined) props.setProperty('mc_sj',  data.mc_sj);
+      return respond({ ok: true, action });
     }
 
     return respond({ error: 'Acción desconocida: ' + action }, 400);

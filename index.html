@@ -403,15 +403,15 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
           <th class="col-stk col-stk-sep" style="left:231px;width:55px;text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
           <th colspan="3"></th>
           <th class="city-h" style="font-weight:400">
-            <input class="mc-inp" id="mc-sl" placeholder="MC: nombre…" oninput="saveMcLocal()">
+            <input class="mc-inp" id="mc-sl" placeholder="MC: nombre…" onchange="saveMcGlobal()">
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="mc-inp" id="mc-cba" placeholder="MC: nombre…" oninput="saveMcLocal()">
+            <input class="mc-inp" id="mc-cba" placeholder="MC: nombre…" onchange="saveMcGlobal()">
             <input class="date-inp" id="fecha-cba" value="2026-09-04" title="Fecha Córdoba">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="mc-inp" id="mc-sj" placeholder="MC: nombre…" oninput="saveMcLocal()">
+            <input class="mc-inp" id="mc-sj" placeholder="MC: nombre…" onchange="saveMcGlobal()">
             <input class="date-inp" id="fecha-sj" value="2026-09-11" title="Fecha Tucumán">
           </th>
         </tr>
@@ -1171,7 +1171,7 @@ function renderSpPicker(idx, city, selected) {
     const { name, topic } = parseSpChip(item);
     const sp = state.speakers.find(s => s.nombre === name);
     const N = sp ? spRemainingForCity(sp, city) : 0;
-    const label = topic ? `${name} (${N}) | ${topic}` : `${name} (${N})`;
+    const label = name;
     return `<span class="sp-chip"><span class="sp-chip-name">${esc(label)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(item).replace(/"/g,'&quot;')}">✕</button></span>`;
   }).join('');
   return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-chips-wrap">${chips}<span class="sp-add-btn" data-idx="${idx}" data-city="${city}">+</span></div></div>`;
@@ -1269,22 +1269,38 @@ function parseSpeakerField(val) {
   return [s];
 }
 
-function saveMcLocal() {
+async function saveMcGlobal() {
   const mc = {
-    sl:  (document.getElementById('mc-sl')  || {}).value || '',
-    cba: (document.getElementById('mc-cba') || {}).value || '',
-    sj:  (document.getElementById('mc-sj')  || {}).value || '',
+    mc_sl:  (document.getElementById('mc-sl')  || {}).value || '',
+    mc_cba: (document.getElementById('mc-cba') || {}).value || '',
+    mc_sj:  (document.getElementById('mc-sj')  || {}).value || '',
   };
-  localStorage.setItem('dex_mc', JSON.stringify(mc));
+  localStorage.setItem('dex_mc', JSON.stringify({ sl: mc.mc_sl, cba: mc.mc_cba, sj: mc.mc_sj }));
+  try { await gasPost('Principal', 'save_meta', mc); } catch(e) {}
 }
 
-function loadMcLocal() {
+async function loadMcGlobal() {
+  // Cargar desde localStorage primero (respuesta inmediata)
   try {
-    const mc = JSON.parse(localStorage.getItem('dex_mc') || '{}');
+    const local = JSON.parse(localStorage.getItem('dex_mc') || '{}');
     ['sl','cba','sj'].forEach(k => {
       const el = document.getElementById('mc-'+k);
-      if (el && mc[k] !== undefined) el.value = mc[k];
+      if (el && local[k]) el.value = local[k];
     });
+  } catch(e) {}
+  // Luego actualizar desde el servidor (fuente de verdad compartida)
+  try {
+    const res = await fetch(GAS_URL + '?action=get_meta');
+    const json = await res.json();
+    if (json.ok && json.meta) {
+      const m = json.meta;
+      const map = { sl: m.mc_sl, cba: m.mc_cba, sj: m.mc_sj };
+      ['sl','cba','sj'].forEach(k => {
+        const el = document.getElementById('mc-'+k);
+        if (el && map[k]) el.value = map[k];
+      });
+      localStorage.setItem('dex_mc', JSON.stringify({ sl: m.mc_sl, cba: m.mc_cba, sj: m.mc_sj }));
+    }
   } catch(e) {}
 }
 
@@ -2459,7 +2475,7 @@ async function init() {
     } catch(e) { setStatus(false); }
   }
 
-  loadMcLocal();
+  loadMcGlobal();
   renderPrincipal();
   renderSpeakers();
   renderIdeas();
