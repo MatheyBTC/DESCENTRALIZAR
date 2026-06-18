@@ -2314,8 +2314,9 @@ function searchMiniCard(q) {
   if (found.contacto && found.contacto !== found.movil) contactos.push(`<a href="mailto:${esc(found.contacto)}" style="color:var(--btc);text-decoration:none">${esc(found.contacto)} ↗</a>`);
   const ciudadesArr = (found.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
   const ciudadesBadges = ciudadesArr.map(c => {
-    const color = c.includes('San Luis')?'#ef4444':c.includes('Córdoba')?'#eab308':c.includes('Tucumán')?'#22c55e':'var(--dim)';
-    return `<span style="font-size:11px;background:var(--bg3);border:1px solid ${color};color:${color};padding:1px 7px;border-radius:10px">${esc(c)}</span>`;
+    const cClean = c.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/gu, '').trim();
+    const color = cClean.includes('San Luis')?'#ef4444':cClean.includes('Córdoba')?'#eab308':cClean.includes('Tucumán')?'#22c55e':'var(--dim)';
+    return `<span style="font-size:11px;background:var(--bg3);border:1px solid ${color};color:${color};padding:1px 7px;border-radius:10px">${esc(cClean)}</span>`;
   }).join(' ');
   card.style.display = 'block';
   card.innerHTML = `
