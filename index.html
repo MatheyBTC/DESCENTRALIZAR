@@ -1550,11 +1550,7 @@ function renderSpeakers() {
     renderTopicFilters();
     return;
   }
-  // Separar: form-importados primero, manuales al final con índice M1/M2/M3
-  const listForm   = list.filter(s => !s._manual);
-  const listManual = list.filter(s =>  s._manual);
-  let mCount = 0;
-  const renderRow = (s, mIdx) => {
+  tbody.innerHTML = list.map(s => {
     const ri      = state.speakers.indexOf(s);
     const temas   = spTemas(s);
     const n       = temas.length;
@@ -1626,17 +1622,7 @@ function renderSpeakers() {
       <td style="max-width:120px;overflow:hidden"><span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')" title="${esc(s.empresa||'')}">${esc(s.empresa||'')}</span></td>
       <td style="text-align:center"><button class="del-row" onclick="delSpeaker(${ri})">✕</button></td>
     </tr>`;
-  };
-
-  const sepManual = listManual.length
-    ? `<tr><td colspan="15" style="padding:6px 10px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);font-size:11px;font-weight:700;color:#a855f7;letter-spacing:.05em">MANUALES</td></tr>`
-    : '';
-
-  tbody.innerHTML =
-    listForm.map(s => renderRow(s, null)).join('') +
-    sepManual +
-    listManual.map((s, i) => renderRow(s, i + 1)).join('');
-
+  }).join('');
   renderTopicFilters();
 }
 
