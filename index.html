@@ -472,21 +472,21 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
   <div style="padding:20px">
     <div class="form-card">
       <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker manual</span></h3>
-      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-        <div class="form-field">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div class="form-field" style="margin:0;flex:1;min-width:160px">
           <label class="form-label">Nombre</label>
           <input class="form-input" id="sp-nombre" placeholder="Nombre completo">
         </div>
-        <div class="form-field" style="grid-column:1/-1">
+        <div class="form-field" style="margin:0">
           <label class="form-label">Ciudad(es)</label>
-          <div class="cities-check" id="sp-ciudades-wrap">
+          <div class="cities-check" id="sp-ciudades-wrap" style="display:flex;gap:10px">
             <label class="city-opt"><input type="checkbox" value="San Luis"> 🟥 San Luis</label>
             <label class="city-opt"><input type="checkbox" value="Córdoba"> 🟨 Córdoba</label>
             <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟩 Tucumán</label>
           </div>
         </div>
+        <button class="form-btn" style="margin:0;align-self:flex-end" onclick="addSpeaker()">Agregar</button>
       </div>
-      <button class="form-btn" onclick="addSpeaker()">Agregar</button>
     </div>
 
     <div class="sp-filter-bar">
