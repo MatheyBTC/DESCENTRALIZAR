@@ -1559,15 +1559,29 @@ function renderSpeakers() {
     const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
       <td>${tipoBadgesHtml(s.tipo)}</td>
-      <td style="font-weight:700;white-space:nowrap;cursor:pointer;color:var(--btc)" onclick="openSpPanel(${ri})" title="Ver ficha">${esc(s.nombre||'')}</td>
+      <td style="font-weight:700;white-space:nowrap">
+        <span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
+        <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
+      </td>
       <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
-      <td style="max-width:160px;overflow:hidden;cursor:pointer" onclick="toggleSpTopics(${ri})" title="${temasStr}"><span style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px">${temasStr}</span></td>
+      <td style="max-width:160px;overflow:hidden" title="Clic para ver estados | doble clic para editar">
+        <span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px"
+          onclick="event.stopPropagation()"
+          onblur="updateSpeakerTemas(${ri},this.innerText.trim());markDirty('speakers')"
+          title="${temasStr}">${temasStr}</span>
+      </td>
       <td style="text-align:center">${ciudTags}</td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
-      <td style="font-size:12px;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.contacto ? `<a href="mailto:${esc(s.contacto)}" style="color:var(--muted);text-decoration:none">${esc(s.contacto)}</a>` : ''}</td>
+      <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        <span class="sp-edit" contenteditable="true" style="color:var(--muted)" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span>
+      </td>
       <td style="text-align:center">${movilLink}</td>
-      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.telegram ? esc(s.telegram) : ''}</td>
-      <td style="font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px">${s.signal ? esc(s.signal) : ''}</td>
+      <td style="max-width:90px;overflow:hidden">
+        <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'telegram',this.innerText.trim());markDirty('speakers')">${esc(s.telegram||'')}</span>
+      </td>
+      <td style="max-width:90px;overflow:hidden">
+        <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span>
+      </td>
       <td style="text-align:center">${liLink}</td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
