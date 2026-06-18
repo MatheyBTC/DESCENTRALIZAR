@@ -2313,10 +2313,18 @@ function searchMiniCard(q) {
   if (found.linkedin) contactos.push(`<a href="${esc(found.linkedin)}" target="_blank" style="color:var(--btc);text-decoration:none">LinkedIn ↗</a>`);
   if (found.contacto && found.contacto !== found.movil) contactos.push(`<a href="mailto:${esc(found.contacto)}" style="color:var(--btc);text-decoration:none">${esc(found.contacto)} ↗</a>`);
   const ciudadesArr = (found.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
+  const MESES = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
   const ciudadesBadges = ciudadesArr.map(c => {
     const cClean = c.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\s*/gu, '').trim();
-    const color = cClean.includes('San Luis')?'#ef4444':cClean.includes('Córdoba')?'#eab308':cClean.includes('Tucumán')?'#22c55e':'var(--dim)';
-    return `<span style="font-size:11px;background:var(--bg3);border:1px solid ${color};color:${color};padding:1px 7px;border-radius:10px">${esc(cClean)}</span>`;
+    const isSL  = cClean.includes('San Luis');
+    const isCBA = cClean.includes('Córdoba');
+    const isTUC = cClean.includes('Tucumán');
+    const emoji = isSL?'🟥':isCBA?'🟨':isTUC?'🟩':'📍';
+    const tag   = isSL?'SL':isCBA?'CBA':isTUC?'TUC':cClean;
+    const color = isSL?'#ef4444':isCBA?'#eab308':isTUC?'#22c55e':'var(--dim)';
+    const dateM = cClean.match(/\((\d{1,2})\s+([a-záéíóú]{3})\s+(\d{4})\)/i);
+    const dateFmt = dateM ? ` (${String(dateM[1]).padStart(2,'0')}/${String(MESES[dateM[2].toLowerCase()]||'?').padStart(2,'0')}/${dateM[3]})` : '';
+    return `<span style="font-size:11px;background:var(--bg3);border:1px solid ${color};color:${color};padding:1px 7px;border-radius:10px">${emoji} ${tag}${dateFmt}</span>`;
   }).join(' ');
   card.style.display = 'block';
   card.innerHTML = `
