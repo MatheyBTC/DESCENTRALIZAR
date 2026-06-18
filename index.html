@@ -1217,9 +1217,10 @@ function openSpDrop(idx, city, e) {
       const combo = `${s.nombre}|${topic}`;
       if (alreadySelected.includes(combo)) return;
       const isManual = topic.startsWith('★');
+      // ★ = se inscribió para este tema (vino del form). Sin ★ = asignación manual posterior.
       const nameTag = isManual
-        ? `${esc(s.nombre)} <span style="color:#eab308;font-weight:700">★</span>`
-        : esc(s.nombre);
+        ? esc(s.nombre)
+        : `${esc(s.nombre)} <span style="color:#22c55e;font-weight:700">★</span>`;
       if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
         fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag} <span style="color:var(--dim);font-size:10px;font-weight:400">ya asignado</span></div></div>`);
         return;
@@ -1236,10 +1237,11 @@ function openSpDrop(idx, city, e) {
     withoutTema.forEach(s => {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
-      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${esc(s.nombre)} <span style="color:#eab308;font-weight:700">★</span></div></div>`);
+      // Sin ★ — no se inscribió para este tema
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${esc(s.nombre)}</div></div>`);
     });
     if (emergItems.length) {
-      html += `<div style="font-size:10px;color:#eab308;padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid rgba(234,179,8,.3);margin-top:4px">Sin disponibles — asignación manual ★</div>`;
+      html += `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Sin inscripción para este tema</div>`;
       html += emergItems.join('');
     }
   }
