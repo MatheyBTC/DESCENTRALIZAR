@@ -2306,13 +2306,16 @@ function searchMiniCard(q) {
     return;
   }
   const contactos = [];
-  if (found.movil)    contactos.push(`<a href="${esc(found.movil)}" target="_blank" style="color:var(--btc);text-decoration:none">📱 WhatsApp</a>`);
-  if (found.telegram) contactos.push(`✈️ ${esc(found.telegram)}`);
-  if (found.contacto && found.contacto !== found.movil) contactos.push(`✉️ ${esc(found.contacto)}`);
+  if (found.movil)    contactos.push(`<a href="${esc(found.movil)}" target="_blank" style="color:var(--btc);text-decoration:none">WhatsApp ↗</a>`);
+  if (found.telegram) contactos.push(`<a href="https://t.me/${esc((found.telegram||'').replace(/^@/,''))}" target="_blank" style="color:var(--btc);text-decoration:none">Telegram ↗</a>`);
+  if (found.x)        contactos.push(`<a href="https://x.com/${esc((found.x||'').replace(/^@/,''))}" target="_blank" style="color:var(--btc);text-decoration:none">X ↗</a>`);
+  if (found.ig)       contactos.push(`<a href="https://instagram.com/${esc((found.ig||'').replace(/^@/,''))}" target="_blank" style="color:var(--btc);text-decoration:none">Instagram ↗</a>`);
+  if (found.linkedin) contactos.push(`<a href="${esc(found.linkedin)}" target="_blank" style="color:var(--btc);text-decoration:none">LinkedIn ↗</a>`);
+  if (found.contacto && found.contacto !== found.movil) contactos.push(`<a href="mailto:${esc(found.contacto)}" style="color:var(--btc);text-decoration:none">${esc(found.contacto)} ↗</a>`);
   const ciudadesArr = (found.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
   const ciudadesBadges = ciudadesArr.map(c => {
-    const icon = c.includes('San Luis')?'🟥':c.includes('Córdoba')?'🟨':c.includes('Tucumán')?'🟩':'📍';
-    return `<span style="font-size:11px;background:var(--bg3);border:1px solid var(--border);padding:1px 7px;border-radius:10px">${icon} ${esc(c)}</span>`;
+    const color = c.includes('San Luis')?'#ef4444':c.includes('Córdoba')?'#eab308':c.includes('Tucumán')?'#22c55e':'var(--dim)';
+    return `<span style="font-size:11px;background:var(--bg3);border:1px solid ${color};color:${color};padding:1px 7px;border-radius:10px">${esc(c)}</span>`;
   }).join(' ');
   card.style.display = 'block';
   card.innerHTML = `
@@ -2324,7 +2327,7 @@ function searchMiniCard(q) {
       </div>
       <button onclick="document.getElementById('spCardSearch').value='';document.getElementById('spMiniCard').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px">✕</button>
     </div>
-    ${contactos.length ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px">${contactos.join(' · ')}</div>` : ''}
+    ${contactos.length ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px">${contactos.join(' | ')}</div>` : ''}
     ${found.bio ? `<div style="font-size:12px;color:var(--text);background:var(--bg3);padding:6px 10px;border-radius:6px;margin-bottom:8px;font-style:italic">"${esc(found.bio)}"</div>` : ''}
     ${spTemas(found).length ? (() => {
       const temas = spTemas(found);
