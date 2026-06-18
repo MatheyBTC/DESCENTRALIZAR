@@ -403,15 +403,15 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
           <th class="col-stk col-stk-sep" style="left:231px;width:55px;text-align:center;padding:4px 6px"><span id="totalHorasUsadas" style="color:var(--btc);font-weight:700;font-size:14px">00:00</span></th>
           <th colspan="3"></th>
           <th class="city-h" style="font-weight:400">
-            <input class="mc-inp" id="mc-sl" placeholder="MC: nombre…" onchange="saveMcGlobal()">
+            <input class="mc-inp" id="mc-sl" placeholder="MC: nombre…" oninput="saveMcLocal()">
             <input class="date-inp" id="fecha-sl" value="2026-08-14" title="Fecha San Luis">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="mc-inp" id="mc-cba" placeholder="MC: nombre…" onchange="saveMcGlobal()">
+            <input class="mc-inp" id="mc-cba" placeholder="MC: nombre…" oninput="saveMcLocal()">
             <input class="date-inp" id="fecha-cba" value="2026-09-04" title="Fecha Córdoba">
           </th>
           <th class="city-h" style="font-weight:400">
-            <input class="mc-inp" id="mc-sj" placeholder="MC: nombre…" onchange="saveMcGlobal()">
+            <input class="mc-inp" id="mc-sj" placeholder="MC: nombre…" oninput="saveMcLocal()">
             <input class="date-inp" id="fecha-sj" value="2026-09-11" title="Fecha Tucumán">
           </th>
         </tr>
@@ -1171,7 +1171,7 @@ function renderSpPicker(idx, city, selected) {
     const { name, topic } = parseSpChip(item);
     const sp = state.speakers.find(s => s.nombre === name);
     const N = sp ? spRemainingForCity(sp, city) : 0;
-    const label = name;
+    const label = topic ? `${name} (${N}) | ${topic}` : `${name} (${N})`;
     return `<span class="sp-chip"><span class="sp-chip-name">${esc(label)}</span><button class="sp-chip-del" data-idx="${idx}" data-city="${city}" data-name="${esc(item).replace(/"/g,'&quot;')}">✕</button></span>`;
   }).join('');
   return `<div class="sp-picker" id="spp-${idx}-${city}"><div class="sp-chips-wrap">${chips}<span class="sp-add-btn" data-idx="${idx}" data-city="${city}">+</span></div></div>`;
@@ -1210,6 +1210,8 @@ function openSpDrop(idx, city, e) {
   withTema.forEach(s => {
     const topicos = spTemas(s);
     const estados = spEstados(s, estadoField);
+    const N = spRemainingForCity(s, city);
+    const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
     topicos.forEach((topic, ti) => {
       if ((topic.replace(/^★\s*/,'')).trim().toLowerCase() !== rowTemaLow && rowTemaLow) return;
       const topicEst = estados[ti]||'';
@@ -1217,15 +1219,12 @@ function openSpDrop(idx, city, e) {
       const combo = `${s.nombre}|${topic}`;
       if (alreadySelected.includes(combo)) return;
       const isManual = topic.startsWith('★');
-      // ★ = se inscribió para este tema (vino del form). Sin ★ = asignación manual posterior.
-      const nameTag = isManual
-        ? esc(s.nombre)
-        : `${esc(s.nombre)} <span style="color:#22c55e;font-weight:700">★</span>`;
+      const label = `<div class="sp-item-tema" style="color:${isManual?'#eab308':'var(--text)'}">${isManual?'★ ':''}${esc(topic.replace(/^★\s*/,''))}</div>`;
       if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
-        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag} <span style="color:var(--dim);font-size:10px;font-weight:400">ya asignado</span></div></div>`);
+        fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag}</div>${label.replace('>','> ya asignado · ')}</div>`);
         return;
       }
-      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div></div>`);
+      items.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}"><div class="sp-item-name">${nameTag}</div>${label}</div>`);
     });
   });
 
@@ -1237,11 +1236,12 @@ function openSpDrop(idx, city, e) {
     withoutTema.forEach(s => {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
-      // Sin ★ — no se inscribió para este tema
-      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${esc(s.nombre)}</div></div>`);
+      const N = spRemainingForCity(s, city);
+      const nameTag = `${esc(s.nombre)} <span style="color:var(--dim);font-weight:400">(${N})</span>`;
+      emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${nameTag}</div><div class="sp-item-tema" style="color:#eab308">★ ${esc(rowTema)} <span style="color:var(--dim);font-size:10px">(asignación manual)</span></div></div>`);
     });
     if (emergItems.length) {
-      html += `<div style="font-size:10px;color:var(--dim);padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:4px">Sin inscripción para este tema</div>`;
+      html += `<div style="font-size:10px;color:#eab308;padding:4px 12px 2px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid rgba(234,179,8,.3);margin-top:4px">Sin disponibles — asignación manual</div>`;
       html += emergItems.join('');
     }
   }
@@ -1269,38 +1269,22 @@ function parseSpeakerField(val) {
   return [s];
 }
 
-async function saveMcGlobal() {
+function saveMcLocal() {
   const mc = {
-    mc_sl:  (document.getElementById('mc-sl')  || {}).value || '',
-    mc_cba: (document.getElementById('mc-cba') || {}).value || '',
-    mc_sj:  (document.getElementById('mc-sj')  || {}).value || '',
+    sl:  (document.getElementById('mc-sl')  || {}).value || '',
+    cba: (document.getElementById('mc-cba') || {}).value || '',
+    sj:  (document.getElementById('mc-sj')  || {}).value || '',
   };
-  localStorage.setItem('dex_mc', JSON.stringify({ sl: mc.mc_sl, cba: mc.mc_cba, sj: mc.mc_sj }));
-  try { await gasPost('Principal', 'save_meta', mc); } catch(e) {}
+  localStorage.setItem('dex_mc', JSON.stringify(mc));
 }
 
-async function loadMcGlobal() {
-  // Cargar desde localStorage primero (respuesta inmediata)
+function loadMcLocal() {
   try {
-    const local = JSON.parse(localStorage.getItem('dex_mc') || '{}');
+    const mc = JSON.parse(localStorage.getItem('dex_mc') || '{}');
     ['sl','cba','sj'].forEach(k => {
       const el = document.getElementById('mc-'+k);
-      if (el && local[k]) el.value = local[k];
+      if (el && mc[k] !== undefined) el.value = mc[k];
     });
-  } catch(e) {}
-  // Luego actualizar desde el servidor (fuente de verdad compartida)
-  try {
-    const res = await fetch(GAS_URL + '?action=get_meta');
-    const json = await res.json();
-    if (json.ok && json.meta) {
-      const m = json.meta;
-      const map = { sl: m.mc_sl, cba: m.mc_cba, sj: m.mc_sj };
-      ['sl','cba','sj'].forEach(k => {
-        const el = document.getElementById('mc-'+k);
-        if (el && map[k]) el.value = map[k];
-      });
-      localStorage.setItem('dex_mc', JSON.stringify({ sl: m.mc_sl, cba: m.mc_cba, sj: m.mc_sj }));
-    }
   } catch(e) {}
 }
 
@@ -1556,66 +1540,49 @@ function renderSpeakers() {
     const n       = temas.length;
     const temasStr = esc(temas.join(', ') || '— sin temas —');
     const ciudArr  = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
-    // Ubic.: badges clicables para toggle de ciudad
-    const CITY_DEFS = [
-      { name:'San Luis', tag:'SL',  color:'#ef4444', bg:'rgba(239,68,68,.15)'  },
-      { name:'Córdoba',  tag:'CBA', color:'#eab308', bg:'rgba(234,179,8,.15)'  },
-      { name:'Tucumán',  tag:'TUC', color:'#22c55e', bg:'rgba(34,197,94,.15)'  },
-    ];
-    const ciudTags = CITY_DEFS.map(cd => {
-      const on = ciudArr.some(c => c.includes(cd.name));
-      const style = on
-        ? `background:${cd.bg};color:${cd.color};border:1px solid ${cd.color}`
-        : `background:transparent;color:var(--dim);border:1px solid var(--border)`;
-      return `<span onclick="toggleSpCity(${ri},'${cd.name}',this)" title="${cd.name}" style="${style};padding:2px 5px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px;cursor:pointer">${cd.tag}</span>`;
-    }).join('');
-    const cityRows = CITY_DEFS.map(cd => {
-      if (!ciudArr.some(c => c.includes(cd.name))) return '';
-      const field = cd.name==='San Luis'?'sl_estado':cd.name==='Córdoba'?'cba_estado':'sj_estado';
-      return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'',field)}</div>`;
+    // Iconos de ciudad para columna Ubicación
+    const ciudTags = ciudArr.map(c =>
+      c.includes('San Luis') ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">SL</span>' :
+      c.includes('Córdoba')  ? '<span style="background:rgba(234,179,8,.15);color:#eab308;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">CBA</span>' :
+      c.includes('Tucumán')  ? '<span style="background:rgba(34,197,94,.15);color:#22c55e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;display:inline-block;margin:1px">TUC</span>' : ''
+    ).filter(Boolean).join('') || '—';
+    const cityRows = ciudArr.map(c => {
+      if (c.includes('San Luis')) return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','sl_estado')}</div>`;
+      if (c.includes('Córdoba'))  return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','cba_estado')}</div>`;
+      if (c.includes('Tucumán'))  return `<div style="margin-bottom:3px">${cityEstadoSelHtml(ri,'','sj_estado')}</div>`;
+      return '';
     }).filter(Boolean).join('');
-    // Móvil: número editable + link WA
+    // Móvil → link wa.me (el número puede venir como número o como URL)
     const movilNum = String(s.movil||'').replace(/\D/g,'');
-    const movilUrl = movilNum ? `https://wa.me/${movilNum}` : '';
-    const movilArrow = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
-    // LinkedIn: URL editable + link
-    const liArrow = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;vertical-align:middle"><svg width="13" height="13" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
-    // Tipo: select
-    const tipoOp = ['speaker','panelista','moderador','sponsor'].map(t =>
-      `<option value="${t}" ${(s.tipo||'speaker')===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`
-    ).join('');
-    const TIPO_COL = { speaker:'#F7931A', panelista:'#eab308', moderador:'#06b6d4', sponsor:'#22c55e' };
-    const tipoColor = TIPO_COL[s.tipo||'speaker'] || 'var(--text)';
+    const movilUrl = s.movil ? (String(s.movil).startsWith('http') ? s.movil : `https://wa.me/${movilNum}`) : '';
+    const movilLink = movilUrl ? `<a href="${esc(movilUrl)}" target="_blank" style="color:#22c55e;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
+    const liLink = s.linkedin ? `<a href="${esc(s.linkedin)}" target="_blank" style="color:#0a66c2;text-decoration:none;display:inline-flex;align-items:center"><svg width="16" height="16" viewBox="0 0 10 10" fill="none"><path d="M2 8L8 2M8 2H4M8 2V6" stroke="#0a66c2" stroke-width="1.8" stroke-linecap="round"/></svg></a>` : '';
     return `<tr data-sp-ri="${ri}" style="${ciudArr.length?'':'opacity:.55'}">
-      <td><select class="sp-tipo-sel" style="color:${tipoColor};font-weight:700;width:100%;font-size:12px" onchange="updateSpeaker(${ri},'tipo',this.value);markDirty('speakers');this.style.color=({'speaker':'#F7931A',panelista:'#eab308',moderador:'#06b6d4',sponsor:'#22c55e'}[this.value]||'var(--text)')">${tipoOp}</select></td>
+      <td>${tipoBadgesHtml(s.tipo)}</td>
       <td style="font-weight:700;white-space:nowrap">
-<span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
+        <span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
         <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
       </td>
-      <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
-      <td style="max-width:160px;overflow:hidden">
+      <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
+      <td style="max-width:160px;overflow:hidden" title="Clic para ver estados | doble clic para editar">
         <span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px"
           onclick="event.stopPropagation()"
           onblur="updateSpeakerTemas(${ri},this.innerText.trim());markDirty('speakers')"
           title="${temasStr}">${temasStr}</span>
       </td>
-      <td style="text-align:center;white-space:nowrap">${ciudTags}</td>
+      <td style="text-align:center">${ciudTags}</td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
       <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
         <span class="sp-edit" contenteditable="true" style="color:var(--muted)" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span>
       </td>
-      <td style="text-align:center;white-space:nowrap">
-        <span class="sp-edit" contenteditable="true" style="font-size:11px;color:var(--muted);min-width:20px;display:inline-block" onblur="updateSpeakerMovil(${ri},this.innerText.trim())" title="Número (solo dígitos)">${esc(movilNum)}</span>${movilArrow}
-      </td>
+      <td style="text-align:center">${movilLink}</td>
       <td style="max-width:90px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'telegram',this.innerText.trim());markDirty('speakers')">${esc(s.telegram||'')}</span>
       </td>
       <td style="max-width:90px;overflow:hidden">
         <span class="sp-edit" contenteditable="true" style="font-size:12px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onblur="updateSpeaker(${ri},'signal',this.innerText.trim());markDirty('speakers')">${esc(s.signal||'')}</span>
       </td>
-      <td style="text-align:center;white-space:nowrap">
-        <span class="sp-edit" contenteditable="true" style="font-size:11px;color:var(--muted);min-width:20px;display:inline-block;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" onblur="updateSpeaker(${ri},'linkedin',this.innerText.trim());markDirty('speakers')" title="${esc(s.linkedin||'')}">${esc(s.linkedin||'')}</span>${liArrow}
-      </td>
+      <td style="text-align:center">${liLink}</td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'x',this.innerText.trim());markDirty('speakers')">${esc(s.x||'')}</span></td>
       <td><span class="sp-edit" contenteditable="true" onblur="updateSpeaker(${ri},'ig',this.innerText.trim());markDirty('speakers')">${esc(s.ig||'')}</span></td>
       <td style="max-width:120px;overflow:hidden"><span class="sp-edit" contenteditable="true" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%" onblur="updateSpeaker(${ri},'empresa',this.innerText.trim());markDirty('speakers')" title="${esc(s.empresa||'')}">${esc(s.empresa||'')}</span></td>
@@ -1738,7 +1705,6 @@ function addSpeaker() {
     telegram: document.getElementById('sp-telegram').value.trim(),
     signal:   document.getElementById('sp-signal').value.trim(),
     linkedin: document.getElementById('sp-linkedin').value.trim(),
-    _manual: true,
   });
   ['sp-nombre','sp-mail','sp-movil','sp-telegram','sp-signal','sp-x','sp-ig','sp-linkedin','sp-empresa','sp-temas','sp-bajada','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('sp-bio-cnt').textContent = '150 restantes';
@@ -1759,30 +1725,6 @@ function updateSpeakerCity(ri, cityName, checked) {
   if (checked && !cities.includes(cityName)) cities.push(cityName);
   if (!checked) cities = cities.filter(c => c !== cityName);
   s.ciudades = cities.join(', ');
-}
-
-function toggleSpCity(ri, cityName, el) {
-  const s = state.speakers[ri];
-  if (!s) return;
-  let cities = (s.ciudades||'').split(',').map(c=>c.trim()).filter(Boolean);
-  const on = cities.some(c => c.includes(cityName));
-  if (on) {
-    cities = cities.filter(c => !c.includes(cityName));
-  } else {
-    cities.push(cityName);
-  }
-  s.ciudades = cities.join(', ');
-  markDirty('speakers');
-  // Actualizar toda la fila para reflejar cambio en Estados también
-  renderSpeakers();
-}
-
-function updateSpeakerMovil(ri, raw) {
-  const s = state.speakers[ri];
-  if (!s) return;
-  const digits = raw.replace(/\D/g, '');
-  s.movil = digits ? `https://wa.me/${digits}` : '';
-  markDirty('speakers');
 }
 
 function delSpeaker(i) {
@@ -1914,8 +1856,7 @@ async function loadSpeakers() {
         sl_estado:  parseE(r[17]),
         sj_estado:  parseE(r[18]),
         cba_estado: parseE(r[19]),
-        _row: [...r],
-        _manual: String(r[0]||'').toUpperCase() === 'MANUAL',
+        _row: [...r]
       };
     });
     renderSpeakers();
@@ -1932,41 +1873,8 @@ async function saveSpeakers() {
     await withSaveBtn('saveBtnSpeakers', '💾 Guardar', async () => {
       const data = state.speakers.map(s => {
         const row = s._row ? [...s._row] : new Array(20).fill('');
-        // Para speakers manuales (_manual=true o _row vacío), escribir todos los campos
-        const isManual = s._manual || !s._row || !s._row[1];
-        if (isManual) {
-          row[0]  = row[0] || 'MANUAL';   // Timestamp / marcador
-          row[1]  = s.nombre || '';
-          row[2]  = s.tipo   || 'speaker';
-          row[3]  = s.contacto || '';
-          row[4]  = s.movil  || '';
-          row[5]  = s.telegram || '';
-          row[6]  = s.signal || '';
-          row[7]  = s.x      || '';
-          row[8]  = s.ig     || '';
-          row[9]  = s.linkedin || '';
-          row[10] = s.empresa || '';
-          row[11] = s.ciudades || '';
-          row[12] = spTemas(s).join(', ');
-          row[13] = s.notas || '';
-          row[14] = s.bio   || '';
-          row[15] = s.eventos_anteriores || '';
-        } else {
-          // Speaker del form: actualizar campos editables inline también
-          if (s.nombre)   row[1]  = s.nombre;
-          if (s.tipo)     row[2]  = s.tipo;
-          if (s.contacto !== undefined) row[3]  = s.contacto;
-          if (s.movil   !== undefined)  row[4]  = s.movil;
-          if (s.telegram !== undefined) row[5]  = s.telegram;
-          if (s.signal  !== undefined)  row[6]  = s.signal;
-          if (s.x       !== undefined)  row[7]  = s.x;
-          if (s.ig      !== undefined)  row[8]  = s.ig;
-          if (s.linkedin !== undefined) row[9]  = s.linkedin;
-          if (s.empresa !== undefined)  row[10] = s.empresa;
-          if (s.ciudades !== undefined) row[11] = s.ciudades;
-          row[12] = spTemas(s).join(', ');
-        }
-        // Columnas Q-T siempre
+        // Preservar A-P del form (índices 0-15) intactos
+        // Actualizar solo columnas variables Q-T (índices 16-19)
         row[16] = spTemas(s).length;
         row[17] = spEstados(s,'sl_estado').join(',');
         row[18] = spEstados(s,'sj_estado').join(',');
@@ -2551,7 +2459,7 @@ async function init() {
     } catch(e) { setStatus(false); }
   }
 
-  loadMcGlobal();
+  loadMcLocal();
   renderPrincipal();
   renderSpeakers();
   renderIdeas();
