@@ -458,6 +458,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
     <button class="btn" onclick="loadSpeakers()">🔄 Actualizar</button>
     <div class="toolbar-sep"></div>
     <button class="btn" onclick="importarDelForm()" title="Importa las respuestas nuevas del Google Form directo a la lista de Speakers">📥 Importar Formulario</button>
+    <button class="btn danger" onclick="importarDelForm(true)" title="Re-importa TODOS los speakers desde el Form (resetea contador)">↺ Re-importar todo</button>
     <span id="importStamp" style="font-size:11px;color:var(--muted)"></span>
     <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
       <span style="font-size:13px;color:var(--muted);font-weight:600">Ficha</span>
@@ -1806,19 +1807,18 @@ function closeSpPanel() {
   document.getElementById('spOverlay').classList.remove('open');
 }
 
-async function importarDelForm() {
-  toast('⏳ Importando respuestas del Form…');
+async function importarDelForm(force = false) {
+  toast(force ? '⏳ Re-importando todos los speakers…' : '⏳ Importando respuestas del Form…');
   try {
-    const res = await fetch(GAS_URL + '?action=import_form_speakers');
+    const url = GAS_URL + '?action=import_form_speakers' + (force ? '&force=1' : '');
+    const res = await fetch(url);
     const json = await res.json();
     if (!json.ok) { toast('⚠️ ' + (json.error || 'Error al importar'), true); return; }
     toast(json.msg || '✅ Importación completa');
     const stamp = document.getElementById('importStamp');
     if (stamp) stamp.textContent = 'Última importación: ' + new Date().toLocaleString('es-AR');
-    if (json.imported > 0) {
-      await loadSpeakers();
-      markDirty('speakers');
-    }
+    await loadSpeakers();
+    markDirty('speakers');
   } catch(e) { toast('⚠️ Error: ' + e.message, true); }
 }
 

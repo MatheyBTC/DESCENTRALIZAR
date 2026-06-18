@@ -20,6 +20,8 @@ function doGet(e) {
     const ss = SpreadsheetApp.openById(SHEET_ID);
 
     if (e.parameter.action === 'import_form_speakers') {
+      const force = e.parameter.force === '1';
+      if (force) PropertiesService.getScriptProperties().setProperty('form_last_imported_row', '1');
       const result = importarFormSpeakers(ss);
       return respond(result);
     }
