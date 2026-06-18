@@ -471,62 +471,12 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
 
   <div style="padding:20px">
     <div class="form-card">
-      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker</span></h3>
-      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-        <!-- Fila 1: Nombre | Tipo | Mail | Móvil | Telegram | Signal -->
+      <h3><span style="color:#fff">+ Agregar</span> <span style="color:var(--btc)">Speaker manual</span></h3>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
         <div class="form-field">
           <label class="form-label">Nombre</label>
           <input class="form-input" id="sp-nombre" placeholder="Nombre completo">
         </div>
-        <div class="form-field">
-          <label class="form-label">Tipo</label>
-          <select class="form-select" id="sp-tipo" onchange="paintTipoSel(this)">
-            <option value="speaker"   style="color:#F7931A">Speaker</option>
-            <option value="sponsor"   style="color:#22c55e">Sponsor</option>
-            <option value="moderador" style="color:#06b6d4">Moderador</option>
-            <option value="panelista" style="color:#eab308">Panelista</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label class="form-label">Mail</label>
-          <input class="form-input" id="sp-mail" placeholder="nombre@mail.com" autocomplete="off">
-        </div>
-        <div class="form-field">
-          <label class="form-label" style="color:#25D366">Móvil (WhatsApp)</label>
-          <input class="form-input" id="sp-movil" placeholder="54911...">
-        </div>
-        <div class="form-field">
-          <label class="form-label" style="color:#0088CC">Telegram</label>
-          <input class="form-input" id="sp-telegram" placeholder="@alias">
-        </div>
-        <div class="form-field">
-          <label class="form-label" style="color:#3A76F0">Signal</label>
-          <input class="form-input" id="sp-signal" placeholder="@alias">
-        </div>
-        <!-- Fila 2: X | IG | LinkedIn | Empresa (misma fila, mismo grid) -->
-        <div class="form-field">
-          <label class="form-label" style="color:#FFFFFF">X (Twitter)</label>
-          <input class="form-input" id="sp-x" placeholder="@usuario">
-        </div>
-        <div class="form-field">
-          <label class="form-label" style="color:#DD2A7B">IG</label>
-          <input class="form-input" id="sp-ig" placeholder="@usuario">
-        </div>
-        <div class="form-field">
-          <label class="form-label" style="color:#0A66C2">LinkedIn</label>
-          <input class="form-input" id="sp-linkedin" placeholder="linkedin.com/in/…">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Empresa</label>
-          <input class="form-input" id="sp-empresa" placeholder="ej. Empresa">
-        </div>
-        <!-- Biografía: ancho completo, 1 fila -->
-        <div class="form-field" style="grid-column:1/-1">
-          <label class="form-label">Biografía <span style="color:var(--muted);font-size:12px;font-weight:400">(máx. 150 caracteres)</span></label>
-          <textarea class="form-ta" id="sp-bio" maxlength="150" rows="1" style="min-height:38px" placeholder="Breve descripción profesional…" oninput="document.getElementById('sp-bio-cnt').textContent=(150-this.value.length)+' restantes'"></textarea>
-          <span id="sp-bio-cnt" style="font-size:11px;color:var(--dim)">150 restantes</span>
-        </div>
-        <!-- Ciudad(es) -->
         <div class="form-field" style="grid-column:1/-1">
           <label class="form-label">Ciudad(es)</label>
           <div class="cities-check" id="sp-ciudades-wrap">
@@ -534,29 +484,6 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
             <label class="city-opt"><input type="checkbox" value="Córdoba"> 🟨 Córdoba</label>
             <label class="city-opt"><input type="checkbox" value="Tucumán"> 🟩 Tucumán</label>
           </div>
-        </div>
-        <!-- Temas (desplegable de Principal) + Eventos -->
-        <div class="form-field" style="grid-column:span 2">
-          <label class="form-label">Tema(s) <span style="color:var(--muted);font-size:12px;font-weight:400">(de la agenda)</span></label>
-          <input class="form-input" id="sp-temas" list="sp-temas-list" placeholder="Seleccioná tema..."
-            oninput="onSpTemaInput(this.value)" onfocus="this.value=''" autocomplete="off">
-          <datalist id="sp-temas-list"></datalist>
-        </div>
-        <div class="form-field" style="grid-column:span 2">
-          <label class="form-label">Eventos anteriores <span style="color:var(--muted);font-size:12px">(opcional)</span></label>
-          <input class="form-input" id="sp-eventos" placeholder="LABITCONF 2024…">
-        </div>
-        <!-- Bajada: ancho completo, readonly, se auto-llena con row.bajada -->
-        <div class="form-field" style="grid-column:1/-1">
-          <label class="form-label" style="color:#eab308">Bajada <span style="color:var(--muted);font-size:12px;font-weight:400">(Detalle del Tema)</span></label>
-          <textarea class="form-ta" id="sp-bajada" rows="1" readonly
-            style="min-height:36px;resize:none;width:100%;color:#eab308;background:rgba(234,179,8,.06);border-color:rgba(234,179,8,.25);cursor:default"
-            placeholder="Detalle del tema que viene de la hoja principal"></textarea>
-        </div>
-        <!-- Notas: ancho completo, auto-fill con row.detalle -->
-        <div class="form-field" style="grid-column:1/-1">
-          <label class="form-label">Notas <span style="color:var(--muted);font-size:12px;font-weight:400">(se auto-completa al traer el tema)</span></label>
-          <textarea class="form-ta" id="sp-notas" rows="2" style="min-height:52px;resize:vertical;width:100%" placeholder="Notas: detalle del tema que viene desde hoja Principal" oninput="autoExpand(this)"></textarea>
         </div>
       </div>
       <button class="form-btn" onclick="addSpeaker()">Agregar</button>
@@ -1711,34 +1638,17 @@ function addSpeaker() {
   if (dup) { toast('⚠️ Ya existe un speaker con ese nombre', true); return; }
   const ciudadesChecked = [...document.querySelectorAll('#sp-ciudades-wrap input:checked')].map(c=>c.value).join(', ');
   const ciudadesList = ciudadesChecked.split(',').map(c=>c.trim()).filter(Boolean);
-  const temasArr = document.getElementById('sp-temas').value.trim().split(',').map(t=>t.trim()).filter(Boolean);
-  const n = Math.max(1, temasArr.length);
-  const mkEst = (city) => ciudadesList.includes(city) ? Array(n).fill('disponible') : Array(n).fill('');
-  // Móvil → wa.me URL
-  const movilRaw = document.getElementById('sp-movil').value.trim().replace(/\D/g,'');
-  const movilUrl = movilRaw ? 'https://wa.me/' + movilRaw : '';
   state.speakers.push({
     nombre,
-    tipo:      document.getElementById('sp-tipo').value,
-    contacto:  document.getElementById('sp-mail').value.trim(),
-    x:         document.getElementById('sp-x').value.trim(),
-    ig:        document.getElementById('sp-ig').value.trim(),
-    empresa:   document.getElementById('sp-empresa').value.trim(),
-    ciudades:  ciudadesChecked,
-    temas:     temasArr,
-    notas:     document.getElementById('sp-notas').value.trim(),
-    sl_estado:  mkEst('San Luis'),
-    sj_estado:  mkEst('Tucumán'),
-    cba_estado: mkEst('Córdoba'),
-    bio: document.getElementById('sp-bio').value.trim().slice(0, 150),
-    eventos_anteriores: document.getElementById('sp-eventos').value.trim(),
-    movil:    movilUrl,
-    telegram: document.getElementById('sp-telegram').value.trim(),
-    signal:   document.getElementById('sp-signal').value.trim(),
-    linkedin: document.getElementById('sp-linkedin').value.trim(),
+    tipo:       'speaker',
+    ciudades:   ciudadesChecked,
+    temas:      [],
+    sl_estado:  [],
+    sj_estado:  [],
+    cba_estado: [],
+    _manual:    true,
   });
-  ['sp-nombre','sp-mail','sp-movil','sp-telegram','sp-signal','sp-x','sp-ig','sp-linkedin','sp-empresa','sp-temas','sp-bajada','sp-notas','sp-bio','sp-eventos'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('sp-bio-cnt').textContent = '150 restantes';
+  document.getElementById('sp-nombre').value = '';
   document.querySelectorAll('#sp-ciudades-wrap input').forEach(c=>c.checked=false);
   markDirty('speakers');
   renderSpeakers();
