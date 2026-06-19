@@ -1531,7 +1531,7 @@ function renderSpeakers() {
       <td>${tipoBadgesHtml(s.tipo)}</td>
       <td style="font-weight:700;white-space:nowrap;width:1%">
         <span class="sp-edit" contenteditable="true" style="color:var(--btc)" onblur="updateSpeaker(${ri},'nombre',this.innerText.trim());markDirty('speakers')" title="Editar nombre">${esc(s.nombre||'')}</span>
-        <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
+        <button onclick="openSpPanel(${ri})" title="Ver ficha" style="background:none;border:none;cursor:pointer;color:var(--text);font-size:11px;padding:0 2px;vertical-align:middle">↗</button>
       </td>
       <td style="text-align:center"><span onclick="toggleSpTopics(${ri})" title="Clic para ver estados por tema y ciudad" style="color:var(--btc);font-weight:800;font-size:15px;cursor:pointer">${n||'?'}</span></td>
       <td style="max-width:160px;overflow:hidden;cursor:pointer" onclick="toggleSpTopics(${ri})" title="${temasStr}">
