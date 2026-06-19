@@ -289,7 +289,7 @@ button[data-filter-tipo="panelista"].active{background:rgba(234,179,8,.15)!impor
 button[data-filter-tipo="moderador"].active{background:rgba(6,182,212,.15)!important;border-color:#06b6d4!important;color:#06b6d4!important}
 button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!important;border-color:#22c55e!important;color:#22c55e!important}
 /* ── CIUDAD-ESTADO en tabla ── */
-.city-est-wrap{display:flex;flex-direction:column;gap:2px}
+.city-est-wrap{display:flex;flex-direction:row;gap:2px;flex-wrap:nowrap}
 .city-est-sel{font-size:11px;padding:2px 4px;border-radius:6px;border:1px solid var(--border);background:#1a1a1a;color:var(--text);cursor:pointer;width:100%;min-width:70px;color-scheme:dark}
 .city-est-sel.est-disponible{background:rgba(255,255,255,.08);color:var(--text)}
 .city-est-sel.est-revision  {background:rgba(234,179,8,.2);color:#eab308}
@@ -1424,9 +1424,9 @@ function estadoSelectHtml(ri, field, val, ti) {
   const oDark = 'background:#1a1a1a;color:#fff';
   return `<select class="sp-estado-sel ${cls}" onchange="updateTopicEstado(${ri},'${field}',${ti},this.value)">
     <option value=""           style="${oDark}" ${val===''?'selected':''}>—</option>
-    <option value="disponible" style="${oDark}" ${val==='disponible'?'selected':''}>Disp.</option>
+    <option value="disponible" style="${oDark}" ${val==='disponible'?'selected':''}>Disponible</option>
     <option value="revision"   style="${oDark}" ${val==='revision'?'selected':''}>Revisar</option>
-    <option value="rechazado"  style="${oDark}" ${val==='rechazado'?'selected':''}>Rechaz.</option>
+    <option value="rechazado"  style="${oDark}" ${val==='rechazado'?'selected':''}>Rechazado</option>
   </select>`;
 }
 
@@ -1467,9 +1467,9 @@ function cityEstadoSelHtml(ri, icon, field) {
   if (val === 'confirmado') return `<span class="city-est-sel est-confirmado" style="display:inline-block;text-align:center">${icon} Conf.</span>`;
   const oDark2 = 'background:#1a1a1a;color:#fff';
   return `<select class="city-est-sel est-${val}" onchange="setCityEstado(${ri},'${field}',this)">
-    <option value="disponible" style="${oDark2}" ${val==='disponible'?'selected':''}>Disp.</option>
+    <option value="disponible" style="${oDark2}" ${val==='disponible'?'selected':''}>Disponible</option>
     <option value="revision"   style="${oDark2}" ${val==='revision'  ?'selected':''}>Revisar</option>
-    <option value="rechazado"  style="${oDark2}" ${val==='rechazado' ?'selected':''}>Rechaz.</option>
+    <option value="rechazado"  style="${oDark2}" ${val==='rechazado' ?'selected':''}>Rechazado</option>
   </select>`;
 }
 function setCityEstado(ri, field, sel) {
