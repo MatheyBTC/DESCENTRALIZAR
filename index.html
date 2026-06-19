@@ -1537,7 +1537,7 @@ function renderSpeakers() {
       <td style="max-width:160px;overflow:hidden;cursor:pointer" onclick="toggleSpTopics(${ri})" title="${temasStr}">
         <span style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:13px;color:var(--text)">${temasStr}</span>
       </td>
-      <td style="text-align:center">${ciudTags}</td>
+      <td style="text-align:center;white-space:nowrap">${ciudTags}</td>
       <td><div class="city-est-wrap">${cityRows||'<span style="color:var(--dim);font-size:11px">—</span>'}</div></td>
       <td style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
         <span class="sp-edit" contenteditable="true" style="color:var(--muted)" onblur="updateSpeaker(${ri},'contacto',this.innerText.trim());markDirty('speakers')">${esc(s.contacto||'')}</span>
