@@ -173,10 +173,15 @@ function importarFormSpeakers(dexSS) {
 
   // Indexar speakers existentes por mail (col D = índice 3)
   const existingData = spSheet.getDataRange().getValues();
+  // Sin encabezado — detectar si fila 0 es header o dato
+  const firstRow = existingData[0] || [];
+  const hasHeader = typeof firstRow[1] === 'string' && firstRow[1].toLowerCase().includes('nombre');
+  const dataRows = hasHeader ? existingData.slice(1) : existingData;
   const byMail = {};
-  existingData.slice(1).forEach((row, i) => {
+  dataRows.forEach((row, i) => {
     const m = String(row[3]||'').trim().toLowerCase(); // col D = Mail
-    if (m) byMail[m] = { sheetRow: i + 2, row: [...row] };
+    const sheetRow = hasHeader ? i + 2 : i + 1;
+    if (m) byMail[m] = { sheetRow, row: [...row] };
   });
 
   const newRows      = allData.slice(lastImported);

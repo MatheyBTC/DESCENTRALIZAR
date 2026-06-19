@@ -1782,10 +1782,12 @@ async function importarDelForm(force = false) {
 async function loadSpeakers() {
   try {
     const raw = await gasGet('Speakers');
-    if (!raw || raw.length < 2) { state.speakers=[]; renderSpeakers(); return; }
+    if (!raw || raw.length < 1) { state.speakers=[]; renderSpeakers(); return; }
     if (raw._version) versions.Speakers = raw._version;
-    // Saltar filas vacías al inicio
-    const rows = raw.slice(1).filter(r => r.some(v => v !== '' && v != null));
+    // Sin encabezado — usar todas las filas con datos
+    const firstRow = raw[0] || [];
+    const hasHeader = typeof firstRow[1] === 'string' && firstRow[1].toLowerCase().includes('nombre');
+    const rows = (hasHeader ? raw.slice(1) : raw).filter(r => r.some(v => v !== '' && v != null));
     state.speakers = rows.map(r => {
       // A(0)=Timestamp B(1)=Nombre C(2)=Tipo D(3)=Mail E(4)=Móvil
       // F(5)=Telegram G(6)=Signal H(7)=X I(8)=Instagram J(9)=LinkedIn
