@@ -371,6 +371,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
     <span class="config-label">Fin</span>
     <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
     <span style="color:var(--dim);font-size:15px" id="totalMin">—</span>
+    <button class="btn" onclick="exportarTexto()" title="Exportar agenda como .txt">📋 Exportar .txt</button>
 
     <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn" onclick="addPrincipalRow()">+ Agregar fila</button>
@@ -379,6 +380,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
       <button class="btn" onclick="exportarAgenda('sl')">📸 SL</button>
       <button class="btn" onclick="exportarAgenda('sj')">📸 TUC</button>
       <button class="btn" onclick="exportarAgenda('cba')">📸 CBA</button>
+      <button class="btn" onclick="exportarTexto()" title="Exportar agenda completa como texto con horarios">📋 Exportar</button>
     </div>
   </div>
 
@@ -2505,6 +2507,46 @@ function renderPublicView() {
       <tbody>${rowsHtml}</tbody>
     </table>
   </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// EXPORTAR AGENDA COMO TEXTO CON HORARIOS
+// ══════════════════════════════════════════════════════════════════
+function exportarTexto() {
+  const rows = state.principal;
+  if (!rows.length) { toast('⚠️ Sin filas para exportar', true); return; }
+
+  const TIPO_EMOJI = {
+    Apertura: '🟨', Kahoot: '🟪', Charla: '🟦', Panel: '🟥',
+    Taller: '🟩', Break: '', AMA: '', Cierre: '🟨',
+    Concurso: '🟪', Premios: '🟨', Sorteo: '🟩'
+  };
+  const TIPO_ICON = { Break: '☕', AMA: '🎤', Almuerzo: '🍽️' };
+
+  const lines = rows.map(r => {
+    const hora  = `${r.inicio || '—'} – ${r.fin || '—'}`;
+    const tema  = r.tema ? `: ${r.tema}` : '';
+    const emoji = TIPO_EMOJI[r.tipo] !== undefined
+      ? (TIPO_EMOJI[r.tipo] ? TIPO_EMOJI[r.tipo] + ' ' : '')
+      : '⬜ ';
+    // Para Break/AMA usar icono inline en el tema
+    const temaLabel = (r.tipo === 'Break' || r.tipo === 'AMA')
+      ? (r.tema ? `: ${r.tema}` : '')
+      : tema;
+    let out = `${hora}  ${emoji}${r.tipo}${temaLabel}`;
+    if (r.bajada) out += `\n> ${r.bajada}`;
+    return out;
+  }).join('\n\n');
+
+  // Descargar como .txt
+  const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'agenda-descentralizar.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Agenda descargada como .txt');
 }
 
 // ══════════════════════════════════════════════════════════════════
