@@ -1810,28 +1810,25 @@ function openNoAsgPanel() {
     { key: 'cba', label: 'Córdoba',  color: '#eab308', bg: 'rgba(234,179,8,.15)' },
   ];
 
-  // Armar set de combos usados por ciudad
-  const usedByCitySet = {};
-  CITIES.forEach(c => { usedByCitySet[c.key] = new Set(); });
+  // Set global de nombres usados en Principal (cualquier ciudad)
+  const usedGlobal = new Set();
   state.principal.forEach(row => {
     CITIES.forEach(c => {
       parseSpeakerField(row[c.key]).forEach(combo => {
         const name = combo.split('|')[0].replace(/^★\s*/,'').trim();
-        if (name) usedByCitySet[c.key].add(name.toLowerCase());
+        if (name) usedGlobal.add(name.toLowerCase());
       });
     });
   });
 
-  // Para cada speaker, ver en qué ciudades aplica y en cuáles NO fue asignado
+  // Speakers que NO aparecen en ninguna ciudad del Principal
   const noAsignados = [];
   state.speakers.forEach(s => {
     const nombre = (s.nombre || '').trim();
     if (!nombre) return;
-    const nombreLow = nombre.toLowerCase();
+    if (usedGlobal.has(nombre.toLowerCase())) return; // ya está asignado en algún lado
     const ciudadesApplied = CITIES.filter(c => (s.ciudades||'').toLowerCase().includes(c.label.toLowerCase()));
-    if (!ciudadesApplied.length) return; // no aplica a ninguna ciudad
-    const sinAsignar = ciudadesApplied.filter(c => !usedByCitySet[c.key].has(nombreLow));
-    if (sinAsignar.length) noAsignados.push({ s, sinAsignar });
+    noAsignados.push({ s, sinAsignar: ciudadesApplied });
   });
 
   // Ordenar por nombre
