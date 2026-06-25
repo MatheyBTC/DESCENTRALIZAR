@@ -118,6 +118,16 @@ td { border: 1px solid var(--border); padding: 0; vertical-align: top; }
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwskC0ocQAek4UX_dYG5qvJ0lyKTyBalDua9JieJnrrZVJojfSrzYwBBLc-EBRJJnWG/exec';
 
+function timeToMin(t) {
+  if (!t) return 0;
+  const [h, m] = String(t).split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function minToTime(m) {
+  const h = Math.floor(m / 60), mm = m % 60;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+
 const TIPO_CLASS = {
   Apertura:'t-apertura', Charla:'t-charla', Panel:'t-panel', Taller:'t-taller',
   Kahoot:'t-kahoot', Break:'t-break', AMA:'t-ama', Cierre:'t-cierre'
