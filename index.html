@@ -1351,14 +1351,12 @@ async function loadPrincipal() {
       tema_sl:r[10]||'', tema_sj:r[11]||'', tema_cba:r[12]||''
     }));
     renderPrincipal();
-    syncConfirmados();
     return true;
   } catch(e) { toast('⚠️ Error al cargar: '+e.message, true); return false; }
 }
 
 function refreshAll() {
   renderPrincipal();
-  syncConfirmados();
   renderSpeakers();
   renderIdeas();
   if (document.getElementById('tab-timeline').classList.contains('active')) buildTimeline();
@@ -1384,6 +1382,7 @@ async function savePrincipal() {
       toast('✅ Principal guardado');
       markClean('principal');
       refreshAll();
+      syncConfirmados();
     });
   } catch(e) {
     toast('⚠️ Error al guardar Principal: ' + e.message, true);
@@ -1906,58 +1905,62 @@ function exportarNoAsignados() {
 }
 
 // ══ SYNC CONFIRMADOS ══
-// Lee Principal y marca como "confirmado" a cualquier speaker asignado en cada ciudad
+// Reglas:
+//   - Speaker asignado en ciudad + tema coincide con uno de sus temas
+//     → marcar ESE tema como "confirmado" en esa ciudad, dejar los demás intactos
+//   - Speaker asignado en ciudad + no coincide ningún tema (o el bloque no tiene tema)
+//     → marcar TODOS sus temas de esa ciudad como "confirmado" (confirmado general por asignación)
+// Solo corre si AMBOS state.principal y state.speakers están cargados.
 function syncConfirmados() {
+  if (!state.speakers.length || !state.principal.length) return;
   const CITY_MAP = [
     { col: 'sl',  field: 'sl_estado'  },
     { col: 'sj',  field: 'sj_estado'  },
     { col: 'cba', field: 'cba_estado' },
   ];
   let changed = false;
+
   state.principal.forEach(row => {
     CITY_MAP.forEach(({ col, field }) => {
       parseSpeakerField(row[col]).forEach(combo => {
         const pipIdx = combo.indexOf('|');
         const nombre = combo.slice(0, pipIdx === -1 ? combo.length : pipIdx).replace(/^★\s*/,'').trim();
-        const tema   = pipIdx === -1 ? '' : combo.slice(pipIdx + 1).trim();
-        const sp = state.speakers.find(s => s.nombre === nombre);
+        const temaAsignado = (pipIdx === -1 ? '' : combo.slice(pipIdx + 1)).replace(/^★\s*/,'').trim().toLowerCase();
+
+        const sp = state.speakers.find(s => (s.nombre||'').trim() === nombre);
         if (!sp) return;
-        const temas   = spTemas(sp);
+
+        const temas   = spTemas(sp).map(t => t.replace(/^★\s*/,'').trim());
         const estados = spEstados(sp, field);
-        // Buscar índice del tema en el speaker
-        let ti = temas.findIndex(t => t.replace(/^★\s*/,'').trim().toLowerCase() === tema.toLowerCase());
-        if (ti === -1 && tema) {
-          // Tema nuevo: agregarlo y marcarlo confirmado
-          temas.push(tema);
-          sp.temas = temas.join('\n');
-          estados.push('confirmado');
-          sp[field] = [...estados];
-          changed = true;
-        } else if (ti === -1) {
-          // Sin tema específico: confirmar el primero disponible, o sin índice
-          if (temas.length === 0) {
-            // No tiene ningún tema — no hacer nada
-            return;
-          }
-          // Marcar todos sus temas como confirmado para esta ciudad
-          temas.forEach((_, i) => {
-            if (estados[i] !== 'rechazado') { estados[i] = 'confirmado'; changed = true; }
-          });
-          sp[field] = [...estados];
-        } else {
+
+        // Buscar coincidencia exacta (case-insensitive)
+        const ti = temaAsignado
+          ? temas.findIndex(t => t.toLowerCase() === temaAsignado)
+          : -1;
+
+        if (ti !== -1) {
+          // Tema coincide → solo marcar ese
           if (estados[ti] !== 'rechazado' && estados[ti] !== 'confirmado') {
             estados[ti] = 'confirmado';
             sp[field] = [...estados];
             changed = true;
-          } else if (estados[ti] !== 'rechazado') {
-            estados[ti] = 'confirmado';
-            sp[field] = [...estados];
           }
+        } else {
+          // Sin coincidencia → confirmado general: marcar todos los no-rechazados
+          let anyChange = false;
+          temas.forEach((_, i) => {
+            if (estados[i] !== 'rechazado' && estados[i] !== 'confirmado') {
+              estados[i] = 'confirmado';
+              anyChange = true;
+            }
+          });
+          if (anyChange) { sp[field] = [...estados]; changed = true; }
         }
       });
     });
   });
-  if (changed) markDirty('speakers');
+
+  if (changed) { markDirty('speakers'); renderSpeakers(); }
 }
 
 // ══ EXPORT POR LOCACIÓN ══
@@ -2099,6 +2102,7 @@ async function loadSpeakers() {
       };
     });
     renderSpeakers();
+    syncConfirmados();
     toast('✅ Speakers actualizados');
   } catch(e) { toast('⚠️ Error: '+e.message, true); }
 }
@@ -2686,6 +2690,7 @@ async function init() {
   } else {
     try {
       const [hadPrincipal] = await Promise.all([loadPrincipal(),loadSpeakers(),loadIdeas()]);
+      syncConfirmados();
       if (!hadPrincipal) {
         toast('Primer uso — guardando datos en Sheet…');
         await savePrincipal();
