@@ -32,29 +32,29 @@ table { border-collapse: collapse; width: 100%; min-width: 800px; }
 
 /* HEADER ciudades */
 thead th { background: var(--bg3); border: 1px solid var(--border); padding: 12px 14px; font-size: 15px; font-weight: 700; text-align: left; position: sticky; top: 50px; z-index: 10; }
-th.h-tema { color: var(--btc); width: 28%; }
-th.h-sl   { color: var(--sl);  width: 24%; }
-th.h-cba  { color: var(--cba); width: 24%; }
-th.h-sj   { color: var(--sj);  width: 24%; }
+th.h-hora   { color: var(--muted); width: 100px; }
+th.h-tema   { color: var(--btc);   width: 18%; }
+th.h-detalle{ color: var(--muted); width: 22%; }
+th.h-sl     { color: var(--sl);    width: 18%; }
+th.h-cba    { color: var(--cba);   width: 18%; }
+th.h-sj     { color: var(--sj);    width: 18%; }
 
 /* FILAS */
 tbody tr:hover { background: rgba(247,147,26,.03); }
 td { border: 1px solid var(--border); padding: 0; vertical-align: top; }
 
-/* CELDA TEMA */
-.cell-tema { padding: 10px 12px; }
-.hora { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; margin-bottom: 4px; }
-.tipo-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-bottom: 5px; }
-.tema-txt { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; }
-.bajada-txt { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
-
-/* CELDA CIUDAD */
-.cell-city { padding: 10px 12px; min-height: 56px; }
-.sp-list { display: flex; flex-direction: column; gap: 4px; }
-.sp-item { font-size: 13px; font-weight: 700; color: var(--btc); }
-.sp-sep  { color: var(--dim); font-size: 12px; margin: 0 4px; }
-.sp-none { font-size: 12px; color: var(--dim); font-style: italic; }
-.sp-row  { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+/* CELDAS */
+.cell-hora   { padding: 10px 12px; white-space: nowrap; }
+.hora-ini { font-size: 13px; color: #22c55e; font-weight: 700; }
+.hora-fin { font-size: 13px; color: #ef4444; font-weight: 700; }
+.cell-tema   { padding: 10px 12px; }
+.tipo-badge  { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-bottom: 5px; }
+.tema-txt    { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.cell-detalle{ padding: 10px 12px; }
+.bajada-txt  { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.cell-city   { padding: 10px 12px; min-height: 56px; }
+.sp-stack    { display: flex; flex-direction: column; gap: 3px; }
+.sp-none     { font-size: 12px; color: var(--dim); font-style: italic; }
 
 /* TIPO COLORES */
 .t-apertura { background: rgba(250,204,21,.15); color: #facc15; }
@@ -103,7 +103,9 @@ td { border: 1px solid var(--border); padding: 0; vertical-align: top; }
   <table id="tabla" style="display:none">
     <thead>
       <tr>
+        <th class="h-hora">Horario</th>
         <th class="h-tema">Tema</th>
+        <th class="h-detalle">Detalle</th>
         <th class="h-sl">🟥 San Luis</th>
         <th class="h-cba">🟨 Córdoba</th>
         <th class="h-sj">🟩 Tucumán</th>
@@ -150,13 +152,25 @@ function hasEstrella(combo) {
 
 function renderSpCell(arr) {
   if (!arr || !arr.length) return `<span class="sp-none">—</span>`;
-  const items = arr.filter(Boolean);
-  const names = items.map(spName).filter(Boolean);
+  const names = arr.filter(Boolean).map(spName).filter(Boolean);
   if (!names.length) return `<span class="sp-none">—</span>`;
-  return `<div class="sp-row">${names.map((n, i) => {
+  return `<div class="sp-stack">${names.map((n, i) => {
     const color = i === 0 ? 'color:#F7931A;font-weight:700' : 'color:#e8eaf0;font-weight:400';
-    return `<span style="${color}">${esc(n)}</span>${i < names.length - 1 ? '<span class="sp-sep"> | </span>' : ''}`;
+    return `<span style="${color}">${esc(n)}</span>`;
   }).join('')}</div>`;
+}
+
+function parseHora(val) {
+  if (!val) return '—';
+  const s = String(val).trim();
+  // ISO date from Google Sheets: "1899-12-30T13:31:48.000Z"
+  if (s.includes('T')) {
+    const d = new Date(s);
+    const h = String(d.getUTCHours()).padStart(2,'0');
+    const m = String(d.getUTCMinutes()).padStart(2,'0');
+    return `${h}:${m}`;
+  }
+  return s; // ya viene como "09:00"
 }
 
 function esc(s) {
@@ -178,13 +192,18 @@ function render() {
     const sj  = renderSpCell(r.sj);
     return `<tr>
       <td>
-        <div class="cell-tema">
-          <div class="hora">${esc(r.inicio)} – ${esc(r.fin)}</div>
-          <span class="tipo-badge ${tc}">${em} ${esc(r.tipo)}</span>
-          <div class="tema-txt">${esc(r.tema || '—')}</div>
-          ${r.bajada ? `<div class="bajada-txt">${esc(r.bajada)}</div>` : ''}
+        <div class="cell-hora">
+          <div class="hora-ini">${parseHora(r.inicio)}</div>
+          <div class="hora-fin">${parseHora(r.fin)}</div>
         </div>
       </td>
+      <td>
+        <div class="cell-tema">
+          <span class="tipo-badge ${tc}">${em} ${esc(r.tipo)}</span>
+          <div class="tema-txt">${esc(r.tema || '—')}</div>
+        </div>
+      </td>
+      <td><div class="cell-detalle"><span class="bajada-txt">${esc(r.bajada || '')}</span></div></td>
       <td><div class="cell-city">${sl}</div></td>
       <td><div class="cell-city">${cba}</div></td>
       <td><div class="cell-city">${sj}</div></td>
@@ -220,7 +239,7 @@ async function cargar() {
       sl:     parseSpField(r[7]),
       sj:     parseSpField(r[8]),
       cba:    parseSpField(r[9]),
-    }));
+    })).filter(r => r.tema || r.tipo);
     render();
   } catch(e) {
     document.getElementById('loading').textContent = '⚠️ Error al cargar: ' + e.message;
