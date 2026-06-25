@@ -38,7 +38,18 @@ function doGet(e) {
 
     const ws = ss.getSheetByName(sheet);
     if (!ws) return respond({ error: 'Hoja no encontrada: ' + sheet }, 404);
-    const data = ws.getDataRange().getValues();
+    const raw = ws.getDataRange().getValues();
+    const tz = Session.getScriptTimeZone();
+    const data = raw.map(row => row.map(cell => {
+      if (cell instanceof Date) {
+        // Hora pura (epoch 1899): formatear como HH:mm
+        if (cell.getFullYear() === 1899 || cell.getFullYear() === 1900) {
+          return Utilities.formatDate(cell, tz, 'HH:mm');
+        }
+        return Utilities.formatDate(cell, tz, 'yyyy-MM-dd');
+      }
+      return cell;
+    }));
 
     const props = PropertiesService.getScriptProperties();
     const version = props.getProperty('version_' + sheet) || '0';
