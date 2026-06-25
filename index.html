@@ -296,6 +296,24 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
 .city-est-sel.est-rechazado {background:rgba(239,68,68,.2);color:#ef4444}
 .city-est-sel.est-confirmado{background:rgba(34,197,94,.2);color:#22c55e;pointer-events:none}
 .city-est-sel.est-invitado  {background:rgba(99,102,241,.2);color:#818cf8}
+/* ── NO ASIGNADOS PANEL ── */
+.noasg-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:599}
+.noasg-overlay.open{display:block}
+.noasg-panel{position:fixed;right:-520px;top:0;width:500px;height:100vh;background:var(--bg2);border-left:2px solid var(--border);z-index:600;overflow-y:auto;transition:right .25s ease;box-shadow:-12px 0 40px rgba(0,0,0,.7)}
+.noasg-panel.open{right:0}
+.noasg-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--bg2);z-index:2}
+.noasg-title{font-weight:800;font-size:15px;flex:1}
+.noasg-badge{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px}
+.noasg-body{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.noasg-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:flex-start;gap:12px}
+.noasg-card:hover{border-color:var(--btc);background:var(--btc-dim)}
+.noasg-avatar{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--btc);flex-shrink:0}
+.noasg-info{flex:1;min-width:0}
+.noasg-name{font-size:13px;font-weight:700;color:var(--text)}
+.noasg-temas{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.noasg-ciudades{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.noasg-city-chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px}
+.noasg-sec-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:6px 2px 2px}
 /* ── SPEAKER PROFILE PANEL ── */
 .sp-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:599}
 .sp-overlay.open{display:block}
@@ -378,6 +396,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
       <button class="btn save" id="saveBtnPrincipal" onclick="savePrincipal()">💾 Guardar</button>
       <button class="btn" onclick="loadPrincipal()">🔄 Actualizar</button>
       <button class="btn" onclick="window.open('vista.html','_blank')" title="Vista por ciudad">👁️ Vista</button>
+      <button class="btn" onclick="openNoAsgPanel()" title="Ver speakers sin asignar" style="color:#ef4444;border-color:rgba(239,68,68,.4)">🚫 No asignados</button>
     </div>
   </div>
 
@@ -434,6 +453,17 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
   </div>
 </div>
 
+<!-- ══ NO ASIGNADOS PANEL ══ -->
+<div class="noasg-overlay" id="noAsgOverlay" onclick="closeNoAsgPanel()"></div>
+<div class="noasg-panel" id="noAsgPanel">
+  <div class="noasg-header">
+    <span class="noasg-title">🚫 Speakers no asignados</span>
+    <span class="noasg-badge" id="noAsgCount">0</span>
+    <button onclick="closeNoAsgPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;padding:4px">✕</button>
+  </div>
+  <div class="noasg-body" id="noAsgBody"></div>
+</div>
+
 <!-- ══ SPEAKER PROFILE PANEL ══ -->
 <div class="sp-overlay" id="spOverlay" onclick="closeSpPanel()"></div>
 <div class="sp-panel" id="spPanel">
@@ -458,6 +488,9 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
     <div class="toolbar-sep"></div>
     <button class="btn" onclick="importarDelForm()" title="Importa las respuestas nuevas del Google Form directo a la lista de Speakers">📥 Importar Formulario</button>
     <button class="btn danger" onclick="importarDelForm(true)" title="Re-importa TODOS los speakers desde el Form (resetea contador)">↺ Re-importar todo</button>
+    <div class="toolbar-sep"></div>
+    <button class="btn" onclick="exportarSpeakersPorLocacion()" title="Exportar speakers asignados por locación (sin repetir, orden alfabético)">📋 Export por locación</button>
+    <button class="btn" onclick="exportarTodosSpeakersTxt()" title="Exportar todos los speakers: locaciones + WhatsApp">📤 Export completo</button>
     <span id="importStamp" style="font-size:11px;color:var(--muted)"></span>
     <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
       <span style="font-size:13px;color:var(--muted);font-weight:600">Ficha</span>
@@ -1148,7 +1181,7 @@ function openSpDrop(idx, city, e) {
       if (topicEst === 'rechazado') return;
       const combo = `${s.nombre}|${topic}`;
       if (alreadySelected.includes(combo)) return;
-      if (topicEst === 'confirmado' || isComboUsedInCity(idx, city, combo)) {
+      if (topicEst === 'confirmado') {
         fullItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" style="opacity:.45"><div class="sp-item-name">${nameTag} <span style="color:var(--dim);font-size:10px">ya asignado</span></div></div>`);
         return;
       }
@@ -1164,7 +1197,6 @@ function openSpDrop(idx, city, e) {
     withoutTema.forEach(s => {
       const combo = `${s.nombre}|${rowTema}`;
       if (alreadySelected.includes(combo)) return;
-      if (isComboUsedInCity(idx, city, combo)) return;
       emergItems.push(`<div class="sp-item" data-idx="${idx}" data-city="${city}" data-name="${esc(combo)}" data-manual="1"><div class="sp-item-name">${esc(s.nombre)}</div></div>`);
     });
     if (emergItems.length) {
@@ -1318,12 +1350,14 @@ async function loadPrincipal() {
       tema_sl:r[10]||'', tema_sj:r[11]||'', tema_cba:r[12]||''
     }));
     renderPrincipal();
+    syncConfirmados();
     return true;
   } catch(e) { toast('⚠️ Error al cargar: '+e.message, true); return false; }
 }
 
 function refreshAll() {
   renderPrincipal();
+  syncConfirmados();
   renderSpeakers();
   renderIdeas();
   if (document.getElementById('tab-timeline').classList.contains('active')) buildTimeline();
@@ -1768,6 +1802,210 @@ function closeSpPanel() {
   document.getElementById('spOverlay').classList.remove('open');
 }
 
+// ══ NO ASIGNADOS ══
+function openNoAsgPanel() {
+  const CITIES = [
+    { key: 'sl',  label: 'San Luis', color: '#ef4444', bg: 'rgba(239,68,68,.15)' },
+    { key: 'sj',  label: 'Tucumán',  color: '#22c55e', bg: 'rgba(34,197,94,.15)' },
+    { key: 'cba', label: 'Córdoba',  color: '#eab308', bg: 'rgba(234,179,8,.15)' },
+  ];
+
+  // Armar set de combos usados por ciudad
+  const usedByCitySet = {};
+  CITIES.forEach(c => { usedByCitySet[c.key] = new Set(); });
+  state.principal.forEach(row => {
+    CITIES.forEach(c => {
+      parseSpeakerField(row[c.key]).forEach(combo => {
+        const name = combo.split('|')[0].replace(/^★\s*/,'').trim();
+        if (name) usedByCitySet[c.key].add(name.toLowerCase());
+      });
+    });
+  });
+
+  // Para cada speaker, ver en qué ciudades aplica y en cuáles NO fue asignado
+  const noAsignados = [];
+  state.speakers.forEach(s => {
+    const nombre = (s.nombre || '').trim();
+    if (!nombre) return;
+    const nombreLow = nombre.toLowerCase();
+    const ciudadesApplied = CITIES.filter(c => (s.ciudades||'').toLowerCase().includes(c.label.toLowerCase()));
+    if (!ciudadesApplied.length) return; // no aplica a ninguna ciudad
+    const sinAsignar = ciudadesApplied.filter(c => !usedByCitySet[c.key].has(nombreLow));
+    if (sinAsignar.length) noAsignados.push({ s, sinAsignar });
+  });
+
+  // Ordenar por nombre
+  noAsignados.sort((a, b) => a.s.nombre.localeCompare(b.s.nombre));
+
+  document.getElementById('noAsgCount').textContent = noAsignados.length;
+
+  if (!noAsignados.length) {
+    document.getElementById('noAsgBody').innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--dim);font-size:14px">✅ Todos los speakers están asignados</div>`;
+  } else {
+    document.getElementById('noAsgBody').innerHTML = noAsignados.map(({ s, sinAsignar }) => {
+      const temas = spTemas(s).map(t => t.replace(/^★\s*/,'')).filter(Boolean);
+      const cityChips = sinAsignar.map(c =>
+        `<span class="noasg-city-chip" style="background:${c.bg};color:${c.color}">${c.label}</span>`
+      ).join('');
+      return `<div class="noasg-card" onclick="closeNoAsgPanel();openSpPanel(${state.speakers.indexOf(s)})" style="cursor:pointer">
+        <div class="noasg-avatar">${esc((s.nombre||'?').charAt(0).toUpperCase())}</div>
+        <div class="noasg-info">
+          <div class="noasg-name">${esc(s.nombre)}</div>
+          ${temas.length ? `<div class="noasg-temas">${esc(temas.join(' · '))}</div>` : ''}
+          <div class="noasg-ciudades">${cityChips}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('noAsgPanel').classList.add('open');
+  document.getElementById('noAsgOverlay').classList.add('open');
+}
+
+function closeNoAsgPanel() {
+  document.getElementById('noAsgPanel').classList.remove('open');
+  document.getElementById('noAsgOverlay').classList.remove('open');
+}
+
+// ══ SYNC CONFIRMADOS ══
+// Lee Principal y marca como "confirmado" a cualquier speaker asignado en cada ciudad
+function syncConfirmados() {
+  const CITY_MAP = [
+    { col: 'sl',  field: 'sl_estado'  },
+    { col: 'sj',  field: 'sj_estado'  },
+    { col: 'cba', field: 'cba_estado' },
+  ];
+  let changed = false;
+  state.principal.forEach(row => {
+    CITY_MAP.forEach(({ col, field }) => {
+      parseSpeakerField(row[col]).forEach(combo => {
+        const pipIdx = combo.indexOf('|');
+        const nombre = combo.slice(0, pipIdx === -1 ? combo.length : pipIdx).replace(/^★\s*/,'').trim();
+        const tema   = pipIdx === -1 ? '' : combo.slice(pipIdx + 1).trim();
+        const sp = state.speakers.find(s => s.nombre === nombre);
+        if (!sp) return;
+        const temas   = spTemas(sp);
+        const estados = spEstados(sp, field);
+        // Buscar índice del tema en el speaker
+        let ti = temas.findIndex(t => t.replace(/^★\s*/,'').trim().toLowerCase() === tema.toLowerCase());
+        if (ti === -1 && tema) {
+          // Tema nuevo: agregarlo y marcarlo confirmado
+          temas.push(tema);
+          sp.temas = temas.join('\n');
+          estados.push('confirmado');
+          sp[field] = [...estados];
+          changed = true;
+        } else if (ti === -1) {
+          // Sin tema específico: confirmar el primero disponible, o sin índice
+          if (temas.length === 0) {
+            // No tiene ningún tema — no hacer nada
+            return;
+          }
+          // Marcar todos sus temas como confirmado para esta ciudad
+          temas.forEach((_, i) => {
+            if (estados[i] !== 'rechazado') { estados[i] = 'confirmado'; changed = true; }
+          });
+          sp[field] = [...estados];
+        } else {
+          if (estados[ti] !== 'rechazado' && estados[ti] !== 'confirmado') {
+            estados[ti] = 'confirmado';
+            sp[field] = [...estados];
+            changed = true;
+          } else if (estados[ti] !== 'rechazado') {
+            estados[ti] = 'confirmado';
+            sp[field] = [...estados];
+          }
+        }
+      });
+    });
+  });
+  if (changed) markDirty('speakers');
+}
+
+// ══ EXPORT POR LOCACIÓN ══
+function exportarSpeakersPorLocacion() {
+  const CITIES = [
+    { key: 'sl',  label: 'SAN LUIS',  emoji: '🟥' },
+    { key: 'cba', label: 'CÓRDOBA',   emoji: '🟨' },
+    { key: 'sj',  label: 'TUCUMÁN',   emoji: '🟩' },
+  ];
+  let txt = 'DESCENTRALIZAR 2026 — Speakers por locación\n';
+  txt += '='.repeat(50) + '\n\n';
+
+  CITIES.forEach(({ key, label, emoji }) => {
+    const seen = new Set();
+    state.principal.forEach(row => {
+      parseSpeakerField(row[key]).forEach(combo => {
+        const name = combo.split('|')[0].replace(/^★\s*/,'').trim();
+        if (name) seen.add(name);
+      });
+    });
+    const sorted = [...seen].sort((a, b) => a.localeCompare(b, 'es'));
+    txt += `${emoji} ${label} (${sorted.length} speakers)\n`;
+    txt += '-'.repeat(40) + '\n';
+    sorted.forEach(n => { txt += `  • ${n}\n`; });
+    txt += '\n';
+  });
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'speakers-por-locacion.txt';
+  a.click();
+}
+
+// ══ EXPORT COMPLETO (todos los speakers) ══
+function exportarTodosSpeakersTxt() {
+  const CITIES = [
+    { key: 'sl',  emoji: '🟥', field: 'sl_estado'  },
+    { key: 'cba', emoji: '🟨', field: 'cba_estado' },
+    { key: 'sj',  emoji: '🟩', field: 'sj_estado'  },
+  ];
+
+  // Qué ciudades aparece en el Principal (asignado al menos una vez)
+  const assignedByCity = {};
+  CITIES.forEach(c => { assignedByCity[c.key] = new Set(); });
+  state.principal.forEach(row => {
+    CITIES.forEach(({ key }) => {
+      parseSpeakerField(row[key]).forEach(combo => {
+        const n = combo.split('|')[0].replace(/^★\s*/,'').trim();
+        if (n) assignedByCity[key].add(n.toLowerCase());
+      });
+    });
+  });
+
+  const sorted = [...state.speakers].sort((a, b) =>
+    (a.nombre || '').localeCompare(b.nombre || '', 'es')
+  );
+
+  let txt = 'DESCENTRALIZAR 2026 — Lista completa de speakers\n';
+  txt += '='.repeat(50) + '\n\n';
+
+  sorted.forEach(s => {
+    const nombre = (s.nombre || '').trim();
+    if (!nombre) return;
+    const nombreLow = nombre.toLowerCase();
+
+    // Locaciones donde está asignado en Principal
+    const locs = CITIES.filter(c => assignedByCity[c.key].has(nombreLow)).map(c => c.emoji).join(' ');
+
+    // WhatsApp
+    const movilNum = String(s.movil || '').replace(/\D/g, '');
+    const wa = movilNum ? `  wa.me/${movilNum}` : '';
+
+    txt += `${nombre}`;
+    if (locs) txt += `  ${locs}`;
+    if (wa)   txt += wa;
+    txt += '\n';
+  });
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'speakers-completo.txt';
+  a.click();
+}
+
 async function importarDelForm(force = false) {
   toast(force ? '⏳ Re-importando todos los speakers…' : '⏳ Importando respuestas del Form…');
   try {
@@ -1962,55 +2200,29 @@ function buildTimeline() {
 
   html += '</div>';
 
-  // ── SECCIÓN D — Conflictos de speakers ───────────────────────
-  html += `<div class="tl-section-title" style="margin-top:8px">⚠️ Conflictos de speakers</div>
-  <div class="tl-conflict-wrap">`;
-
-  const conflicts = [];
-  rows.forEach(r => {
-    // Recolectar speakers no vacíos por ciudad para esta fila
-    const spMap = {};
-    [['sl','🟥 San Luis'], ['cba','🟨 Córdoba'], ['sj','🟩 Tucumán']].forEach(([key, label]) => {
-      parseSpeakerField(r[key]).forEach(sp => {
-        if (!sp) return;
-        if (!spMap[sp]) spMap[sp] = [];
-        if (!spMap[sp].includes(label)) spMap[sp].push(label);
-      });
-    });
-    // Si el mismo speaker aparece en 2+ ciudades → conflicto
-    Object.entries(spMap).forEach(([sp, ciudadesConflicto]) => {
-      if (ciudadesConflicto.length >= 2) {
-        conflicts.push({
-          horario: `${r.inicio || '—'} → ${r.fin || '—'}`,
-          tema:    r.tema || '(sin tema)',
-          speaker: sp,
-          ciudades: ciudadesConflicto.join(', '),
-        });
-      }
-    });
+  // ── SECCIÓN D — Confirmados por locación ─────────────────────
+  const CITY_CONF = [
+    { key:'sl',  label:'🟥 San Luis', field:'sl_estado'  },
+    { key:'cba', label:'🟨 Córdoba',  field:'cba_estado' },
+    { key:'sj',  label:'🟩 Tucumán',  field:'sj_estado'  },
+  ];
+  html += `<div class="tl-section-title" style="margin-top:8px">✅ Speakers confirmados por locación</div><div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px">`;
+  CITY_CONF.forEach(({ key, label, field }) => {
+    const assigned = new Set();
+    rows.forEach(r => parseSpeakerField(r[key]).forEach(c => {
+      const n = c.split('|')[0].replace(/^★\s*/,'').trim();
+      if (n) assigned.add(n);
+    }));
+    const confirmed = [...assigned].filter(name => {
+      const sp = state.speakers.find(s => s.nombre === name);
+      if (!sp) return false;
+      return spEstados(sp, field).some(e => e === 'confirmado');
+    }).sort();
+    html += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;min-width:180px;flex:1">
+      <div style="font-weight:700;font-size:13px;margin-bottom:8px">${label} <span style="color:var(--btc)">(${confirmed.length}/${assigned.size})</span></div>
+      ${confirmed.length ? confirmed.map(n=>`<div style="font-size:12px;color:#22c55e;margin-bottom:2px">✅ ${esc(n)}</div>`).join('') : '<div style="font-size:12px;color:var(--dim)">Sin confirmados</div>'}
+    </div>`;
   });
-
-  if (!conflicts.length) {
-    html += `<div class="tl-no-conflict">✅ Sin conflictos detectados</div>`;
-  } else {
-    html += `<table class="tl-conflict-table">
-      <thead><tr>
-        <th>Horario</th>
-        <th>Tema</th>
-        <th>Speaker</th>
-        <th>Ciudades en conflicto</th>
-      </tr></thead>
-      <tbody>
-        ${conflicts.map(c => `<tr>
-          <td style="white-space:nowrap;font-weight:700;color:#ef4444">${esc(c.horario)}</td>
-          <td>${esc(c.tema)}</td>
-          <td style="font-weight:700;color:var(--btc)">${esc(c.speaker)}</td>
-          <td style="color:#ef4444;font-weight:600">${esc(c.ciudades)}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
-  }
-
   html += '</div>';
   wrap.innerHTML = html;
 }
