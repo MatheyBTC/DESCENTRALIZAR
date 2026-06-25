@@ -131,21 +131,31 @@ let filtro = 'todo';
 function parseSpField(val) {
   if (!val) return [];
   if (Array.isArray(val)) return val.filter(Boolean);
-  return String(val).split('||').map(s => s.trim()).filter(Boolean);
+  const s = String(val).trim();
+  if (!s) return [];
+  if (s.startsWith('[')) { try { return JSON.parse(s).filter(Boolean); } catch(e) {} }
+  return s.split('||').map(x => x.trim()).filter(Boolean);
 }
 
 function spName(combo) {
-  const p = String(combo).lastIndexOf('|');
-  return p === -1 ? combo : combo.slice(0, p).trim();
+  // formato: "Nombre Apellido|Tema del bloque" → solo el nombre
+  const p = String(combo).indexOf('|');
+  const raw = p === -1 ? combo : combo.slice(0, p).trim();
+  return raw.replace(/^★\s*/, '').trim(); // quitar estrella si la tiene
+}
+
+function hasEstrella(combo) {
+  return String(combo).startsWith('★');
 }
 
 function renderSpCell(arr) {
   if (!arr || !arr.length) return `<span class="sp-none">—</span>`;
-  const names = arr.map(spName).filter(Boolean);
+  const items = arr.filter(Boolean);
+  const names = items.map(spName).filter(Boolean);
   if (!names.length) return `<span class="sp-none">—</span>`;
-  return `<div class="sp-row">${names.map((n,i) => {
+  return `<div class="sp-row">${names.map((n, i) => {
     const color = i === 0 ? 'color:#F7931A;font-weight:700' : 'color:#e8eaf0;font-weight:400';
-    return `<span style="${color}">${esc(n)}</span>${i < names.length-1 ? '<span class="sp-sep"> | </span>' : ''}`;
+    return `<span style="${color}">${esc(n)}</span>${i < names.length - 1 ? '<span class="sp-sep"> | </span>' : ''}`;
   }).join('')}</div>`;
 }
 
