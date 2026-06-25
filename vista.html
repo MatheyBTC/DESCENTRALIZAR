@@ -229,7 +229,14 @@ async function cargar() {
     const json = await res.json();
     const data = json.data || [];
     const [, ...filas] = data; // saltar encabezado
-    let cur = 9 * 60; // 09:00 por defecto
+    // Leer hora de apertura desde Meta
+    let horaApertura = '09:00';
+    try {
+      const metaRes = await fetch(GAS_URL + '?action=get_meta');
+      const metaJson = await metaRes.json();
+      if (metaJson.ok && metaJson.meta?.hora_apertura) horaApertura = metaJson.meta.hora_apertura;
+    } catch(e) {}
+    let cur = timeToMin(horaApertura);
     rows = filas.map(r => {
       const dur = +r[1] || 0;
       const inicio = minToTime(cur);

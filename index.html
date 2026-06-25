@@ -367,7 +367,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
   <!-- Config horario -->
   <div class="config-bar">
     <span class="config-label">Inicio</span>
-    <input type="text" class="time-input green" id="horaApertura" value="09:00" placeholder="HH:MM" oninput="recalcTimes()">
+    <input type="text" class="time-input green" id="horaApertura" value="09:00" placeholder="HH:MM" oninput="recalcTimes();saveMcLocal()">
     <span class="config-label">Fin</span>
     <input type="text" class="time-input red"   id="horaCierre"   value="18:00" placeholder="HH:MM">
     <span style="color:var(--dim);font-size:15px" id="totalMin">—</span>
@@ -1202,6 +1202,7 @@ function saveMcLocal() {
     mc_sl:  (document.getElementById('mc-sl')  || {}).value || '',
     mc_cba: (document.getElementById('mc-cba') || {}).value || '',
     mc_sj:  (document.getElementById('mc-sj')  || {}).value || '',
+    hora_apertura: (document.getElementById('horaApertura') || {}).value || '09:00',
   };
   localStorage.setItem('dex_mc', JSON.stringify(mc));
   clearTimeout(_mcSaveTimer);
@@ -1220,6 +1221,10 @@ async function loadMcGlobal() {
         const el = document.getElementById('mc-'+k);
         if (el && j.meta['mc_'+k] !== undefined) el.value = j.meta['mc_'+k];
       });
+      if (j.meta.hora_apertura) {
+        const el = document.getElementById('horaApertura');
+        if (el) { el.value = j.meta.hora_apertura; recalcTimes(); }
+      }
       localStorage.setItem('dex_mc', JSON.stringify(j.meta));
       return;
     }
