@@ -229,17 +229,24 @@ async function cargar() {
     const json = await res.json();
     const data = json.data || [];
     const [, ...filas] = data; // saltar encabezado
-    rows = filas.map(r => ({
-      tipo:   r[0] || 'Charla',
-      dur:    +r[1] || 0,
-      inicio: r[2] || '',
-      fin:    r[3] || '',
-      tema:   r[4] || '',
-      bajada: r[5] || '',
-      sl:     parseSpField(r[7]),
-      sj:     parseSpField(r[8]),
-      cba:    parseSpField(r[9]),
-    })).filter(r => r.tema || r.tipo);
+    let cur = 9 * 60; // 09:00 por defecto
+    rows = filas.map(r => {
+      const dur = +r[1] || 0;
+      const inicio = minToTime(cur);
+      cur += dur;
+      const fin = minToTime(cur);
+      return {
+        tipo:   r[0] || 'Charla',
+        dur,
+        inicio,
+        fin,
+        tema:   r[4] || '',
+        bajada: r[5] || '',
+        sl:     parseSpField(r[7]),
+        sj:     parseSpField(r[8]),
+        cba:    parseSpField(r[9]),
+      };
+    }).filter(r => r.tema || r.tipo);
     render();
   } catch(e) {
     document.getElementById('loading').textContent = '⚠️ Error al cargar: ' + e.message;
