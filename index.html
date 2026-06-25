@@ -459,6 +459,7 @@ button[data-filter-tipo="sponsor"].active{background:rgba(34,197,94,.15)!importa
   <div class="noasg-header">
     <span class="noasg-title">🚫 Speakers no asignados</span>
     <span class="noasg-badge" id="noAsgCount">0</span>
+    <button onclick="exportarNoAsignados()" title="Exportar como .txt" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-size:12px;padding:3px 10px">📋 .txt</button>
     <button onclick="closeNoAsgPanel()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:18px;padding:4px">✕</button>
   </div>
   <div class="noasg-body" id="noAsgBody"></div>
@@ -1862,6 +1863,46 @@ function openNoAsgPanel() {
 function closeNoAsgPanel() {
   document.getElementById('noAsgPanel').classList.remove('open');
   document.getElementById('noAsgOverlay').classList.remove('open');
+}
+
+function exportarNoAsignados() {
+  const CITIES = [
+    { key: 'sl',  label: 'San Luis', emoji: '🟥' },
+    { key: 'sj',  label: 'Tucumán',  emoji: '🟩' },
+    { key: 'cba', label: 'Córdoba',  emoji: '🟨' },
+  ];
+  const usedGlobal = new Set();
+  state.principal.forEach(row => {
+    CITIES.forEach(c => {
+      parseSpeakerField(row[c.key]).forEach(combo => {
+        const n = combo.split('|')[0].replace(/^★\s*/,'').trim();
+        if (n) usedGlobal.add(n.toLowerCase());
+      });
+    });
+  });
+  const lista = state.speakers
+    .filter(s => (s.nombre||'').trim() && !usedGlobal.has((s.nombre||'').toLowerCase()))
+    .sort((a,b) => a.nombre.localeCompare(b.nombre,'es'));
+
+  let txt = 'DESCENTRALIZAR 2026 — Speakers NO asignados\n';
+  txt += '='.repeat(50) + '\n\n';
+  lista.forEach(s => {
+    const locs = CITIES.filter(c => (s.ciudades||'').toLowerCase().includes(c.label.toLowerCase()))
+                       .map(c => c.emoji).join(' ');
+    const movilNum = String(s.movil||'').replace(/\D/g,'');
+    const wa = movilNum ? `  wa.me/${movilNum}` : '';
+    txt += `• ${s.nombre}`;
+    if (locs) txt += `  ${locs}`;
+    if (wa)   txt += wa;
+    txt += '\n';
+  });
+  txt += `\nTotal: ${lista.length} speakers sin asignar\n`;
+
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'speakers-no-asignados.txt';
+  a.click();
 }
 
 // ══ SYNC CONFIRMADOS ══
