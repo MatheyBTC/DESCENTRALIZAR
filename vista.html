@@ -143,7 +143,10 @@ function renderSpCell(arr) {
   if (!arr || !arr.length) return `<span class="sp-none">—</span>`;
   const names = arr.map(spName).filter(Boolean);
   if (!names.length) return `<span class="sp-none">—</span>`;
-  return `<div class="sp-row">${names.map((n,i) => `<span class="sp-item">${esc(n)}</span>${i < names.length-1 ? '<span class="sp-sep">|</span>' : ''}`).join('')}</div>`;
+  return `<div class="sp-row">${names.map((n,i) => {
+    const color = i === 0 ? 'color:#F7931A;font-weight:700' : 'color:#e8eaf0;font-weight:400';
+    return `<span style="${color}">${esc(n)}</span>${i < names.length-1 ? '<span class="sp-sep"> | </span>' : ''}`;
+  }).join('')}</div>`;
 }
 
 function esc(s) {
