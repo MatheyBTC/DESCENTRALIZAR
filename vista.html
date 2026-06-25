@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DESCENTRALIZAR 2026 — Vista por Ciudad</title>
+<style>
+:root {
+  --bg:#0d0f12; --bg2:#13161b; --bg3:#1a1e25; --border:#252932;
+  --text:#e8eaf0; --muted:#8b909a; --dim:#5a5f6b;
+  --btc:#F7931A; --btc-dim:rgba(247,147,26,.12);
+  --sl:#ef4444; --cba:#eab308; --sj:#22c55e;
+  --apertura:#facc15; --break:#eab308; --charla:#3b82f6;
+  --kahoot:#c084fc; --panel:#ef4444; --taller:#22c55e;
+  --ama:#2dd4bf; --cierre:#a855f7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+
+/* NAV */
+.nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,18,.97); border-bottom: 1px solid var(--border); display: flex; align-items: center; height: 50px; padding: 0 20px; gap: 16px; }
+.nav-brand { font-weight: 800; font-size: 16px; color: var(--btc); }
+.nav-back { color: var(--muted); text-decoration: none; font-size: 13px; border: 1px solid var(--border); padding: 4px 12px; border-radius: 6px; transition: all .15s; }
+.nav-back:hover { color: var(--btc); border-color: var(--btc); }
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.btn { padding: 5px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg3); color: var(--text); transition: all .15s; }
+.btn:hover { border-color: var(--btc); color: var(--btc); }
+
+/* TABLA */
+.wrap { padding: 20px; overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 800px; }
+
+/* HEADER ciudades */
+thead th { background: var(--bg3); border: 1px solid var(--border); padding: 12px 14px; font-size: 15px; font-weight: 700; text-align: left; position: sticky; top: 50px; z-index: 10; }
+th.h-tema { color: var(--btc); width: 28%; }
+th.h-sl   { color: var(--sl);  width: 24%; }
+th.h-cba  { color: var(--cba); width: 24%; }
+th.h-sj   { color: var(--sj);  width: 24%; }
+
+/* FILAS */
+tbody tr:hover { background: rgba(247,147,26,.03); }
+td { border: 1px solid var(--border); padding: 0; vertical-align: top; }
+
+/* CELDA TEMA */
+.cell-tema { padding: 10px 12px; }
+.hora { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; margin-bottom: 4px; }
+.tipo-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-bottom: 5px; }
+.tema-txt { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.bajada-txt { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+
+/* CELDA CIUDAD */
+.cell-city { padding: 10px 12px; min-height: 56px; }
+.sp-list { display: flex; flex-direction: column; gap: 4px; }
+.sp-item { font-size: 13px; font-weight: 700; color: var(--btc); }
+.sp-sep  { color: var(--dim); font-size: 12px; margin: 0 4px; }
+.sp-none { font-size: 12px; color: var(--dim); font-style: italic; }
+.sp-row  { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; }
+
+/* TIPO COLORES */
+.t-apertura { background: rgba(250,204,21,.15); color: #facc15; }
+.t-charla   { background: rgba(59,130,246,.15);  color: #3b82f6; }
+.t-panel    { background: rgba(239,68,68,.15);   color: #ef4444; }
+.t-taller   { background: rgba(34,197,94,.15);   color: #22c55e; }
+.t-kahoot   { background: rgba(192,132,252,.15); color: #c084fc; }
+.t-break    { background: rgba(234,179,8,.15);   color: #eab308; }
+.t-ama      { background: rgba(45,212,191,.15);  color: #2dd4bf; }
+.t-cierre   { background: rgba(168,85,247,.15);  color: #a855f7; }
+.t-default  { background: var(--bg3);            color: var(--muted); }
+
+/* LOADING */
+.loading { text-align: center; padding: 80px 20px; color: var(--dim); font-size: 16px; }
+
+/* FILTROS */
+.filters { padding: 12px 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.filters span { font-size: 13px; color: var(--muted); font-weight: 700; }
+.f-btn { padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--bg3); color: var(--muted); transition: all .15s; }
+.f-btn.active { border-color: var(--btc); color: var(--btc); background: var(--btc-dim); }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="nav-brand">📌 DESCENTRALIZAR 2026</span>
+  <a class="nav-back" href="index.html">← Volver</a>
+  <div class="nav-right">
+    <button class="btn" onclick="cargar()">🔄 Actualizar</button>
+  </div>
+</div>
+
+<div class="filters">
+  <span>Mostrar:</span>
+  <button class="f-btn active" onclick="setFiltro('todo',this)">Todo</button>
+  <button class="f-btn" onclick="setFiltro('Charla',this)">🟦 Charlas</button>
+  <button class="f-btn" onclick="setFiltro('Panel',this)">🟥 Paneles</button>
+  <button class="f-btn" onclick="setFiltro('Taller',this)">🟩 Talleres</button>
+  <button class="f-btn" onclick="setFiltro('Kahoot',this)">🟪 Kahoot</button>
+  <button class="f-btn" onclick="setFiltro('Apertura',this)">🟨 Apertura</button>
+  <button class="f-btn" onclick="setFiltro('Break',this)">☕ Breaks</button>
+</div>
+
+<div class="wrap">
+  <div class="loading" id="loading">⏳ Cargando agenda…</div>
+  <table id="tabla" style="display:none">
+    <thead>
+      <tr>
+        <th class="h-tema">Tema</th>
+        <th class="h-sl">🟥 San Luis</th>
+        <th class="h-cba">🟨 Córdoba</th>
+        <th class="h-sj">🟩 Tucumán</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwskC0ocQAek4UX_dYG5qvJ0lyKTyBalDua9JieJnrrZVJojfSrzYwBBLc-EBRJJnWG/exec';
+
+const TIPO_CLASS = {
+  Apertura:'t-apertura', Charla:'t-charla', Panel:'t-panel', Taller:'t-taller',
+  Kahoot:'t-kahoot', Break:'t-break', AMA:'t-ama', Cierre:'t-cierre'
+};
+const TIPO_EMOJI = {
+  Apertura:'🟨', Charla:'🟦', Panel:'🟥', Taller:'🟩',
+  Kahoot:'🟪', Break:'☕', AMA:'🎤', Cierre:'🟨'
+};
+
+let rows = [];
+let filtro = 'todo';
+
+function parseSpField(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val.filter(Boolean);
+  return String(val).split('||').map(s => s.trim()).filter(Boolean);
+}
+
+function spName(combo) {
+  const p = String(combo).lastIndexOf('|');
+  return p === -1 ? combo : combo.slice(0, p).trim();
+}
+
+function renderSpCell(arr) {
+  if (!arr || !arr.length) return `<span class="sp-none">—</span>`;
+  const names = arr.map(spName).filter(Boolean);
+  if (!names.length) return `<span class="sp-none">—</span>`;
+  return `<div class="sp-row">${names.map((n,i) => `<span class="sp-item">${esc(n)}</span>${i < names.length-1 ? '<span class="sp-sep">|</span>' : ''}`).join('')}</div>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function tipoClass(t) { return TIPO_CLASS[t] || 't-default'; }
+function tipoEmoji(t) { return TIPO_EMOJI[t] || ''; }
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  const visible = filtro === 'todo' ? rows : rows.filter(r => r.tipo === filtro);
+
+  tbody.innerHTML = visible.map(r => {
+    const tc = tipoClass(r.tipo);
+    const em = tipoEmoji(r.tipo);
+    const sl  = renderSpCell(r.sl);
+    const cba = renderSpCell(r.cba);
+    const sj  = renderSpCell(r.sj);
+    return `<tr>
+      <td>
+        <div class="cell-tema">
+          <div class="hora">${esc(r.inicio)} – ${esc(r.fin)}</div>
+          <span class="tipo-badge ${tc}">${em} ${esc(r.tipo)}</span>
+          <div class="tema-txt">${esc(r.tema || '—')}</div>
+          ${r.bajada ? `<div class="bajada-txt">${esc(r.bajada)}</div>` : ''}
+        </div>
+      </td>
+      <td><div class="cell-city">${sl}</div></td>
+      <td><div class="cell-city">${cba}</div></td>
+      <td><div class="cell-city">${sj}</div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('tabla').style.display = '';
+}
+
+function setFiltro(tipo, btn) {
+  filtro = tipo;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+async function cargar() {
+  document.getElementById('loading').style.display = '';
+  document.getElementById('tabla').style.display = 'none';
+  try {
+    const res  = await fetch(GAS_URL + '?sheet=Principal');
+    const json = await res.json();
+    const data = json.data || [];
+    const [, ...filas] = data; // saltar encabezado
+    rows = filas.map(r => ({
+      tipo:   r[0] || 'Charla',
+      dur:    +r[1] || 0,
+      inicio: r[2] || '',
+      fin:    r[3] || '',
+      tema:   r[4] || '',
+      bajada: r[5] || '',
+      sl:     parseSpField(r[7]),
+      sj:     parseSpField(r[8]),
+      cba:    parseSpField(r[9]),
+    }));
+    render();
+  } catch(e) {
+    document.getElementById('loading').textContent = '⚠️ Error al cargar: ' + e.message;
+  }
+}
+
+cargar();
+</script>
+</body>
+</html>
